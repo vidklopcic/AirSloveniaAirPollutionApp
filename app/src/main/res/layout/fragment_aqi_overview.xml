@@ -8,48 +8,65 @@
         <RelativeLayout android:id="@+id/aqi_overview_chart_container"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-            android:layout_above="@+id/aqi_overview_x_labels_container">
+            android:layout_above="@+id/aqi_overview_x_labels_container"
+            android:background="@color/aqi_overview_chart_bg">
             <LinearLayout android:id="@+id/chart_background"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_toLeftOf="@+id/aqi_chart_text_container">
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/aqi_overview_chart_separator_lines"
                     android:background="@color/aqi_hazardous"/>
-
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/aqi_overview_chart_separator_lines"
                     android:background="@color/aqi_very_unhealthy"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/aqi_overview_chart_separator_lines"
                     android:background="@color/aqi_unhealthy"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/aqi_overview_chart_separator_lines"
                     android:background="@color/aqi_unhealthy_for_sensitive"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/aqi_overview_chart_separator_lines"
                     android:background="@color/aqi_moderate"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@color/aqi_good"/>
+                    android:layout_weight="1"/>
             </LinearLayout>
             <LinearLayout android:id="@+id/aqi_chart_text_container"
                 android:orientation="vertical"
                 android:layout_width="wrap_content"
                 android:layout_alignParentRight="true"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="-8dp">
                 <TextView
                     style="@style/AqiChartTextSeparator"
                     android:text="@string/hazardous"/>
@@ -67,6 +84,8 @@
                     android:text="@string/moderate"/>
                 <TextView
                     style="@style/AqiChartTextSeparator"
+                    android:layout_marginTop="-8dp"
+                    android:layout_marginBottom="8dp"
                     android:text="@string/good"/>
             </LinearLayout>
             <LinearLayout android:id="@+id/aqi_chart_bars_layout"
@@ -79,7 +98,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -88,14 +107,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.45"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_unhealthy_for_sensitive"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -104,14 +123,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.4"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_unhealthy_for_sensitive"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -120,14 +139,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.5"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_unhealthy"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -136,14 +155,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.8"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_very_unhealthy"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -152,14 +171,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.2"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_moderate"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -168,14 +187,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.3"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_moderate"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"/>
                 <LinearLayout
-                    android:layout_width="15dp"
+                    android:layout_width="@dimen/aqi_overview_chart_bar_width"
                     android:orientation="vertical"
                     android:layout_height="match_parent"
                     android:weightSum="1"
@@ -184,7 +203,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="0.1"
-                        android:background="@color/aqi_overview_bar"/>
+                        android:background="@color/aqi_good"/>
                 </LinearLayout>
                 <View
                     android:layout_width="0dp"
