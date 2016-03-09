@@ -13,4 +13,8 @@
     <color name="aqi_very_unhealthy_pressed">#ffa04f4e</color>
     <color name="aqi_hazardous">#ff932691</color>
     <color name="aqi_hazardous_pressed">#ffffa5f0</color>
+    <color name="aqi_overview_chart_bg">#1d1d1d</color>
+    <color name="aqi_overview_chart_separator_line">#fff</color>
+    <color name="aqi_overview_separator_text_color">#fff</color>
+    <color name="aqi_overview_bar">#fff</color>
 </resources>

@@ -67,7 +67,7 @@
         android:orientation="horizontal"
         android:id="@+id/dashboard_summary_favorites_layout"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="180dp"
         android:layout_alignParentBottom="true">
 
     </LinearLayout>
