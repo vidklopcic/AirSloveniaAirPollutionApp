@@ -1,0 +1,22 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
+
+    <style name="TitleWhite">
+        <item name="android:textColor">#FFF</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_centerInParent">true</item>
+    </style>
+    <style name="BoldTitleWhite" parent="TitleWhite">
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="SubtitleWhite" parent="TitleWhite">
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="SubtitleBoldWhite" parent="SubtitleWhite">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="maps_blue">#4286f5</color>
+    <color name="aqi_good">#ff7ab439</color>
+    <color name="aqi_good_pressed">#ffbeff69</color>
+    <color name="aqi_moderate">#ffdcb704</color>
+    <color name="aqi_moderate_pressed">#ffffeb52</color>
+    <color name="aqi_unhealthy_for_sensitive">#ffda8219</color>
+    <color name="aqi_unhealthy_for_sensitive_pressed">#ffffce56</color>
+    <color name="aqi_unhealthy">#ffe80002</color>
+    <color name="aqi_unhealthy_pressed">#ffff6555</color>
+    <color name="aqi_very_unhealthy">#A00208</color>
+    <color name="aqi_very_unhealthy_pressed">#ffa04f4e</color>
+    <color name="aqi_hazardous">#ff932691</color>
+    <color name="aqi_hazardous_pressed">#ffffa5f0</color>
+</resources>

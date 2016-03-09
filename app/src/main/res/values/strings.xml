@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Citi Sense</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="waiting_for_location">Waiting for location…</string>
+</resources>
