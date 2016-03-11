@@ -7,5 +7,6 @@ public abstract class Constants {
         public static int UNHEALTHY = 151;
         public static int VERY_UNHEALTHY = 101;
         public static int HAZARDOUS = 301;
+        public static int SUM = 500;
     }
 }

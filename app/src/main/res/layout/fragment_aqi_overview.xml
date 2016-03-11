@@ -15,7 +15,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.2"/>
+                android:layout_weight="0.4"/>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/aqi_overview_chart_separator_lines"
@@ -68,7 +68,7 @@
             android:layout_marginBottom="-8dp">
             <TextView
                 style="@style/AqiChartTextSeparator"
-                android:layout_weight="0.2"
+                android:layout_weight="0.4"
                 android:text="@string/hazardous"/>
             <TextView
                 style="@style/AqiChartTextSeparator"
@@ -101,17 +101,17 @@
             android:layout_height="match_parent">
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.45"
+                    android:layout_weight="0.37"
                     android:background="@color/aqi_unhealthy"/>
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.3"
+                    android:layout_weight="0.25"
                     android:background="@color/aqi_unhealthy_for_sensitive"/>
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.6"
+                    android:layout_weight="0.55"
                     android:background="@color/aqi_very_unhealthy"/>
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
@@ -121,17 +121,17 @@
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.2"
-                    android:background="@color/aqi_moderate"/>
+                    android:layout_weight="0.5"
+                    android:background="@color/aqi_very_unhealthy"/>
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.3"
+                    android:layout_weight="0.27"
                     android:background="@color/aqi_unhealthy_for_sensitive"/>
             </LinearLayout>
             <LinearLayout style="@style/AqiChartBar">
                 <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.1"
+                    android:layout_weight="0.05"
                     android:background="@color/aqi_good"/>
             </LinearLayout>
 

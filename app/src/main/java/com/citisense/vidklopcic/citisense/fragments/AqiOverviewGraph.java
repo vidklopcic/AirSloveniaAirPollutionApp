@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
+import com.citisense.vidklopcic.citisense.util.AQI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,9 +82,11 @@ public class AqiOverviewGraph extends Fragment {
         return label;
     }
 
-    private LinearLayout createBar(Integer val) {
+    private LinearLayout createBar(int aqi) {
         LinearLayout bar = new LinearLayout(mContext, null, R.style.AqiChartBar);
         View bar_content = new View(mContext, null, R.style.AqiChartBar_content);
+        bar_content.setBackgroundColor(ContextCompat.getColor(mContext, AQI.getColor(aqi)));
+        bar.addView(bar_content);
         return bar;
     }
 }
