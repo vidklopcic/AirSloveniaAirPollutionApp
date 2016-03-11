@@ -3,5 +3,5 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="aqi_overview_chart_separator_lines">2px</dimen>
-    <dimen name="aqi_overview_chart_bar_width">10dp</dimen>
+    <dimen name="aqi_overview_chart_bar_width">20dp</dimen>
 </resources>

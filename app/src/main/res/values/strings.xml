@@ -3,8 +3,6 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
-<!-- TODO: Remove or change this placeholder text -->
     <string name="waiting_for_location">Waiting for location…</string>
     <string name="hazardous">hazardous</string>
     <string name="very_unh">very unh.</string>
@@ -12,4 +10,5 @@
     <string name="u_for_sens">u. for sens.</string>
     <string name="moderate">moderate</string>
     <string name="good">good</string>
+
 </resources>

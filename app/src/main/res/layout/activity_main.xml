@@ -7,12 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:gravity="center"
-        android:background="@color/maps_blue">
-        <!--<TextView-->
-            <!--style="@style/BoldTitleWhite"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="@string/waiting_for_location"/>-->
+        android:background="@color/dashboard_top_bg">
         <TextView
             android:id="@+id/dashboard_area_text"
             style="@style/BoldTitleWhite"
