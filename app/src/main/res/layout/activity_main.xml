@@ -51,7 +51,7 @@
                 android:text="78%"/>
         </LinearLayout>
     </RelativeLayout>
-    <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverview"
+    <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph"
         android:id="@+id/dashboard_bar_chart_fragment"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"

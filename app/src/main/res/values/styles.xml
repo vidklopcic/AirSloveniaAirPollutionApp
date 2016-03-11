@@ -27,7 +27,6 @@
     <style name="AqiChartTextSeparator">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">0dp</item>
-        <item name="android:layout_weight">1</item>
         <item name="android:textColor">@color/aqi_overview_separator_text_color</item>
         <item name="android:gravity">bottom</item>
     </style>
@@ -47,7 +46,7 @@
         <item name="android:gravity">bottom|center</item>
     </style>
 
-    <style name="AqiChartBar.Content">
+    <style name="AqiChartBar.content">
         <item name="android:layout_width">@dimen/aqi_overview_chart_bar_width</item>
         <item name="android:layout_height">0dp</item>
     </style>
