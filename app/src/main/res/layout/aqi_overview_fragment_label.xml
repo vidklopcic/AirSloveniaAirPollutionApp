@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/AqiChartLabel.layout">
+    <TextView style="@style/AqiChartLabel"
+        android:id="@+id/aqi_text"/>
+    <TextView style="@style/AqiChartLabel.subtitle"
+        android:id="@+id/aqi_subtitle"/>
+</LinearLayout>

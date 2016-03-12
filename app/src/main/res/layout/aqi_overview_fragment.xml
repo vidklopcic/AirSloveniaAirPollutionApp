@@ -1,8 +1,11 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph">
+    tools:context="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph"
+    android:clickable="true"
+    android:onClick="fragmentClicked">
     <RelativeLayout
+        android:id="@+id/aqi_overview_chart_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/aqi_overview_chart_bg">
@@ -63,9 +66,9 @@
             android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_height="match_parent"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:layout_marginLeft="2dp"
-            android:layout_marginBottom="-8dp">
+            android:layout_marginBottom="-6dp">
             <TextView
                 style="@style/AqiChartTextSeparator"
                 android:layout_weight="0.4"
@@ -89,8 +92,8 @@
             <TextView
                 style="@style/AqiChartTextSeparator"
                 android:layout_weight="0.1"
-                android:layout_marginTop="-8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="-6dp"
+                android:layout_marginBottom="6dp"
                 android:text="@string/good"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/aqi_chart_bars_layout"
@@ -99,104 +102,13 @@
             android:layout_toLeftOf="@+id/aqi_chart_text_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.37"
-                    android:background="@color/aqi_unhealthy"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.25"
-                    android:background="@color/aqi_unhealthy_for_sensitive"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.55"
-                    android:background="@color/aqi_very_unhealthy"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.8"
-                    android:background="@color/aqi_hazardous"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.5"
-                    android:background="@color/aqi_very_unhealthy"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.27"
-                    android:background="@color/aqi_unhealthy_for_sensitive"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartBar">
-                <View style="@style/AqiChartBar.content"
-                    android:layout_weight="0.05"
-                    android:background="@color/aqi_good"/>
-            </LinearLayout>
 
         </LinearLayout>
         <LinearLayout style="@style/AqiChartLabel.layout.container"/>
         <LinearLayout android:id="@+id/aqi_overview_x_labels_container"
             style="@style/AqiChartLabel.layout.container"
-            android:background="@color/aqi_overview_label_color"
+            android:background="@color/aqi_overview_label_separator_color"
             android:layout_toLeftOf="@+id/aqi_chart_text_container">
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="CO"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="CO₂"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="O₃"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="PM₁₀"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="PM₂.₅"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="SO₂"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
-            <LinearLayout style="@style/AqiChartLabel.layout">
-                <TextView
-                    style="@style/AqiChartLabel"
-                    android:text="NO"/>
-                <TextView
-                    style="@style/AqiChartLabel.subtitle"
-                    android:text="354"/>
-            </LinearLayout>
 
         </LinearLayout>
     </RelativeLayout>

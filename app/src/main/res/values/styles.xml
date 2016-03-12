@@ -27,6 +27,7 @@
     <style name="AqiChartTextSeparator">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">0dp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/aqi_overview_separator_text_color</item>
         <item name="android:gravity">bottom</item>
     </style>

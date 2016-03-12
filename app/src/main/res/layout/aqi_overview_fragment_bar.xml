@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/AqiChartBar">
+    <View style="@style/AqiChartBar.content"
+        android:id="@+id/aqi_bar_content"/>
+</LinearLayout>
