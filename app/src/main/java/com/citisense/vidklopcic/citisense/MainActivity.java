@@ -27,6 +27,6 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void titleClicked(View view) {
-        mChartFragment.setBarAqi("NO", 203);
+        mChartFragment.setBarAqi("NO", 20);
     }
 }

@@ -2,15 +2,12 @@ package com.citisense.vidklopcic.citisense.fragments;
 
 import android.app.Fragment;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -37,7 +34,6 @@ public class AqiOverviewGraph extends Fragment {
     private Context mContext;
     private LayoutInflater mInflater;
     private int mChartRange = 0;
-    private Animation mAqiBarAnimation;
     private Integer mAQIBarsContainerHeight;
 
 
@@ -158,8 +154,8 @@ public class AqiOverviewGraph extends Fragment {
     }
 
     public void setLabelAqi(LinearLayout label, Integer aqi) {
-        Integer old_aqi = getAqiFromLabel(label);
-        if(old_aqi == mChartRange && aqi < mChartRange) {
+        int old_aqi = getAqiFromLabel(label);
+        if (getMaxAqi() ==  old_aqi && old_aqi > aqi) {
             setChartRange(aqi);
         }
         TextView subtitle = (TextView)label.findViewById(R.id.aqi_subtitle);
@@ -168,7 +164,7 @@ public class AqiOverviewGraph extends Fragment {
 
     private void setChartRange(int max_aqi) {
         mChartRange = max_aqi;
-        Float height_increase = Constants.AQI.SUM / (max_aqi+5);    // max_axi+x.. x = margin
+        Float height_increase = Constants.AQI.SUM / (max_aqi+Constants.AQI.BAR_OFFSET);    // max_axi+x.. x = margin
         Integer top_margin = (int) -(height_increase * mAQIBarsContainerHeight - mAQIBarsContainerHeight);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mAqiChartContainer.getLayoutParams();
         params.setMargins(0, top_margin, 0, 0);
@@ -177,5 +173,14 @@ public class AqiOverviewGraph extends Fragment {
 
     private int getAqiFromLabel(LinearLayout label) {
         return Integer.valueOf((String) ((TextView) label.findViewById(R.id.aqi_subtitle)).getText());
+    }
+
+    private int getMaxAqi() {
+        int max_aqi = 0;
+        for(ArrayList<LinearLayout> l: mAQIBars.values()) {
+            int aqi = getAqiFromLabel(l.get(1));
+            if (aqi > max_aqi) max_aqi = aqi;
+        }
+        return max_aqi;
     }
 }
