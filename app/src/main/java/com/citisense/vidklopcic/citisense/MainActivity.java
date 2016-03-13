@@ -18,15 +18,15 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void fragmentClicked(View view) {
-        mChartFragment.addBar(203, "CO");
-        mChartFragment.addBar(110, "CO2");
+        mChartFragment.addBar(110, "CO");
+        mChartFragment.addBar(205, "CO2");
         mChartFragment.addBar(125, "PM2.5");
         mChartFragment.addBar(94, "PM10");
         mChartFragment.addBar(57, "O3");
-        mChartFragment.addBar(43, "NO");
+        mChartFragment.addBar(420, "NO");
     }
 
     public void titleClicked(View view) {
-        mChartFragment.setBarAqi("CO", 400);
+        mChartFragment.setBarAqi("NO", 203);
     }
 }
