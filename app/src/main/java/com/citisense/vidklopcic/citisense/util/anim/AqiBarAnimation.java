@@ -1,14 +1,10 @@
 package com.citisense.vidklopcic.citisense.util.anim;
 
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 
 public class AqiBarAnimation extends Animation {
@@ -26,7 +22,6 @@ public class AqiBarAnimation extends Animation {
         mBarContent = bar_content;
         repeat_count = Math.abs(aqi_start - aqi_end);
         start_aqi = aqi_start;
-        Log.d(AqiOverviewGraph.LOG_ID, start_aqi.toString());
 
         setDuration(DURATION);
         setInterpolator(new AccelerateDecelerateInterpolator());

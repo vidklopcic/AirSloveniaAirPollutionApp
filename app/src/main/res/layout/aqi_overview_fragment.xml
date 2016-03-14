@@ -104,7 +104,8 @@
             android:layout_height="match_parent">
 
         </LinearLayout>
-        <LinearLayout style="@style/AqiChartLabel.layout.container"/>
+        <LinearLayout style="@style/AqiChartLabel.layout.container"
+            android:layout_marginRight="-10dp"/>
         <LinearLayout android:id="@+id/aqi_overview_x_labels_container"
             style="@style/AqiChartLabel.layout.container"
             android:background="@color/aqi_overview_label_separator_color"
