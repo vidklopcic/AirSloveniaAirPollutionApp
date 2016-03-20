@@ -1,8 +1,14 @@
 package com.citisense.vidklopcic.citisense;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -10,13 +16,17 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
+import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.SlidingMenuHelper;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
-public class MainActivity extends FragmentActivity {
+import java.io.IOException;
+
+public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener {
     AqiOverviewGraph mChartFragment;
     private SlidingMenu mMenu;
     private LinearLayout mAQISummary;
+    private LocationHelper mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +39,8 @@ public class MainActivity extends FragmentActivity {
                 aqiSummaryContainer, false);
         aqiSummaryContainer.addView(mAQISummary);
         setAQISummary(200);
+        mLocation = new LocationHelper(this);
+        mLocation.setLocationHelperListener(this);
     }
 
     public void fragmentClicked(View view) {
@@ -84,5 +96,30 @@ public class MainActivity extends FragmentActivity {
         ((TextView)mAQISummary.findViewById(R.id.aqi_summary_title)).setText(aqi_title);
         ((TextView)mAQISummary.findViewById(R.id.aqi_summary_title)).setTextColor(getResources().getColor(color));
         ((ImageView)mAQISummary.findViewById(R.id.aqi_summary_icon)).setImageResource(aqi_icon);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case LocationHelper.LOCATION_PERMISSION_RESULT: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocation.startLocationReading();
+                    Log.d("aqi_fragment", "granted");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onLocationChanged() {
+
+    }
+
+    @Override
+    public void onCityChange(String city) {
+        Log.d("aqi_fragment", city);
     }
 }
