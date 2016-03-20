@@ -10,5 +10,18 @@
     <string name="u_for_sens">u. for sens.</string>
     <string name="moderate">moderate</string>
     <string name="good">good</string>
-
+    <string name="news">Two weeks ago, the Environmental Protection Agency published proposals to designate 12 areas of the country—including Alton and Marion, Illinois; Jefferson and Posey, Indiana; DeSoto Parish, Louisiana; Anne Arundel and Baltimore, Maryland; St. Clair, Michigan; Franklin, Missouri; Muskogee, Oklahoma; and Freestone, Rusk, and Titus, Texas—as “nonattainment” for the dangerous pollutant sulfur dioxide, or SO2.  While EPA won’t finalize the designations until July, what needs to happen next is for the agency to recognize that there are far more than 12 areas across the United States that are in need of having their air cleaned up. \n\n But to explain the importance of all this, we need to back up a bit.  One of the most powerful tools under the Clean Air Act for protecting the air we breathe is something called an “ambient air quality standard.”  The way it works is this: EPA follows the science and determines the level for certain pollutants above which it’s unsafe for human health, and then issues standards for those pollutants.  For SO2 pollution, it’s 75 parts per billion.  EPA then determines what parts of the country have safe air quality, and what parts have air quality worse than the standard.  These latter areas are called “nonattainment,” and the Clean Air Act imposes strict requirements on states to fix their air quality problems, and directs EPA to step in and handle things if states don’t shoulder their responsibility.</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="aqi_summary_hazardous_text">Health alert: everyone may experience more serious health effects. Everyone should avoid outdoor exertion.</string>
+    <string name="aqi_summary_very_unhealthy_text">Health warnings of emergency conditions. The entire population is more likely to be affected.</string>
+    <string name="aqi_summary_unhealthy_text">Everyone may begin to experience some adverse health effects, and more sensitive people may experience more severe effects.</string>
+    <string name="aqi_summary_unhealthy_for_sensitive_text">People with lung disease, older adults and children are at a greater risk from exposure to certain pollutants.</string>
+    <string name="aqi_summary_moderate_text">Air quality is acceptable; however, there may be a moderate health concern for a very small number of people.</string>
+    <string name="aqi_summary_good_text">Air quality is considered satisfactory, and air pollution poses little or no risk.</string>
+    <string name="aqi_summary_hazardous_title">HAZARDOUS</string>
+    <string name="aqi_summary_very_unhealthy_title">VERY UNHEALTHY</string>
+    <string name="aqi_summary_unhealthy_title">UNHEALTHY</string>
+    <string name="aqi_summary_unhealthy_for_sensitive_title">UNHEALTHY FOR SENSITIVE</string>
+    <string name="aqi_summary_moderate_title">MODERATE</string>
+    <string name="aqi_summary_good_title">GOOD</string>
 </resources>

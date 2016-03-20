@@ -83,6 +83,12 @@ public class AqiOverviewGraph extends Fragment {
                     public void run() {
                         if (mAQIBarsContainerHeight == null) {
                             mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
+                            addBar(86, "CO");
+                            addBar(122, "PM2.5");
+                            addBar(124, "PM10");
+                            addBar(25, "O3");
+                            addBar(41, "NO2");
+                            addBar(34, "NO");
                         }
                     }
                 });
