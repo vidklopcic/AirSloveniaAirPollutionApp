@@ -11,9 +11,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 public class DataAPI {
+    public interface DataUpdateListener {
+        void onDataUpdate(ArrayList<CitiSenseStation> updated_stations);
+    }
+
     public DataAPI() {
         getConfig();
     }
@@ -30,10 +35,10 @@ public class DataAPI {
 
         @Override
         protected String doInBackground(String... params) {
-            URL url = null;
+            URL url;
             try {
                 url = new URL(params[0]);
-                HttpURLConnection conn = null;
+                HttpURLConnection conn;
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setReadTimeout(Constants.DataSources.timeout);
                 conn.setConnectTimeout(Constants.DataSources.timeout);

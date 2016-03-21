@@ -18,4 +18,10 @@ public abstract class Constants {
         public static final float SUM = 500;
         public static final int BAR_OFFSET = 20;
     }
+
+    public static class CitiSenseStation {
+        public static final String date_format = "yyyy-MM-ddTHH:mm:ss.000";
+        public static final String time_key = "start_time";
+        public static final String last_measurement_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/lastobservation?sensorid=";
+    }
 }
