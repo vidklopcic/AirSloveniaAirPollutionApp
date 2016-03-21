@@ -30,7 +30,7 @@
             android:value="true" />
         <meta-data
             android:name="DOMAIN_PACKAGE_NAME"
-            android:value="com.citisense.vidklopcic.citisense.db" />
+            android:value="com.citisense.vidklopcic.citisense.data.entities" />
 
         <activity
             android:name=".MainActivity"

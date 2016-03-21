@@ -1,13 +1,9 @@
 package com.citisense.vidklopcic.citisense;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,12 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
+import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.SlidingMenuHelper;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-
-import java.io.IOException;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener {
     AqiOverviewGraph mChartFragment;
@@ -41,6 +36,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         setAQISummary(200);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
+        DataAPI d = new DataAPI();
     }
 
     public void fragmentClicked(View view) {
