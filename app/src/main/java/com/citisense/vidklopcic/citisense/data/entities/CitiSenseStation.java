@@ -30,7 +30,7 @@ public class CitiSenseStation extends SugarRecord {
         this.lng = lng;
     }
 
-    public void setMeasurement(JSONObject measurement) {
+    public void setLastMeasurement(JSONObject measurement) {
         this.last_measurement = measurement.toString();
         try {
             Date time = Conversion.Time.stringToDate(
@@ -39,6 +39,15 @@ public class CitiSenseStation extends SugarRecord {
             last_measurement_time = time.getTime() / 1000;  // milliseconds since 1970 (/1000) -> seconds
         } catch (Exception e) {
             Log.d("CitiSenseStation", "error parsing measurement time");
+        }
+    }
+
+    public JSONObject getLastMeasurement() {
+        try {
+            return new JSONObject(last_measurement);
+        } catch (JSONException e) {
+            Log.d("CitiSenseStation", "error parsing last_measurement");
+            return null;
         }
     }
 
