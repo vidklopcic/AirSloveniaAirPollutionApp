@@ -1,8 +1,7 @@
 package com.citisense.vidklopcic.citisense.data;
 
-import java.util.ArrayList;
-
 public abstract class Constants {
+    public static final int MILLI = 1000;
     public static class DataSources {
         public static final String config_version_url = "http://pastebin.com/raw/RQnbq08t";
         public static final String config_url = "http://pastebin.com/raw/P1dnQb0L";
@@ -23,5 +22,6 @@ public abstract class Constants {
         public static final String date_format = "yyyy-MM-ddTHH:mm:ss.000";
         public static final String time_key = "start_time";
         public static final String last_measurement_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/lastobservation?sensorid=";
+        public static final int update_interval = 900 * MILLI;
     }
 }

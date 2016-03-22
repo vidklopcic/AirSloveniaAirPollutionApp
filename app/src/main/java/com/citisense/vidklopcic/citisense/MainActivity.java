@@ -12,10 +12,13 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
+import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.SlidingMenuHelper;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+
+import java.util.ArrayList;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener {
     AqiOverviewGraph mChartFragment;
@@ -37,6 +40,19 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
         DataAPI d = new DataAPI();
+        d.setDataUpdateListener(new DataAPI.DataUpdateListener() {
+            @Override
+            public void onDataUpdate() {
+
+            }
+
+            @Override
+            public void onStationUpdate(CitiSenseStation station) {
+
+            }
+        });
+        d.setObservedStations((ArrayList<CitiSenseStation>) CitiSenseStation.listAll(CitiSenseStation.class));
+        d.updateData();
     }
 
     public void fragmentClicked(View view) {
