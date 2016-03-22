@@ -14,9 +14,14 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
+import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.SlidingMenuHelper;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -25,7 +30,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private SlidingMenu mMenu;
     private LinearLayout mAQISummary;
     private LocationHelper mLocation;
-
+    private DataAPI d;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,8 +44,13 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         setAQISummary(200);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
-        DataAPI d = new DataAPI();
+        d = new DataAPI();
         d.setDataUpdateListener(new DataAPI.DataUpdateListener() {
+            @Override
+            public void onReady() {
+                d.setObservedStations((ArrayList<CitiSenseStation>) CitiSenseStation.listAll(CitiSenseStation.class));
+            }
+
             @Override
             public void onDataUpdate() {
 
@@ -48,11 +58,23 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
             @Override
             public void onStationUpdate(CitiSenseStation station) {
-
+                JSONArray measurement = station.getLastMeasurement();
+                for (int i = 0; i < measurement.length(); i++) {
+                    try {
+                        JSONObject pollutant = measurement.getJSONObject(i);
+                        if (pollutant.getString("observedproperty").equals("NO2")) {
+                            Double val = pollutant.getDouble("value");
+                            Log.d("aqi_fragment", val.toString() + pollutant.toString());
+                            Log.d("aqi_fragment", "aqi: " + Conversion.AQI.NO2.getAqi(
+                                    val
+                            ).toString());
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
-        d.setObservedStations((ArrayList<CitiSenseStation>) CitiSenseStation.listAll(CitiSenseStation.class));
-        d.updateData();
     }
 
     public void fragmentClicked(View view) {

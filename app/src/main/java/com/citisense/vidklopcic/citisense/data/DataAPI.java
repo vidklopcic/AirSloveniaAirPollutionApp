@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 public class DataAPI {
     private static final String LOG_ID = "DataAPI";
@@ -23,6 +24,7 @@ public class DataAPI {
     private boolean mForceUpdate = false;
 
     public interface DataUpdateListener {
+        void onReady();
         void onDataUpdate();
         void onStationUpdate(CitiSenseStation station);
     }
@@ -30,7 +32,6 @@ public class DataAPI {
     public DataAPI() {
         getConfig();
         mActiveStations = new ArrayList<>();
-        new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
     }
 
     public void setObservedStations(ArrayList<CitiSenseStation> stations) {
@@ -56,7 +57,6 @@ public class DataAPI {
             try {
                 String result = Network.GET(params[0]);
                 try {
-                    CitiSenseStation.deleteAll(CitiSenseStation.class);
                     JSONObject config = new JSONObject(result);
                     Iterator<String> providers = config.keys();
                     while (providers.hasNext()) {
@@ -72,9 +72,19 @@ public class DataAPI {
                                 Float lat = (float) station.getDouble(1);
                                 Float lng = (float) station.getDouble(2);
                                 JSONArray pollutants = station.getJSONArray(3);
-                                CitiSenseStation stationdb = new CitiSenseStation(
-                                        id, place_key, pollutants, lat, lng
-                                );
+                                List<CitiSenseStation> old_station = CitiSenseStation.find(CitiSenseStation.class, "stationid = ?", id);
+                                CitiSenseStation stationdb;
+                                if (old_station.size() != 0) {
+                                    stationdb = old_station.get(0);
+                                    stationdb.setCity(place_key);
+                                    stationdb.setPollutants(pollutants);
+                                    stationdb.setLocation(lat, lng);
+                                } else {
+                                    stationdb = new CitiSenseStation(
+                                            id, place_key, pollutants, lat, lng
+                                    );
+                                }
+
                                 stationdb.save();
                             }
                         }
@@ -83,7 +93,7 @@ public class DataAPI {
                     Log.d(LOG_ID, "json can't be read");
                 }
                 return result;
-            } catch (Exception ignored) {
+            } catch (IOException ignored) {
                 Log.d(LOG_ID, "config GET error");
             }
             return "";
@@ -91,6 +101,7 @@ public class DataAPI {
 
         protected void onPostExecute(String result) {
             Log.d(LOG_ID, result);
+            new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
         }
     }
 
@@ -105,21 +116,21 @@ public class DataAPI {
             for (CitiSenseStation station : mActiveStations) {
                 if (new Date().getTime() - station.getLastMeasurementTime()
                         > Constants.CitiSenseStation.update_interval || mForceUpdate) {
-                    Log.d("aqi_fragment", station.getLastMeasurementTime().toString());
+
                     mForceUpdate = false;
                     updated = true;
                     try {
                         String last_measurement = Network.GET(Constants.CitiSenseStation.last_measurement_url
                                 + station.getStationId());
-                        Log.d(LOG_ID, last_measurement);
                         station.setLastMeasurement(last_measurement);
-                        station.save();
-                        publishProgress(station);
                     } catch (IOException e) {
                         Log.d(LOG_ID, "couldn't get last measurement for " + station.getStationId());
                     } catch (JSONException e) {
                         Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
                     }
+                    Log.d("log_tag1", String.valueOf(new Date().getTime())+ " - "+station.getLastMeasurementTime().toString());
+                    station.save();
+                    publishProgress(station);
                 }
             }
             return updated;
@@ -137,6 +148,9 @@ public class DataAPI {
                 mListener.onDataUpdate();
             }
             new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
+            if (mListener != null) {
+                mListener.onReady();
+            }
         }
     }
 }

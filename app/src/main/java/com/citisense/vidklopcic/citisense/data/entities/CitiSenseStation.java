@@ -35,10 +35,10 @@ public class CitiSenseStation extends SugarRecord {
             last_measurement_time = new Date().getTime();  // milliseconds since 1970
     }
 
-    public JSONObject getLastMeasurement() {
+    public JSONArray getLastMeasurement() {
         try {
-            return new JSONObject(last_measurement);
-        } catch (JSONException e) {
+            return new JSONArray(last_measurement);
+        } catch (Exception e) {
             Log.d("CitiSenseStation", "error parsing last_measurement");
             return null;
         }
@@ -69,5 +69,18 @@ public class CitiSenseStation extends SugarRecord {
 
     public String getStationId() {
         return station_id;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setLocation(Float lat, Float lng) {
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public void setPollutants(JSONArray pollutants) {
+        this.pollutants = pollutants.toString();
     }
 }
