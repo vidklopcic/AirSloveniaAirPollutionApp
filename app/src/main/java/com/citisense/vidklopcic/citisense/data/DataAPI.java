@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.Network;
 
 import org.json.JSONArray;
@@ -14,6 +15,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,9 +24,9 @@ public class DataAPI {
     private ArrayList<CitiSenseStation> mActiveStations;
     private DataUpdateListener mListener;
     private boolean mForceUpdate = false;
-
+    private boolean mFirstRun = true;
     public interface DataUpdateListener {
-        void onReady();
+        void onDataReady();
         void onDataUpdate();
         void onStationUpdate(CitiSenseStation station);
     }
@@ -128,7 +130,6 @@ public class DataAPI {
                     } catch (JSONException e) {
                         Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
                     }
-                    Log.d("log_tag1", String.valueOf(new Date().getTime())+ " - "+station.getLastMeasurementTime().toString());
                     station.save();
                     publishProgress(station);
                 }
@@ -148,8 +149,9 @@ public class DataAPI {
                 mListener.onDataUpdate();
             }
             new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
-            if (mListener != null) {
-                mListener.onReady();
+            if (mListener != null && mFirstRun) {
+                mListener.onDataReady();
+                mFirstRun = false;
             }
         }
     }

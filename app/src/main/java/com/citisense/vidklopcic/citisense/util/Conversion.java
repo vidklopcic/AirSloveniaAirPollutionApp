@@ -39,7 +39,7 @@ public abstract class Conversion {
         O3(54,70,85,105,200,504,604, "ppb"),    // ppb
         PM10(54,154,254,354,424,504,604, "ug/m3"),    // ug/m3
         PM25(12,35.4f,55.4f,150.4f,250.4f,350.4f,500.4f, "ug/m3"),    // ug/m3
-        CO(4.4f,9.4f,12.4f,15.4f,30.4f,40.4f,50.4f, "ppm"),    // ppm
+        CO(4400f,9400f,12400f,15400f,30400f,40400f,50400f, "ppm"),    // ppm
         SO2(35,75,185,304,604,804,1004, "ppb");    // ppb
         public static final int GOOD_RANGE = 50;
         public static final int MODERATE_RANGE = 50;

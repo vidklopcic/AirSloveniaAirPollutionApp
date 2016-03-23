@@ -16,8 +16,16 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
+import com.citisense.vidklopcic.citisense.data.DataAPI;
+import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
+import com.citisense.vidklopcic.citisense.util.Conversion;
+import com.citisense.vidklopcic.citisense.util.StationsHelper;
 import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +44,8 @@ public class AqiOverviewGraph extends Fragment {
     private LayoutInflater mInflater;
     private int mChartRange = 0;
     private Integer mAQIBarsContainerHeight;
-
+    private DataAPI mDataAPI;
+    private ArrayList<CitiSenseStation> mStations;
 
     /**
      * Factory method to create a new instance of
@@ -82,13 +91,10 @@ public class AqiOverviewGraph extends Fragment {
                 mAQIBarsContainer.post(new Runnable() {
                     public void run() {
                         if (mAQIBarsContainerHeight == null) {
+                            if (mStations != null) {
+                                updateGraph(mStations);
+                            }
                             mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
-                            addBar(86, "CO");
-                            addBar(122, "PM2.5");
-                            addBar(124, "PM10");
-                            addBar(25, "O3");
-                            addBar(41, "NO2");
-                            addBar(34, "NO");
                         }
                     }
                 });
@@ -189,5 +195,21 @@ public class AqiOverviewGraph extends Fragment {
             if (aqi > max_aqi) max_aqi = aqi;
         }
         return max_aqi;
+    }
+
+    private AqiOverviewGraph getFragmentClass() {
+        return this;
+    }
+
+    public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
+        ArrayList<HashMap<String, Integer>> averages = StationsHelper.getAverages(stations);
+        mStations = stations;
+        if (averages == null) return null;
+        HashMap<String, Integer> aqi_averages = averages.get(0);
+        for (String pollutant_name : aqi_averages.keySet()) {
+            if (mAQIBars.keySet().contains(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
+            else addBar(aqi_averages.get(pollutant_name), pollutant_name);
+        }
+        return averages;
     }
 }

@@ -19,14 +19,21 @@
             android:gravity="center"
             android:clickable="true"
             android:background="@color/dashboard_top_bg">
-            <TextView
-                android:id="@+id/dashboard_area_text"
-                style="@style/BoldTitleWhite"
+            <ProgressBar
+                android:layout_centerInParent="true"
+                android:id="@+id/dashboard_title_progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Oslo"/>
+                android:indeterminate="true" />
+            <TextView
+                android:id="@+id/dashboard_city_text"
+                style="@style/BoldTitleWhite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
             <LinearLayout
-                android:layout_below="@id/dashboard_area_text"
+                android:id="@+id/dashboard_aqi_subtitle_container"
+                android:visibility="invisible"
+                android:layout_below="@id/dashboard_city_text"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_centerInParent="true"
@@ -37,8 +44,7 @@
                     style="@style/SubtitleWhite"
                     android:id="@+id/dashboard_temperature_text"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="10°C"/>
+                    android:layout_height="wrap_content"/>
                 <View
                     android:layout_margin="5dp"
                     android:layout_width="5dp"
@@ -46,10 +52,10 @@
                     android:background="@drawable/dot_separator"/>
                 <TextView
                     style="@style/SubtitleBoldWhite"
+                    android:id="@+id/dashboard_aqi_text"
                     android:textColor="@color/aqi_unhealthy_for_sensitive"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="UNHEALTHY FOR SENSITIVE"/>
+                    android:layout_height="wrap_content"/>
                 <View
                     android:layout_margin="5dp"
                     android:layout_width="5dp"
@@ -57,9 +63,9 @@
                     android:background="@drawable/dot_separator"/>
                 <TextView
                     style="@style/SubtitleWhite"
+                    android:id="@+id/dashboard_humidity_text"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="78%"/>
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
         </RelativeLayout>
         <ImageView
@@ -86,6 +92,7 @@
             android:layout_above="@+id/dashboard_aqi_summary_layout"
             tools:layout="@layout/aqi_overview_fragment" />
         <LinearLayout
+            android:visibility="invisible"
             android:orientation="horizontal"
             android:id="@+id/dashboard_aqi_summary_layout"
             android:layout_width="match_parent"
@@ -95,16 +102,6 @@
             android:background="@drawable/card"
             android:padding="10dp"
             android:layout_margin="7dp">
-            <RelativeLayout
-                android:id="@+id/loading_aqi_summary"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center" >
-                <ProgressBar
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true" />
-            </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>
 

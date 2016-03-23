@@ -3,6 +3,7 @@ package com.citisense.vidklopcic.citisense;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +15,7 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
+import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.SlidingMenuHelper;
@@ -24,13 +26,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
-public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener {
+public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
     AqiOverviewGraph mChartFragment;
     private SlidingMenu mMenu;
     private LinearLayout mAQISummary;
     private LocationHelper mLocation;
-    private DataAPI d;
+    private ArrayList<CitiSenseStation> mStations;
+    private String mCity;
+    DataAPI mDataAPI;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,40 +48,9 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mAQISummary = (LinearLayout) getLayoutInflater().inflate(R.layout.dashboard_aqi_summary,
                 aqiSummaryContainer, false);
         aqiSummaryContainer.addView(mAQISummary);
-        setAQISummary(200);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
-        d = new DataAPI();
-        d.setDataUpdateListener(new DataAPI.DataUpdateListener() {
-            @Override
-            public void onReady() {
-                d.setObservedStations((ArrayList<CitiSenseStation>) CitiSenseStation.listAll(CitiSenseStation.class));
-            }
-
-            @Override
-            public void onDataUpdate() {
-
-            }
-
-            @Override
-            public void onStationUpdate(CitiSenseStation station) {
-                JSONArray measurement = station.getLastMeasurement();
-                for (int i = 0; i < measurement.length(); i++) {
-                    try {
-                        JSONObject pollutant = measurement.getJSONObject(i);
-                        if (pollutant.getString("observedproperty").equals("NO2")) {
-                            Double val = pollutant.getDouble("value");
-                            Log.d("aqi_fragment", val.toString() + pollutant.toString());
-                            Log.d("aqi_fragment", "aqi: " + Conversion.AQI.NO2.getAqi(
-                                    val
-                            ).toString());
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        mDataAPI = new DataAPI();
     }
 
     public void fragmentClicked(View view) {
@@ -125,7 +101,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             aqi_text = R.string.aqi_summary_good_text;
             aqi_icon = R.drawable.good_sign;
         }
-        findViewById(R.id.loading_aqi_summary).setVisibility(View.GONE);
+        findViewById(R.id.dashboard_aqi_summary_layout).setVisibility(View.VISIBLE);
         ((TextView)mAQISummary.findViewById(R.id.aqi_summary_text)).setText(aqi_text);
         ((TextView)mAQISummary.findViewById(R.id.aqi_summary_title)).setText(aqi_title);
         ((TextView)mAQISummary.findViewById(R.id.aqi_summary_title)).setTextColor(getResources().getColor(color));
@@ -134,14 +110,13 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case LocationHelper.LOCATION_PERMISSION_RESULT: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocation.startLocationReading();
-                    Log.d("aqi_fragment", "granted");
                 }
             }
         }
@@ -154,6 +129,51 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCityChange(String city) {
-        Log.d("aqi_fragment", city);
+        mCity = city;
+        mStations = (ArrayList<CitiSenseStation>)
+                CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
+        mDataAPI.setDataUpdateListener(this);
+        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        if (averages == null) return;
+        updateDashboard(averages);
+    }
+
+
+    @Override
+    public void onDataReady() {
+        ArrayList<CitiSenseStation> city_stations = (ArrayList<CitiSenseStation>)
+                CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
+        mStations = city_stations;
+        mDataAPI.setObservedStations(city_stations);
+        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        if (averages == null) return;
+        updateDashboard(averages);
+    }
+
+    @Override
+    public void onDataUpdate() {
+    }
+
+    @Override
+    public void onStationUpdate(CitiSenseStation station) {
+        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        if (averages == null) return;
+        updateDashboard(averages);
+    }
+
+    private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
+        HashMap<String, Integer> other = averages.get(1);
+        String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
+        String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
+        findViewById(R.id.dashboard_title_progress_bar).setVisibility(View.GONE);
+        findViewById(R.id.dashboard_aqi_subtitle_container).setVisibility(View.VISIBLE);
+        ((TextView)findViewById(R.id.dashboard_city_text)).setText(mCity);
+        ((TextView)findViewById(R.id.dashboard_temperature_text)).setText(temp);
+        ((TextView)findViewById(R.id.dashboard_humidity_text)).setText(hum);
+        int max_aqi_val = Collections.max(averages.get(0).values());
+        TextView aqi_title = (TextView)findViewById(R.id.dashboard_aqi_text);
+        aqi_title.setText(AQI.toText(Collections.max(averages.get(0).values())));
+        aqi_title.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
+        setAQISummary(max_aqi_val);
     }
 }
