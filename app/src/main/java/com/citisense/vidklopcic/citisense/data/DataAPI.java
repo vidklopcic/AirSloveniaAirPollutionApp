@@ -62,6 +62,7 @@ public class DataAPI {
                 if (mSavedState.getConfigVersion() != null && config_version == mSavedState.getConfigVersion()) {
                     return null;
                 }
+                mSavedState.setConfigVersion(config_version);
             } catch (IOException ignored) {}
             try {
                 String result = Network.GET(params[1]);
