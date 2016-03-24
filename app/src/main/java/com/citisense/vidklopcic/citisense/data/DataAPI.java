@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
-import com.citisense.vidklopcic.citisense.util.Conversion;
+import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.util.Network;
 
 import org.json.JSONArray;
@@ -15,7 +15,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,6 +24,7 @@ public class DataAPI {
     private DataUpdateListener mListener;
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
+    private SavedState mSavedState;
     public interface DataUpdateListener {
         void onDataReady();
         void onDataUpdate();
@@ -32,6 +32,7 @@ public class DataAPI {
     }
 
     public DataAPI() {
+        mSavedState = new SavedState().getSavedState();
         getConfig();
         mActiveStations = new ArrayList<>();
     }
@@ -49,15 +50,21 @@ public class DataAPI {
     }
 
     private void getConfig() {
-        new LoadConfigTask().execute(Constants.DataSources.config_url);
+        new LoadConfigTask().execute(Constants.DataSources.config_version_url, Constants.DataSources.config_url);
     }
 
-    class LoadConfigTask extends AsyncTask<String, Void, String> {
+    class LoadConfigTask extends AsyncTask<String, Void, Void> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(String... params) {
             try {
-                String result = Network.GET(params[0]);
+                int config_version = Integer.valueOf(Network.GET(params[0]));
+                if (mSavedState.getConfigVersion() != null && config_version == mSavedState.getConfigVersion()) {
+                    return null;
+                }
+            } catch (IOException ignored) {}
+            try {
+                String result = Network.GET(params[1]);
                 try {
                     JSONObject config = new JSONObject(result);
                     Iterator<String> providers = config.keys();
@@ -94,15 +101,14 @@ public class DataAPI {
                 } catch (JSONException e) {
                     Log.d(LOG_ID, "json can't be read");
                 }
-                return result;
             } catch (IOException ignored) {
                 Log.d(LOG_ID, "config GET error");
             }
-            return "";
+            return null;
         }
 
-        protected void onPostExecute(String result) {
-            Log.d(LOG_ID, result);
+        protected void onPostExecute(Void result) {
+            Log.d(LOG_ID, "config loaded");
             new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
         }
     }

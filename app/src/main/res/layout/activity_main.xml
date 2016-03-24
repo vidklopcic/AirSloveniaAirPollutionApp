@@ -23,12 +23,6 @@
             android:gravity="center"
             android:clickable="true"
             android:background="@color/dashboard_top_bg">
-            <ProgressBar
-                android:layout_centerInParent="true"
-                android:id="@+id/dashboard_title_progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:indeterminate="true" />
             <TextView
                 android:id="@+id/dashboard_city_text"
                 style="@style/BoldTitleWhite"

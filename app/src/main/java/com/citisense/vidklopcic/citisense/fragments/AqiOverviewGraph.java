@@ -90,6 +90,7 @@ public class AqiOverviewGraph extends Fragment {
                                 updateGraph(mStations);
                             }
                             mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
+                            setChartRange(mChartRange);
                         }
                     }
                 });
@@ -174,6 +175,7 @@ public class AqiOverviewGraph extends Fragment {
 
     private void setChartRange(int max_aqi) {
         mChartRange = max_aqi;
+        if (mAQIBarsContainerHeight == null) return;
         Float height_increase = Constants.AQI.SUM / (max_aqi+Constants.AQI.BAR_OFFSET);    // max_axi+x.. x = margin
         Integer top_margin = (int) -(height_increase * mAQIBarsContainerHeight - mAQIBarsContainerHeight);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mAqiChartContainer.getLayoutParams();

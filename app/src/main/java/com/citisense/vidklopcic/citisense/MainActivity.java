@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
@@ -32,11 +33,11 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private ArrayList<CitiSenseStation> mStations;
     private String mCity;
     private DataAPI mDataAPI;
+    private SavedState mSavedState;
 
     private TextView mCityText;
     private TextView mTemperatureText;
     private TextView mHumidityText;
-    private ProgressBar mTitleProgress;
     private LinearLayout mSubtitleContainer;
     private TextView mAqiNameSubtitle;
     private SwipeRefreshLayout mSwipeRefresh;
@@ -52,7 +53,6 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mLocation.setLocationHelperListener(this);
         mDataAPI = new DataAPI();
 
-        mTitleProgress = (ProgressBar) findViewById(R.id.dashboard_title_progress_bar);
         mSubtitleContainer = (LinearLayout) findViewById(R.id.dashboard_aqi_subtitle_container);
         mCityText = (TextView) findViewById(R.id.dashboard_city_text);
         mTemperatureText = (TextView) findViewById(R.id.dashboard_temperature_text);
@@ -63,6 +63,16 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             @Override
             public void onRefresh() {
                 mDataAPI.updateData();
+            }
+        });
+
+        mSavedState = new SavedState().getSavedState();
+        if (mSavedState.getCity() != null) {
+            onCityChange(mSavedState.getCity());
+        }
+        mSwipeRefresh.post(new Runnable() {
+            @Override public void run() {
+                mSwipeRefresh.setRefreshing(true);
             }
         });
     }
@@ -103,6 +113,10 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onCityChange(String city) {
         mCity = city;
+        if ((mSavedState.getCity() != null && !mSavedState.getCity().equals(city)) || mSavedState.getCity() == null) {
+            mSavedState.setCity(city);
+            mSavedState.save();
+        }
         mStations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mDataAPI.setDataUpdateListener(this);
@@ -114,6 +128,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataReady() {
+        mSwipeRefresh.setRefreshing(false);
         ArrayList<CitiSenseStation> city_stations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mStations = city_stations;
@@ -126,20 +141,19 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onDataUpdate() {
         mSwipeRefresh.setRefreshing(false);
+        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        if (averages == null) return;
+        updateDashboard(averages);
     }
 
     @Override
     public void onStationUpdate(CitiSenseStation station) {
-        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
-        if (averages == null) return;
-        updateDashboard(averages);
     }
 
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
         HashMap<String, Integer> other = averages.get(1);
         String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
         String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
-        mTitleProgress.setVisibility(View.GONE);
         mSubtitleContainer.setVisibility(View.VISIBLE);
         mCityText.setText(mCity);
         mTemperatureText.setText(temp);
