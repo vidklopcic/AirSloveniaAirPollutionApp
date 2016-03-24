@@ -1,13 +1,11 @@
 package com.citisense.vidklopcic.citisense.data;
 
-import java.util.List;
-
 public abstract class Constants {
     public static final int MILLI = 1000;
     public static class DataSources {
         public static final String config_version_url = "http://pastebin.com/raw/RQnbq08t";
         public static final String config_url = "http://pastebin.com/raw/P1dnQb0L";
-        public static final int timeout = 10000;
+        public static final int timeout = 20000;
     }
 
     public static class AQI {

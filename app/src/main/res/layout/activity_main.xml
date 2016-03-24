@@ -52,7 +52,7 @@
                     android:background="@drawable/dot_separator"/>
                 <TextView
                     style="@style/SubtitleBoldWhite"
-                    android:id="@+id/dashboard_aqi_text"
+                    android:id="@+id/dashboard_aqi_name_subtitle"
                     android:textColor="@color/aqi_unhealthy_for_sensitive"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>

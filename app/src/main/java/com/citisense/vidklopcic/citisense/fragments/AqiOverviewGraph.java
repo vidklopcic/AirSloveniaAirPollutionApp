@@ -19,13 +19,8 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
-import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.StationsHelper;
 import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -118,6 +113,7 @@ public class AqiOverviewGraph extends Fragment {
         LinearLayout label = createXLabel(label_text, 0);
         mAQIBarsContainer.addView(bar);
         mAQILabelsContainer.addView(label);
+        bar.clearAnimation();
         bar.startAnimation(
                 new AqiBarAnimation(
                         this, label, bar.findViewById(R.id.aqi_bar_content), getAqiFromLabel(label), aqi));
@@ -136,6 +132,7 @@ public class AqiOverviewGraph extends Fragment {
         LinearLayout bar = mAQIBars.get(key).get(0);
         LinearLayout label = mAQIBars.get(key).get(1);
         View bar_content = bar.findViewById(R.id.aqi_bar_content);
+        bar.clearAnimation();
         bar.startAnimation(new AqiBarAnimation(this, label, bar_content, getAqiFromLabel(label), aqi));
     }
 
@@ -202,6 +199,7 @@ public class AqiOverviewGraph extends Fragment {
     }
 
     public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
+        Log.d("graph", "noo");
         ArrayList<HashMap<String, Integer>> averages = StationsHelper.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;
