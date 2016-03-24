@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -38,7 +39,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private ProgressBar mTitleProgress;
     private LinearLayout mSubtitleContainer;
     private TextView mAqiNameSubtitle;
-
+    private SwipeRefreshLayout mSwipeRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,13 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mTemperatureText = (TextView) findViewById(R.id.dashboard_temperature_text);
         mHumidityText = (TextView) findViewById(R.id.dashboard_humidity_text);
         mAqiNameSubtitle = (TextView)findViewById(R.id.dashboard_aqi_name_subtitle);
+        mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
+        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mDataAPI.updateData();
+            }
+        });
     }
 
     public void fragmentClicked(View view) {
@@ -117,6 +125,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataUpdate() {
+        mSwipeRefresh.setRefreshing(false);
     }
 
     @Override

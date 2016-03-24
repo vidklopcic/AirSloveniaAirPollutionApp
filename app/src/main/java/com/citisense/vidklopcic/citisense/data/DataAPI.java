@@ -118,8 +118,6 @@ public class DataAPI {
             for (CitiSenseStation station : mActiveStations) {
                 if (new Date().getTime() - station.getLastMeasurementTime()
                         > Constants.CitiSenseStation.update_interval || mForceUpdate) {
-
-                    mForceUpdate = false;
                     updated = true;
                     try {
                         String last_measurement = Network.GET(Constants.CitiSenseStation.last_measurement_url
@@ -134,6 +132,7 @@ public class DataAPI {
                     publishProgress(station);
                 }
             }
+            mForceUpdate = false;
             return updated;
         }
 
