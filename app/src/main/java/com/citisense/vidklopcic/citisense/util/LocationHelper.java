@@ -31,7 +31,7 @@ public class LocationHelper implements LocationListener {
     LocationHelperListener mListener;
 
     public interface LocationHelperListener {
-        void onLocationChanged();
+        void onLocationChanged(Location location);
         void onCityChange(String city);
     }
 
@@ -53,14 +53,18 @@ public class LocationHelper implements LocationListener {
         return new LatLng(mBestLocation.getLatitude(), mBestLocation.getLongitude());
     }
 
-    public void startLocationReading() {
+    public boolean hasPermission() {
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(mContext,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
                     LocationHelper.LOCATION_PERMISSION_RESULT);
-            return;
+            return false;
         }
+        return true;
+    }
+    public void startLocationReading() {
+        if (!hasPermission()) return;
         mBestLocation = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         ArrayList<String> providers = new ArrayList<>(mLocationManager.getProviders(true));
         if (providers.contains(LocationManager.GPS_PROVIDER)) {
@@ -133,7 +137,7 @@ public class LocationHelper implements LocationListener {
     public void onLocationChanged(Location location) {
         if (isBetterLocation(location, mBestLocation)) {
             mBestLocation = location;
-            if (mListener != null) mListener.onLocationChanged();
+            if (mListener != null) mListener.onLocationChanged(location);
             getCityFromLatLng(new LatLng(location.getLatitude(), location.getLongitude()));
         }
     }

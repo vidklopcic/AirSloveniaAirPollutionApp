@@ -20,4 +20,8 @@
     <color name="aqi_overview_x_labels_bg">#fff</color>
     <color name="neutral_bg">#f5f5f5</color>
     <color name="aqi_overview_label_separator_color">#eaeaea</color>
+    <color name="transparent">#00000000</color>
+    <color name="text_color">#ff5c5c5c</color>
+    <color name="transparent_pressed">#70ffffff</color>
+    <color name="dark_transparent_pressed">#3a919191</color>
 </resources>

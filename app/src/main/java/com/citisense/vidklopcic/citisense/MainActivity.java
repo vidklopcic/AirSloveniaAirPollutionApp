@@ -2,6 +2,7 @@ package com.citisense.vidklopcic.citisense;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -105,7 +106,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     @Override
-    public void onLocationChanged() {
+    public void onLocationChanged(Location location) {
 
     }
 
