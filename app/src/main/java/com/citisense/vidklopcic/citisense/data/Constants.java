@@ -33,4 +33,8 @@ public abstract class Constants {
         public static final String HUMIDITY_KEY = "Relative Humidity";
         public static final String TEMPERATURE_KEY = "Temperature";
     }
+
+    public static class Map {
+        public static final int default_zoom = 16;
+    }
 }
