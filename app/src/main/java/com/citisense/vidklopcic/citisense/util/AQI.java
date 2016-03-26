@@ -42,4 +42,8 @@ public abstract class AQI {
             return R.string.aqi_summary_hazardous_title;
         }
     }
+
+    public static int getColor(Float aqi) {
+        return getColor(aqi.intValue());
+    }
 }

@@ -35,8 +35,8 @@ public class AqiBarAnimation extends Animation {
 
     @Override
     protected void applyTransformation(float interpolatedTime, Transformation t) {
-        Integer aqi = (int) (start_aqi+repeat_count*interpolatedTime*add);
+        Float aqi = start_aqi+repeat_count*interpolatedTime*add;
         mFragment.setBarAqi(mBarContent, aqi);
-        mFragment.setLabelAqi(mLabel, aqi);
+        mFragment.setLabelAqi(mLabel, aqi.intValue());
     }
 }

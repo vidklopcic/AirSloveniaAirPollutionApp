@@ -12,6 +12,7 @@ public class SavedState extends SugarRecord{
 
     public void setCity(String city) {
         this.city = city;
+        save();
     }
 
     public String getCity() {
@@ -24,6 +25,7 @@ public class SavedState extends SugarRecord{
 
     public void setConfigVersion(int config_version) {
         this.configversion = config_version;
+        save();
     }
 
     public SavedState getSavedState() {

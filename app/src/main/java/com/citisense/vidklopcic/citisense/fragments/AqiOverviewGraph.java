@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +36,7 @@ public class AqiOverviewGraph extends Fragment {
     private HashMap<String, ArrayList<LinearLayout>> mAQIBars;
     private Context mContext;
     private LayoutInflater mInflater;
-    private int mChartRange = 0;
+    private int mChartRange = Constants.AQI.BAR_OFFSET;
     private Integer mAQIBarsContainerHeight;
     private DataAPI mDataAPI;
     private ArrayList<CitiSenseStation> mStations;
@@ -90,7 +89,7 @@ public class AqiOverviewGraph extends Fragment {
                                 updateGraph(mStations);
                             }
                             mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
-                            setChartRange(mChartRange);
+                            setChartRange((float) (mChartRange-Constants.AQI.BAR_OFFSET));
                         }
                     }
                 });
@@ -105,16 +104,14 @@ public class AqiOverviewGraph extends Fragment {
     }
 
     public void addBar(Integer aqi, String label_text) {
-        if (aqi > mChartRange) {
-            mChartRange = aqi;
-            setChartRange(mChartRange);
+        if (aqi+Constants.AQI.BAR_OFFSET > mChartRange) {
+            setChartRange(aqi.floatValue());
         }
         ArrayList<LinearLayout> bar_label = new ArrayList<>();
         LinearLayout bar = createBar(0);
         LinearLayout label = createXLabel(label_text, 0);
         mAQIBarsContainer.addView(bar);
         mAQILabelsContainer.addView(label);
-        bar.clearAnimation();
         bar.startAnimation(
                 new AqiBarAnimation(
                         this, label, bar.findViewById(R.id.aqi_bar_content), getAqiFromLabel(label), aqi));
@@ -133,7 +130,6 @@ public class AqiOverviewGraph extends Fragment {
         LinearLayout bar = mAQIBars.get(key).get(0);
         LinearLayout label = mAQIBars.get(key).get(1);
         View bar_content = bar.findViewById(R.id.aqi_bar_content);
-        bar.clearAnimation();
         bar.startAnimation(new AqiBarAnimation(this, label, bar_content, getAqiFromLabel(label), aqi));
     }
 
@@ -149,32 +145,32 @@ public class AqiOverviewGraph extends Fragment {
     private LinearLayout createBar(int aqi) {
         LinearLayout bar = (LinearLayout) mInflater.inflate(R.layout.aqi_overview_fragment_bar, mAQIBarsContainer, false);
         View bar_content = bar.findViewById(R.id.aqi_bar_content);
-        setBarAqi(bar_content, aqi);
+        setBarAqi(bar_content, (float) aqi);
         return bar;
     }
 
-    public void setBarAqi(View bar, Integer aqi) {
+    public void setBarAqi(View bar, Float aqi) {
         Float percentage = aqi / Constants.AQI.SUM;
         bar.setBackgroundColor(ContextCompat.getColor(mContext, AQI.getColor(aqi)));
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) bar.getLayoutParams();
         params.weight = percentage;
         bar.setLayoutParams(params);
-        if (aqi > mChartRange) {
-            setChartRange(mChartRange);
+        if (aqi+Constants.AQI.BAR_OFFSET > mChartRange) {
+            setChartRange(aqi);
         }
     }
 
     public void setLabelAqi(LinearLayout label, Integer aqi) {
         int old_aqi = getAqiFromLabel(label);
         if (getMaxAqi() ==  old_aqi && old_aqi > aqi) {
-            setChartRange(aqi);
+            setChartRange(Float.valueOf(aqi));
         }
         TextView subtitle = (TextView)label.findViewById(R.id.aqi_subtitle);
         subtitle.setText(aqi.toString());
     }
 
-    private void setChartRange(int max_aqi) {
-        mChartRange = max_aqi;
+    private void setChartRange(Float max_aqi) {
+        mChartRange = (int) (max_aqi+Constants.AQI.BAR_OFFSET);
         if (mAQIBarsContainerHeight == null) return;
         Float height_increase = Constants.AQI.SUM / (max_aqi+Constants.AQI.BAR_OFFSET);    // max_axi+x.. x = margin
         Integer top_margin = (int) -(height_increase * mAQIBarsContainerHeight - mAQIBarsContainerHeight);
@@ -196,12 +192,7 @@ public class AqiOverviewGraph extends Fragment {
         return max_aqi;
     }
 
-    private AqiOverviewGraph getFragmentClass() {
-        return this;
-    }
-
     public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
-        Log.d("graph", "noo");
         ArrayList<HashMap<String, Integer>> averages = StationsHelper.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;

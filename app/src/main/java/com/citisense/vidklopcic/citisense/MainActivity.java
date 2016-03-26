@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
@@ -115,7 +114,6 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mCity = city;
         if ((mSavedState.getCity() != null && !mSavedState.getCity().equals(city)) || mSavedState.getCity() == null) {
             mSavedState.setCity(city);
-            mSavedState.save();
         }
         mStations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
@@ -128,21 +126,21 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataReady() {
-        mSwipeRefresh.setRefreshing(false);
         ArrayList<CitiSenseStation> city_stations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mStations = city_stations;
         mDataAPI.setObservedStations(city_stations);
         ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
         if (averages == null) return;
+        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 
     @Override
     public void onDataUpdate() {
-        mSwipeRefresh.setRefreshing(false);
         ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
         if (averages == null) return;
+        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 
