@@ -1,6 +1,8 @@
 package com.citisense.vidklopcic.citisense;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +23,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -29,6 +33,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.algo.Algorithm;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import java.util.List;
@@ -93,6 +98,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         // manager.
         mMap.setOnMarkerClickListener(mClusterManager);
         mClusterManager.setOnClusterItemClickListener(this);
+        mClusterManager.setRenderer(new ClusterRenderer(getApplicationContext(), mMap, mClusterManager));
     }
 
     private void setUpMap() {
@@ -208,6 +214,24 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         @Override
         public LatLng getPosition() {
             return mPosition;
+        }
+
+        public BitmapDescriptor getIcon() {
+            return BitmapDescriptorFactory.fromResource(R.drawable.citi_sense_marker);
+        }
+    }
+
+    class ClusterRenderer extends DefaultClusterRenderer<ClusterStation> {
+
+        public ClusterRenderer(Context context, GoogleMap map,
+                               ClusterManager<ClusterStation> clusterManager) {
+            super(context, map, clusterManager);
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(ClusterStation item, MarkerOptions markerOptions) {
+            markerOptions.icon(item.getIcon());
+            super.onBeforeClusterItemRendered(item, markerOptions);
         }
     }
 }
