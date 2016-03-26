@@ -64,6 +64,7 @@ public class DataAPI {
                 }
                 mSavedState.setConfigVersion(config_version);
             } catch (IOException ignored) {}
+            Integer config_version = mSavedState.getConfigVersion();
             try {
                 String result = Network.GET(params[1]);
                 try {
@@ -91,14 +92,17 @@ public class DataAPI {
                                     stationdb.setLocation(lat, lng);
                                 } else {
                                     stationdb = new CitiSenseStation(
-                                            id, place_key, pollutants, lat, lng
+                                            config_version, id, place_key, pollutants, lat, lng
                                     );
                                 }
-
                                 stationdb.save();
                             }
                         }
                     }
+                    List<CitiSenseStation> stations_to_remove = CitiSenseStation.find(
+                            CitiSenseStation.class, "configversion != ?", config_version.toString()
+                    );
+                    for (CitiSenseStation station : stations_to_remove) station.delete();
                 } catch (JSONException e) {
                     Log.d(LOG_ID, "json can't be read");
                 }

@@ -1,18 +1,23 @@
 package com.citisense.vidklopcic.citisense;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
+import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
 import com.google.android.gms.common.api.Status;
@@ -32,8 +37,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.algo.Algorithm;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.google.maps.android.ui.IconGenerator;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import java.util.List;
@@ -181,6 +186,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         }
     }
 
+    public Activity getContext() {
+        return this;
+    }
+
     @Override
     public void onMapClick(LatLng latLng) {
         if (mCurrentMarker != null) mCurrentMarker.remove();
@@ -217,7 +226,20 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         }
 
         public BitmapDescriptor getIcon() {
-            return BitmapDescriptorFactory.fromResource(R.drawable.citi_sense_marker);
+            IconGenerator iconGen = new IconGenerator(getContext());
+
+            int shapeSize = getResources().getDimensionPixelSize(R.dimen.marker_size);
+
+            Drawable shapeDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.station_marker, null);
+            shapeDrawable.setColorFilter(AQI.getLinearColor(station.getMaxAqi(), getContext()), PorterDuff.Mode.MULTIPLY);
+            iconGen.setBackground(shapeDrawable);
+
+            View view = new View(getContext());
+            view.setLayoutParams(new ViewGroup.LayoutParams(shapeSize, shapeSize));
+            iconGen.setContentView(view);
+
+            Bitmap bitmap = iconGen.makeIcon();
+            return BitmapDescriptorFactory.fromBitmap(bitmap);
         }
     }
 

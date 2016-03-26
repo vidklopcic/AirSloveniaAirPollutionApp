@@ -23,24 +23,7 @@ public abstract class StationsHelper {
                     JSONObject pollutant = measurement.getJSONObject(i);
                     String pollutant_name = pollutant.getString(Constants.CitiSenseStation.pollutant_name_key);
                     Double value = pollutant.getDouble(Constants.CitiSenseStation.value_key);
-                    Integer aqi_val = null;
-                    switch (pollutant_name) {
-                        case Constants.CitiSenseStation.CO_KEY:
-                            aqi_val = Conversion.AQI.CO.getAqi(value);
-                            break;
-                        case Constants.CitiSenseStation.NO2_KEY:
-                            aqi_val = Conversion.AQI.NO2.getAqi(value);
-                            break;
-                        case Constants.CitiSenseStation.O3_KEY:
-                            aqi_val = Conversion.AQI.O3.getAqi(value);
-                            break;
-                        case Constants.CitiSenseStation.PM10_KEY:
-                            aqi_val = Conversion.AQI.PM10.getAqi(value);
-                            break;
-                        case Constants.CitiSenseStation.PM2_5_KEY:
-                            aqi_val = Conversion.AQI.PM25.getAqi(value);
-                            break;
-                    }
+                    Integer aqi_val = getAqi(pollutant_name, value);
                     if (aqi_val != null && 0 <= aqi_val && aqi_val <= Constants.AQI.SUM) {
                         if (aqi.containsKey(pollutant_name)) {
                             aqi.put(pollutant_name, (aqi.get(pollutant_name) + aqi_val)/2);
@@ -61,5 +44,27 @@ public abstract class StationsHelper {
         result.add(aqi);
         result.add(other);
         return result;
+    }
+
+    public static Integer getAqi(String pollutant_name, Double value) {
+        Integer aqi_val = null;
+        switch (pollutant_name) {
+            case Constants.CitiSenseStation.CO_KEY:
+                aqi_val = Conversion.AQI.CO.getAqi(value);
+                break;
+            case Constants.CitiSenseStation.NO2_KEY:
+                aqi_val = Conversion.AQI.NO2.getAqi(value);
+                break;
+            case Constants.CitiSenseStation.O3_KEY:
+                aqi_val = Conversion.AQI.O3.getAqi(value);
+                break;
+            case Constants.CitiSenseStation.PM10_KEY:
+                aqi_val = Conversion.AQI.PM10.getAqi(value);
+                break;
+            case Constants.CitiSenseStation.PM2_5_KEY:
+                aqi_val = Conversion.AQI.PM25.getAqi(value);
+                break;
+        }
+        return aqi_val;
     }
 }

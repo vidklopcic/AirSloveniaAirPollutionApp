@@ -28,6 +28,7 @@ public class SavedState extends SugarRecord{
     }
 
     public Integer getConfigVersion() {
+        if (configversion == null) return 0;
         return configversion;
     }
 

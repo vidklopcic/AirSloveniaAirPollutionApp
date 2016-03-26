@@ -1,5 +1,8 @@
 package com.citisense.vidklopcic.citisense.util;
 
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
@@ -45,5 +48,47 @@ public abstract class AQI {
 
     public static int getColor(Float aqi) {
         return getColor(aqi.intValue());
+    }
+
+    public static int getLinearColor(int aqi, Activity c) {
+        if (aqi < Constants.AQI.MODERATE) {
+            int color1 = ContextCompat.getColor(c, R.color.aqi_good);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_moderate);
+            return interpolateColor(color1, color2, aqi/Constants.AQI.MODERATE);
+        } else if (aqi < Constants.AQI.UNHEALTHY_SENSITIVE) {
+            int color1 = ContextCompat.getColor(c, R.color.aqi_moderate);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_unhealthy_for_sensitive);
+            return interpolateColor(color1, color2, (aqi-Constants.AQI.MODERATE)/(Constants.AQI.UNHEALTHY_SENSITIVE-Constants.AQI.MODERATE));
+        } else if (aqi < Constants.AQI.UNHEALTHY) {
+            int color1 = ContextCompat.getColor(c, R.color.aqi_unhealthy_for_sensitive);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_unhealthy);
+            return interpolateColor(color1, color2, (aqi-Constants.AQI.UNHEALTHY_SENSITIVE)/(Constants.AQI.UNHEALTHY-Constants.AQI.UNHEALTHY_SENSITIVE));
+        } else if (aqi < Constants.AQI.VERY_UNHEALTHY) {
+            int color1 = ContextCompat.getColor(c, R.color.aqi_unhealthy);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_very_unhealthy);
+            return interpolateColor(color1, color2, (aqi-Constants.AQI.UNHEALTHY)/(Constants.AQI.VERY_UNHEALTHY-Constants.AQI.UNHEALTHY));
+        } else if (aqi < Constants.AQI.HAZARDOUS) {
+            int color1 = ContextCompat.getColor(c, R.color.aqi_very_unhealthy);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_hazardous);
+            return interpolateColor(color1, color2, (aqi-Constants.AQI.VERY_UNHEALTHY)/(Constants.AQI.HAZARDOUS-Constants.AQI.VERY_UNHEALTHY));
+        } else {
+            return ContextCompat.getColor(c, R.color.aqi_hazardous);
+        }
+    }
+
+    private static float interpolate(float a, float b, float proportion) {
+        return (a + ((b - a) * proportion));
+    }
+
+    /** Returns an interpoloated color, between <code>a</code> and <code>b</code> */
+    private static int interpolateColor(int a, int b, float proportion) {
+        float[] hsva = new float[3];
+        float[] hsvb = new float[3];
+        Color.colorToHSV(a, hsva);
+        Color.colorToHSV(b, hsvb);
+        for (int i = 0; i < 3; i++) {
+            hsvb[i] = interpolate(hsva[i], hsvb[i], proportion);
+        }
+        return Color.HSVToColor(hsvb);
     }
 }
