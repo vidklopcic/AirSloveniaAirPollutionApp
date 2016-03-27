@@ -6,6 +6,8 @@ import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.StationsHelper;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.clustering.ClusterItem;
 import com.orm.SugarRecord;
 import com.orm.dsl.Unique;
 import org.json.JSONArray;
@@ -13,6 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 public class CitiSenseStation extends SugarRecord {
     String city;
@@ -91,8 +95,9 @@ public class CitiSenseStation extends SugarRecord {
         this.pollutants = pollutants.toString();
     }
 
-    public int getMaxAqi() {
+    public Integer getMaxAqi() {
         JSONArray m = getLastMeasurement();
+        if (m == null) return null;
         int max_aqi = 0;
         for (int i=0;i<m.length();i++) {
             try {
@@ -110,5 +115,22 @@ public class CitiSenseStation extends SugarRecord {
 
     public int getColor() {
         return AQI.getColor(getMaxAqi());
+    }
+
+    public static List<CitiSenseStation> getStationsInArea(LatLngBounds bounds) {
+        Double b1 = bounds.northeast.latitude;
+        Double b2 = bounds.southwest.latitude;
+        Double b3 = bounds.northeast.longitude;
+        Double b4 = bounds.southwest.longitude;
+        Log.d("MapsActivity", bounds.toString());
+        return CitiSenseStation.find(
+                CitiSenseStation.class, "lat < ? and lat > ? and lng < ? and lng > ?",
+                b1.toString(), b2.toString(), b3.toString(), b4.toString());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        CitiSenseStation station = (CitiSenseStation) obj;
+        return station.getStationId().equals(this.station_id);
     }
 }

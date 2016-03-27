@@ -158,7 +158,6 @@ public class LocationHelper implements LocationListener {
     }
 
     class GetCityTask extends AsyncTask<LatLng, Void, String> {
-
         @Override
         protected String doInBackground(LatLng... params) {
             Geocoder gcd = new Geocoder(mContext, Locale.getDefault());
@@ -172,6 +171,7 @@ public class LocationHelper implements LocationListener {
         }
 
         protected void onPostExecute(String city) {
+            if (city == null) return;
             if (mListener != null && !city.isEmpty() && !mCity.equals(city)) {
                 mCity = city;
                 mListener.onCityChange(mCity);
