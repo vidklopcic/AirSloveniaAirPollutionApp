@@ -151,16 +151,20 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
-        HashMap<String, Integer> other = averages.get(1);
-        String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
-        String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
-        mSubtitleContainer.setVisibility(View.VISIBLE);
-        mCityText.setText(mCity);
-        mTemperatureText.setText(temp);
-        mHumidityText.setText(hum);
-        int max_aqi_val = Collections.max(averages.get(0).values());
-        mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(0).values())));
-        mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
-        mAQISummary.setAqi(max_aqi_val);
+        try {
+            HashMap<String, Integer> other = averages.get(1);
+            String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
+            String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
+            mSubtitleContainer.setVisibility(View.VISIBLE);
+            mCityText.setText(mCity);
+            mTemperatureText.setText(temp);
+            mHumidityText.setText(hum);
+            int max_aqi_val = Collections.max(averages.get(0).values());
+            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(0).values())));
+            mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
+            mAQISummary.setAqi(max_aqi_val);
+        } catch (Exception ignored) {
+            mCityText.setText("No data for current location");
+        }
     }
 }
