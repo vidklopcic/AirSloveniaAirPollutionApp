@@ -14,6 +14,10 @@ import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
  * Various methods for calculating aqis dependent on AQI scale
  */
 public abstract class AQI {
+    public static int getColor(int aqi, Activity context) {
+        return ContextCompat.getColor(context, getColor(aqi));
+    }
+
     public static int getColor(int aqi) {
         if (aqi < Constants.AQI.MODERATE) {
             return R.color.aqi_good;

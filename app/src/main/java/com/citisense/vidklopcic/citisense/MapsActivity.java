@@ -4,14 +4,21 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
+import android.util.SparseArray;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -38,17 +45,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.algo.GridBasedAlgorithm;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
+import com.google.maps.android.ui.SquareTextView;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -117,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         // manager.
         mMap.setOnMarkerClickListener(mClusterManager);
         mClusterManager.setOnClusterItemClickListener(this);
-        mClusterManager.setRenderer(new ClusterRenderer(getApplicationContext(), mMap, mClusterManager));
+        mClusterManager.setRenderer(new ClusterRenderer(this, mMap, mClusterManager));
     }
 
     private void setUpMap() {
@@ -295,10 +301,22 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     class ClusterRenderer extends DefaultClusterRenderer<ClusterStation> {
+        private final IconGenerator mIconGenerator;
+        private ShapeDrawable mColoredCircleBackground;
+        private SparseArray<BitmapDescriptor> mIcons = new SparseArray();
+        private final float mDensity;
+        private Activity mContext;
 
-        public ClusterRenderer(Context context, GoogleMap map,
+        public ClusterRenderer(Activity context, GoogleMap map,
                                ClusterManager<ClusterStation> clusterManager) {
-            super(context, map, clusterManager);
+            super(context.getApplicationContext(), map, clusterManager);
+            this.mContext = context;
+            this.mDensity = context.getResources().getDisplayMetrics().density;
+            this.mIconGenerator = new IconGenerator(context);
+            this.mIconGenerator.setContentView(this.makeSquareTextView(context));
+            this.mIconGenerator.setTextAppearance(
+                    com.google.maps.android.R.style.ClusterIcon_TextAppearance);
+            this.mIconGenerator.setBackground(this.makeClusterBackground());
         }
 
         @Override
@@ -306,6 +324,55 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             markerOptions.icon(item.getIcon());
             super.onBeforeClusterItemRendered(item, markerOptions);
         }
+
+        @Override
+        protected void onBeforeClusterRendered(Cluster<ClusterStation> cluster,
+                                               MarkerOptions markerOptions) {
+            // Main color
+            Collection<ClusterStation> stations = cluster.getItems();
+            Integer average_aqi = null;
+            for (ClusterStation station : stations) {
+                if (average_aqi == null) average_aqi = station.station.getMaxAqi();
+                average_aqi = (average_aqi + station.station.getMaxAqi())/2;
+            }
+            int clusterColor = AQI.getColor(average_aqi, mContext);
+
+            int bucket = this.getBucket(cluster);
+            BitmapDescriptor descriptor = this.mIcons.get(bucket);
+            if(descriptor == null) {
+                this.mColoredCircleBackground.getPaint().setColor(clusterColor);
+                descriptor = BitmapDescriptorFactory.fromBitmap(
+                        this.mIconGenerator.makeIcon(this.getClusterText(bucket)));
+                this.mIcons.put(bucket, descriptor);
+            }
+
+            markerOptions.icon(descriptor);
+        }
+
+        private SquareTextView makeSquareTextView(Context context) {
+            SquareTextView squareTextView = new SquareTextView(context);
+            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(-2, -2);
+            squareTextView.setLayoutParams(layoutParams);
+            squareTextView.setId(com.google.maps.android.R.id.text);
+            int twelveDpi = (int)(12.0F * this.mDensity);
+            squareTextView.setPadding(twelveDpi, twelveDpi, twelveDpi, twelveDpi);
+            return squareTextView;
+        }
+
+        private LayerDrawable makeClusterBackground() {
+            // Outline color
+            int clusterOutlineColor = ContextCompat.getColor(mContext, R.color.white);
+
+            this.mColoredCircleBackground = new ShapeDrawable(new OvalShape());
+            ShapeDrawable outline = new ShapeDrawable(new OvalShape());
+            outline.getPaint().setColor(clusterOutlineColor);
+            LayerDrawable background = new LayerDrawable(
+                    new Drawable[]{outline, this.mColoredCircleBackground});
+            int strokeWidth = (int)(this.mDensity * 3.0F);
+            background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
+            return background;
+        }
+
 
         @Override
         protected boolean shouldRenderAsCluster(Cluster<ClusterStation> cluster) {
