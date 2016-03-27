@@ -112,7 +112,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
         mClusterManager = new ClusterManager<ClusterStation>(this, mMap);
-        mClusterManager.setAlgorithm(new GridBasedAlgorithm<ClusterStation>());
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -306,6 +305,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         protected void onBeforeClusterItemRendered(ClusterStation item, MarkerOptions markerOptions) {
             markerOptions.icon(item.getIcon());
             super.onBeforeClusterItemRendered(item, markerOptions);
+        }
+
+        @Override
+        protected boolean shouldRenderAsCluster(Cluster<ClusterStation> cluster) {
+            return cluster.getSize() > 20;
         }
     }
 }

@@ -120,7 +120,6 @@ public class CitiSenseStation extends SugarRecord {
         Double b2 = bounds.southwest.latitude;
         Double b3 = bounds.northeast.longitude;
         Double b4 = bounds.southwest.longitude;
-        Log.d("MapsActivity", bounds.toString());
         return CitiSenseStation.find(
                 CitiSenseStation.class, "lat < ? and lat > ? and lng < ? and lng > ?",
                 b1.toString(), b2.toString(), b3.toString(), b4.toString());
