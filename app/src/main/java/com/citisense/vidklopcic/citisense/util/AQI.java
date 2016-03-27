@@ -50,11 +50,9 @@ public abstract class AQI {
         return getColor(aqi.intValue());
     }
 
-    public static int getLinearColor(int aqi, Activity c) {
+    public static int getLinearColor(Integer aqi, Activity c) {
         if (aqi < Constants.AQI.MODERATE) {
-            int color1 = ContextCompat.getColor(c, R.color.aqi_good);
-            int color2 = ContextCompat.getColor(c, R.color.aqi_moderate);
-            return interpolateColor(color1, color2, aqi/Constants.AQI.MODERATE);
+            return ContextCompat.getColor(c, R.color.aqi_good);
         } else if (aqi < Constants.AQI.UNHEALTHY_SENSITIVE) {
             int color1 = ContextCompat.getColor(c, R.color.aqi_moderate);
             int color2 = ContextCompat.getColor(c, R.color.aqi_unhealthy_for_sensitive);
@@ -77,7 +75,8 @@ public abstract class AQI {
     }
 
     private static float interpolate(float a, float b, float proportion) {
-        return (a + ((b - a) * proportion));
+        Float shortest_angle=((((b - a) % 360) + 540) % 360) - 180;
+        return (a + (shortest_angle * proportion));
     }
 
     /** Returns an interpoloated color, between <code>a</code> and <code>b</code> */
