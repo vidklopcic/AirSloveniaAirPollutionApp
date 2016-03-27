@@ -1,5 +1,10 @@
 package com.citisense.vidklopcic.citisense.data;
 
+import android.location.Location;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
+
 public abstract class Constants {
     public static final int MILLI = 1000;
     public static class DataSources {
@@ -35,6 +40,11 @@ public abstract class Constants {
     }
 
     public static class Map {
+        public static final double earth_radius = 6371000; // meters
         public static final int default_zoom = 16;
+        public static final double station_radius_meters = 500;
+        public static final LatLng station_radius_offset = SphericalUtil.computeOffset(
+                SphericalUtil.computeOffset(new LatLng(0, 0), station_radius_meters, 0), station_radius_meters, 90);
+        public static final int overlay_resolution = 10;
     }
 }

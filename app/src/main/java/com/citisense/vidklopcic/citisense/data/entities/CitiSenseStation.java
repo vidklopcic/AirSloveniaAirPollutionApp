@@ -6,6 +6,7 @@ import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.SphericalUtil;
 import com.orm.SugarRecord;
 import com.orm.dsl.Unique;
 import org.json.JSONArray;
@@ -125,6 +126,16 @@ public class CitiSenseStation extends SugarRecord {
                 b1.toString(), b2.toString(), b3.toString(), b4.toString());
     }
 
+    public static List<CitiSenseStation> getStationsInRadius(LatLng center, Double meters, List<CitiSenseStation> candidates) {
+        List<CitiSenseStation> result = new ArrayList<>();
+        for (CitiSenseStation candidate : candidates) {
+            if (SphericalUtil.computeDistanceBetween(candidate.getLocation(), center) < Constants.Map.station_radius_meters) {
+                result.add(candidate);
+            }
+        }
+        return result;
+    }
+
     @Override
     public boolean equals(Object obj) {
         CitiSenseStation station = (CitiSenseStation) obj;
@@ -186,5 +197,33 @@ public class CitiSenseStation extends SugarRecord {
         result.add(aqi);
         result.add(other);
         return result;
+    }
+
+    public static LatLngBounds getBounds(List<CitiSenseStation> stations) {
+        Double southwest_lat = 85d;
+        Double southwest_lng = 180d;
+        Double northeast_lat = -85d;
+        Double northeast_lng = -180d;
+
+        if (stations.size() == 0) {
+            return null;
+        } else if (stations.size() == 1) {
+            LatLng loc = stations.get(0).getLocation();
+            southwest_lat = loc.latitude;
+            southwest_lng = loc.longitude;
+            northeast_lat = loc.latitude;
+            northeast_lng = loc.longitude;
+        } else {
+            for (CitiSenseStation station : stations) {
+                LatLng loc = station.getLocation();
+                if (loc.latitude < southwest_lat) southwest_lat = loc.latitude;
+                if (loc.longitude < southwest_lng) southwest_lng = loc.longitude;
+                if (loc.latitude > northeast_lat) northeast_lat = loc.latitude;
+                if (loc.longitude > northeast_lng) northeast_lng = loc.longitude;
+            }
+        }
+        return new LatLngBounds(
+                new LatLng(southwest_lat-Constants.Map.station_radius_offset.latitude, southwest_lng-Constants.Map.station_radius_offset.longitude),
+                new LatLng(northeast_lat+Constants.Map.station_radius_offset.latitude, northeast_lng+Constants.Map.station_radius_offset.longitude));
     }
 }

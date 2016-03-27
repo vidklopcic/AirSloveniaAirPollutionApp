@@ -29,6 +29,7 @@ import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
+import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
 import com.citisense.vidklopcic.citisense.util.UI;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -46,6 +47,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -61,6 +64,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener {
 
+    private MapOverlay mOverlay;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationHelper mLocation;
     private SlidingMenu mMenu;
@@ -191,6 +195,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mOverlay = new MapOverlay(this, mMap);
         setUpMap();
         setUpClusterer();
         LatLngBounds lastviewport = mSavedState.getLastViewport();
@@ -229,15 +234,18 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         List<CitiSenseStation> viewport_stations = CitiSenseStation.getStationsInArea(
                 mMap.getProjection().getVisibleRegion().latLngBounds
         );
+
+        mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations((ArrayList<CitiSenseStation>) viewport_stations);
         List<CitiSenseStation> stations = new ArrayList<>(mStationsOnMap.keySet());
         viewport_stations.removeAll(stations);
+
         for (CitiSenseStation station : viewport_stations) {
             addStationToMap(station);
         }
+
         mSavedState.setLastViewport(mMap.getProjection().getVisibleRegion().latLngBounds);
         mClusterManager.onCameraChange(cameraPosition);
-
     }
 
     @Override
@@ -322,6 +330,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         @Override
         protected void onBeforeClusterItemRendered(ClusterStation item, MarkerOptions markerOptions) {
             markerOptions.icon(item.getIcon());
+            markerOptions.anchor(0.5f, 0.5f);
             super.onBeforeClusterItemRendered(item, markerOptions);
         }
 

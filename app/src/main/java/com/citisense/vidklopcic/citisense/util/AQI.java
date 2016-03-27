@@ -1,14 +1,11 @@
 package com.citisense.vidklopcic.citisense.util;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 
 /**
  * Various methods for calculating aqis dependent on AQI scale
