@@ -18,7 +18,6 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
-import com.citisense.vidklopcic.citisense.util.StationsHelper;
 import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
 
 import java.util.ArrayList;
@@ -193,7 +192,7 @@ public class AqiOverviewGraph extends Fragment {
     }
 
     public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
-        ArrayList<HashMap<String, Integer>> averages = StationsHelper.getAverages(stations);
+        ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;
         HashMap<String, Integer> aqi_averages = averages.get(0);
