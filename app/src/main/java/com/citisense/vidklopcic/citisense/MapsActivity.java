@@ -149,10 +149,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     }
 
-    public void onMicClicked(View view) {
-
-    }
-
     public void onMenuClicked(View view) {
         mMenu.showMenu();
     }

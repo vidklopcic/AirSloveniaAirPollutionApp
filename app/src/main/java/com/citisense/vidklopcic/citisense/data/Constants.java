@@ -40,11 +40,12 @@ public abstract class Constants {
     }
 
     public static class Map {
-        public static final double earth_radius = 6371000; // meters
         public static final int default_zoom = 16;
-        public static final double station_radius_meters = 500;
+        public static final double station_radius_meters = 1000;
         public static final LatLng station_radius_offset = SphericalUtil.computeOffset(
-                SphericalUtil.computeOffset(new LatLng(0, 0), station_radius_meters, 0), station_radius_meters, 90);
-        public static final int overlay_resolution = 10;
+                SphericalUtil.computeOffset(new LatLng(0, 0), station_radius_meters, 0), station_radius_meters*2, 90);
+        public static final int max_overlay_resolution_meters = 100;
+        public static final int default_overlay_resolution_pixels = 10;
+        public static final double overlay_transparency = 0.5;
     }
 }

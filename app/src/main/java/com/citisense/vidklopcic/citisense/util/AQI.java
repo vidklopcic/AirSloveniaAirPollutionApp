@@ -52,8 +52,12 @@ public abstract class AQI {
     }
 
     public static int getLinearColor(Integer aqi, Activity c) {
+        aqi -= (int) Constants.AQI.MODERATE/2;
+        if (aqi < 0) aqi = 0;
         if (aqi < Constants.AQI.MODERATE) {
-            return ContextCompat.getColor(c, R.color.aqi_good);
+            int color1 = ContextCompat.getColor(c, R.color.aqi_good);
+            int color2 = ContextCompat.getColor(c, R.color.aqi_moderate);
+            return interpolateColor(color1, color2, aqi / Constants.AQI.MODERATE);
         } else if (aqi < Constants.AQI.UNHEALTHY_SENSITIVE) {
             int color1 = ContextCompat.getColor(c, R.color.aqi_moderate);
             int color2 = ContextCompat.getColor(c, R.color.aqi_unhealthy_for_sensitive);
