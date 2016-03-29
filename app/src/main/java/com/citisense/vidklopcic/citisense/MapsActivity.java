@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -18,7 +17,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -46,9 +44,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -56,6 +51,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
 import com.google.maps.android.ui.SquareTextView;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -74,6 +70,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private SavedState mSavedState;
     private HashMap<CitiSenseStation, ClusterStation> mStationsOnMap;
     private DataAPI mDataApi;
+    private Float mCurrentZoom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,6 +194,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         LatLngBounds lastviewport = mSavedState.getLastViewport();
         if (lastviewport != null) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
+        } else {
+            Location location = mLocation.getLocation();
+            if (location != null)
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
         }
     }
 
@@ -242,6 +244,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
         mSavedState.setLastViewport(mMap.getProjection().getVisibleRegion().latLngBounds);
         mClusterManager.onCameraChange(cameraPosition);
+
+        mCurrentZoom = mMap.getCameraPosition().zoom;
     }
 
     @Override
@@ -257,17 +261,18 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataUpdate() {
-
+        mClusterManager.clearItems();
+        List<ClusterStation> stations = new ArrayList<>(mStationsOnMap.values());
+        for (ClusterStation station : stations) {
+            mClusterManager.addItem(station);
+        }
+        mOverlay.draw(new ArrayList<>(mStationsOnMap.keySet()), mMap.getProjection());
     }
 
     @Override
     public void onStationUpdate(CitiSenseStation station) {
         ClusterStation cstation = mStationsOnMap.get(station);
         if (cstation != null) {
-            mClusterManager.removeItem(cstation);
-            mClusterManager.addItem(cstation);
-            Log.d("MapsActivity", "refreshed " + cstation.station.getStationId());
-        } else {
             addStationToMap(station);
         }
     }
@@ -381,7 +386,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
         @Override
         protected boolean shouldRenderAsCluster(Cluster<ClusterStation> cluster) {
-            return cluster.getSize() > 20;
+            return mCurrentZoom < 10;
         }
     }
 }

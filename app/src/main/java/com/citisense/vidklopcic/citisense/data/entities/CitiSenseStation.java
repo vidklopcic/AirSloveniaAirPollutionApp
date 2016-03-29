@@ -112,6 +112,10 @@ public class CitiSenseStation extends SugarRecord {
         return max_aqi;
     }
 
+    public boolean hasData() {
+        return last_measurement != null;
+    }
+
     public int getColor() {
         return AQI.getColor(getMaxAqi());
     }
@@ -222,8 +226,10 @@ public class CitiSenseStation extends SugarRecord {
                 if (loc.longitude > northeast_lng) northeast_lng = loc.longitude;
             }
         }
+        
+        LatLng offset = Constants.Map.getStationRadiusOffset(stations.get(0).getLocation());
         return new LatLngBounds(
-                new LatLng(southwest_lat-Constants.Map.station_radius_offset.latitude, southwest_lng-Constants.Map.station_radius_offset.longitude),
-                new LatLng(northeast_lat+Constants.Map.station_radius_offset.latitude, northeast_lng+Constants.Map.station_radius_offset.longitude));
+                new LatLng(southwest_lat-offset.latitude, southwest_lng-offset.longitude),
+                new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
     }
 }

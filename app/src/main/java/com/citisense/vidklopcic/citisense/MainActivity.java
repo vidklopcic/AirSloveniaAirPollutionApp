@@ -19,7 +19,6 @@ import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import java.util.ArrayList;
@@ -76,6 +75,18 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                 mSwipeRefresh.setRefreshing(true);
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mDataAPI.setObservedStations(new ArrayList<CitiSenseStation>());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mDataAPI.setObservedStations(mStations);
     }
 
     public void fragmentClicked(View view) {
@@ -152,15 +163,15 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
         try {
-            HashMap<String, Integer> other = averages.get(1);
+            HashMap<String, Integer> other = averages.get(AqiOverviewGraph.AVERAGES_OTHER);
             String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
             String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
             mSubtitleContainer.setVisibility(View.VISIBLE);
             mCityText.setText(mCity);
             mTemperatureText.setText(temp);
             mHumidityText.setText(hum);
-            int max_aqi_val = Collections.max(averages.get(0).values());
-            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(0).values())));
+            int max_aqi_val = Collections.max(averages.get(AqiOverviewGraph.AVERAGES_POLLUTANTS).values());
+            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(AqiOverviewGraph.AVERAGES_POLLUTANTS).values())));
             mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
             mAQISummary.setAqi(max_aqi_val);
         } catch (Exception ignored) {

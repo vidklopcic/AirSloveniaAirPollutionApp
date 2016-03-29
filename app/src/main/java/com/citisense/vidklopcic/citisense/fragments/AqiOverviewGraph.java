@@ -22,8 +22,11 @@ import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class AqiOverviewGraph extends Fragment {
+    public static final int AVERAGES_POLLUTANTS = 0;
+    public static final int AVERAGES_OTHER = 1;
     // the fragment initialization parameters
     private static final String ARG_SQL_VALUES_ID = "sql_vals_id";
     public static final String LOG_ID = "aqi_fragment";
@@ -195,7 +198,10 @@ public class AqiOverviewGraph extends Fragment {
         ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;
-        HashMap<String, Integer> aqi_averages = averages.get(0);
+        List<String> bar_pollutants = new ArrayList<>(mAQIBars.keySet());
+        for (String parameter : bar_pollutants)
+            if (!averages.get(AVERAGES_POLLUTANTS).keySet().contains(parameter)) removeBar(parameter);
+        HashMap<String, Integer> aqi_averages = averages.get(AVERAGES_POLLUTANTS);
         for (String pollutant_name : aqi_averages.keySet()) {
             if (mAQIBars.keySet().contains(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
             else addBar(aqi_averages.get(pollutant_name), pollutant_name);

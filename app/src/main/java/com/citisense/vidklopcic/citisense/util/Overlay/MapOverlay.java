@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
@@ -47,6 +48,11 @@ public class MapOverlay {
         task.execute();
     }
 
+    public static LatLng getOffset(LatLng latLng, Double meters) {
+        LatLng tmp = SphericalUtil.computeOffset(SphericalUtil.computeOffset(latLng, meters, 0), meters, 90);
+        return new LatLng(tmp.latitude-latLng.latitude, tmp.longitude - latLng.longitude);
+    }
+
     class DrawImageTask {
         int THREAD_LIMIT = 15;
         public List<CitiSenseStation> mStations;
@@ -65,14 +71,6 @@ public class MapOverlay {
             mStations = stations;
             mProjection = projection;
             tasks = new ArrayList<>();
-            Double distance = SphericalUtil.computeDistanceBetween(
-                    mProjection.fromScreenLocation(new Point(0, 0)),
-                    mProjection.fromScreenLocation(new Point(Constants.Map.default_overlay_resolution_pixels, Constants.Map.default_overlay_resolution_pixels)));
-
-            Double pixel_side = Math.sqrt((distance * distance) / 2);
-            if (pixel_side < Constants.Map.max_overlay_resolution_meters)
-                pixel_side = (double) Constants.Map.max_overlay_resolution_meters;
-            mPixelSize = SphericalUtil.computeOffset(SphericalUtil.computeOffset(new LatLng(0, 0), pixel_side, 0), pixel_side*2, 90);
         }
 
         protected void stop() {
@@ -85,14 +83,22 @@ public class MapOverlay {
                 public void run() {
                     bounds = CitiSenseStation.getBounds(mStations);
                     if (bounds == null) return;
+                    Double distance = SphericalUtil.computeDistanceBetween(
+                            mProjection.fromScreenLocation(new Point(0, 0)),
+                            mProjection.fromScreenLocation(new Point(Constants.Map.default_overlay_resolution_pixels, Constants.Map.default_overlay_resolution_pixels)));
+
+                    Double pixel_side = Math.sqrt((distance * distance) / 2);
+                    if (pixel_side < Constants.Map.max_overlay_resolution_meters)
+                        pixel_side = (double) Constants.Map.max_overlay_resolution_meters;
+                    mPixelSize = SphericalUtil.computeOffset(SphericalUtil.computeOffset(bounds.getCenter(), pixel_side, 0), pixel_side, 90);
+                    mPixelSize = new LatLng(mPixelSize.latitude-bounds.getCenter().latitude, mPixelSize.longitude - bounds.getCenter().longitude);
+
+                    if (bounds == null) return;
                     x_img_size = (int) (Math.abs(bounds.southwest.longitude - bounds.northeast.longitude)/mPixelSize.longitude);
                     y_img_size = (int) (Math.abs(bounds.southwest.latitude - bounds.northeast.latitude)/mPixelSize.latitude);
                     pixels = new int[x_img_size*y_img_size];
                     Log.d("asdfg", x_img_size.toString() + " x " + y_img_size.toString());
                     if (y_img_size < 1 || x_img_size < 1) return;
-                    Bitmap bitmap = Bitmap.createBitmap(x_img_size, y_img_size, Bitmap.Config.ARGB_8888);
-                    bitmap.getPixels(pixels, 0, x_img_size, 0, 0, x_img_size, y_img_size);
-
                     candidates = CitiSenseStation.getStationsInArea(bounds);
 
                     Log.d("asdfg", "start");
@@ -108,7 +114,7 @@ public class MapOverlay {
                     waitForTasks();
                     if (Thread.currentThread().isInterrupted()) return;
 
-                    bitmap.setPixels(pixels, 0, x_img_size, 0, 0, x_img_size, y_img_size);
+                    Bitmap bitmap = Bitmap.createBitmap(pixels, x_img_size, y_img_size, Bitmap.Config.ARGB_8888);
                     Log.d("asdfg", "fin");
                     result = new GroundOverlayOptions()
                             .image(BitmapDescriptorFactory.fromBitmap(bitmap))
@@ -183,7 +189,7 @@ public class MapOverlay {
                 LatLng center;
                 List<CitiSenseStation> affecting_stations;
                 List<Double> importance  = new ArrayList<>();
-                Double distance_sum;
+                Double importance_sum;
                 Double weight;
                 Double pixel_intensity;
                 Double current_aqi;
@@ -199,10 +205,19 @@ public class MapOverlay {
                         affecting_stations =  CitiSenseStation.getStationsInRadius(
                                 center, Constants.Map.station_radius_meters, candidates);
 
+                        for (int i=0;i<affecting_stations.size();i++) {
+                            if (!affecting_stations.get(i).hasData()) {
+                                affecting_stations.remove(i);
+                                i--;
+                            }
+                        }
+
                         if (affecting_stations.size() > 0) {
                             importance.clear();
-                            for (CitiSenseStation station : affecting_stations)
-                                importance.add(SphericalUtil.computeDistanceBetween(center, station.getLocation()));
+                            for (CitiSenseStation station : affecting_stations) {
+                                if (station.hasData())
+                                    importance.add(SphericalUtil.computeDistanceBetween(center, station.getLocation()));
+                            }
 
                             for (int i = 0; i < importance.size(); i++) {
                                 Double distance = importance.get(i);
@@ -213,12 +228,12 @@ public class MapOverlay {
                                 }
                             }
 
-                            distance_sum = Conversion.sum(importance);
-                            weight = 1d / distance_sum;
+                            importance_sum = Conversion.sum(importance);
+                            weight = 1d / importance_sum;
 
                             pixel_intensity = 0d;
                             for (int i = 0; i < importance.size(); i++) {
-                                current_aqi = Double.valueOf(affecting_stations.get(i).getMaxAqi()) * importance.get(i) * weight;
+                                current_aqi = affecting_stations.get(i).getMaxAqi() * importance.get(i) * weight;
                                 pixel_intensity += current_aqi;
                             }
 
