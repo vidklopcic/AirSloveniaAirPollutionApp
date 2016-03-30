@@ -279,6 +279,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public boolean onClusterItemClick(ClusterStation clusterStation) {
+        if (mCurrentMarker != null)
+            mCurrentMarker.remove();
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         mPollutantCardsFragment.setSourceStations(clusterStation.station);
         return false;
