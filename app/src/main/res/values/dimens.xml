@@ -6,4 +6,6 @@
     <dimen name="aqi_overview_chart_bar_width">13dp</dimen>
     <dimen name="shadow_width">10dp</dimen>
     <dimen name="marker_size">10dp</dimen>
+    <dimen name="pollutant_card_size">50dp</dimen>
+    <dimen name="map_pollutants_pull_up_height">107dp</dimen>
 </resources>

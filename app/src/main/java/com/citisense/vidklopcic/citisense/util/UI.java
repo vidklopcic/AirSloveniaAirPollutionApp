@@ -14,9 +14,7 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 
 public abstract class UI {
     public static com.jeremyfeinstein.slidingmenu.lib.SlidingMenu getSlidingMenu(WindowManager windowManager, Activity context) {
-        Display display = windowManager.getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
+        Point size = getScreenSize(windowManager);
         com.jeremyfeinstein.slidingmenu.lib.SlidingMenu menu = new com.jeremyfeinstein.slidingmenu.lib.SlidingMenu(context);
         menu.setMode(com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.LEFT);
         menu.setTouchModeAbove(com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.TOUCHMODE_MARGIN);
@@ -27,6 +25,13 @@ public abstract class UI {
         menu.setBehindOffset((int) (size.x * 0.1));
         menu.setMenu(R.layout.sliding_menu);
         return menu;
+    }
+
+    public static Point getScreenSize(WindowManager wm) {
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        return size;
     }
 
     public static class AQISummary {

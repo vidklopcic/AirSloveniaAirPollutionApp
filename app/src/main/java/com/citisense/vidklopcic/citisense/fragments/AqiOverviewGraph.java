@@ -25,13 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class AqiOverviewGraph extends Fragment {
-    public static final int AVERAGES_POLLUTANTS = 0;
-    public static final int AVERAGES_OTHER = 1;
-    // the fragment initialization parameters
-    private static final String ARG_SQL_VALUES_ID = "sql_vals_id";
-    public static final String LOG_ID = "aqi_fragment";
-
-    private int mAQIValsDbId;
     LinearLayout mAQILabelsContainer;
     private RelativeLayout mAqiChartContainer;
     private LinearLayout mAQIBarsContainer;
@@ -43,21 +36,6 @@ public class AqiOverviewGraph extends Fragment {
     private DataAPI mDataAPI;
     private ArrayList<CitiSenseStation> mStations;
 
-    /**
-     * Factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param AQIVals id of sql entry for aqi vals to display.
-     * @return A new instance of fragment AqiOverviewGraph.
-     */
-    public static AqiOverviewGraph newInstance(int AQIVals) {
-        AqiOverviewGraph fragment = new AqiOverviewGraph();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SQL_VALUES_ID, AQIVals);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     public AqiOverviewGraph() {
         // Required empty public constructor
     }
@@ -65,9 +43,6 @@ public class AqiOverviewGraph extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mAQIValsDbId = getArguments().getInt(ARG_SQL_VALUES_ID);
-        }
         mAQIBars = new HashMap<>();
     }
 
@@ -200,8 +175,8 @@ public class AqiOverviewGraph extends Fragment {
         if (averages == null) return null;
         List<String> bar_pollutants = new ArrayList<>(mAQIBars.keySet());
         for (String parameter : bar_pollutants)
-            if (!averages.get(AVERAGES_POLLUTANTS).keySet().contains(parameter)) removeBar(parameter);
-        HashMap<String, Integer> aqi_averages = averages.get(AVERAGES_POLLUTANTS);
+            if (!averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).keySet().contains(parameter)) removeBar(parameter);
+        HashMap<String, Integer> aqi_averages = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
         for (String pollutant_name : aqi_averages.keySet()) {
             if (mAQIBars.keySet().contains(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
             else addBar(aqi_averages.get(pollutant_name), pollutant_name);

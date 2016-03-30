@@ -25,4 +25,8 @@
     <color name="transparent_pressed">#70ffffff</color>
     <color name="dark_transparent_pressed">#3a919191</color>
     <color name="white">#fff</color>
+    <color name="opaque_red">#ef6b60</color>
+    <color name="dark_blue">#2979c1</color>
+    <color name="maps_blue">#3d87f7</color>
+    <color name="light_gray_bg">#f3f3f3</color>
 </resources>

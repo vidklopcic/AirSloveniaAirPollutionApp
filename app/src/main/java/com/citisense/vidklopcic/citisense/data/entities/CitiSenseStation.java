@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CitiSenseStation extends SugarRecord {
+    public static final int AVERAGES_POLLUTANTS = 0;
+    public static final int AVERAGES_OTHER = 1;
     String city;
     String pollutants;
     Float lat;
@@ -168,7 +170,16 @@ public class CitiSenseStation extends SugarRecord {
         return aqi_val;
     }
 
+    public Integer getConfigVersion() {
+        return config_version;
+    }
+
+    public void setConfigVersion(Integer version) {
+        config_version = version;
+    }
+
     public static ArrayList<HashMap<String, Integer>> getAverages(ArrayList<CitiSenseStation> stations) {
+        if (stations.size() == 0) return null;
         ArrayList<HashMap<String, Integer>> result = new ArrayList<>();
         HashMap<String, Integer> aqi = new HashMap<>();
         HashMap<String, Integer> other = new HashMap<>();

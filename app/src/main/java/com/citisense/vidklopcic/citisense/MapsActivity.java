@@ -19,12 +19,12 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
+import com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
@@ -44,6 +44,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -51,6 +52,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
 import com.google.maps.android.ui.SquareTextView;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +61,6 @@ import java.util.List;
 
 
 public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener {
-
     private MapOverlay mOverlay;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationHelper mLocation;
@@ -71,6 +72,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private HashMap<CitiSenseStation, ClusterStation> mStationsOnMap;
     private DataAPI mDataApi;
     private Float mCurrentZoom;
+    private SlidingUpPanelLayout mSlidingPane;
+    private float mSlidingPaneHeight;
+    private PollutantsAqiCardsFragment mPollutantCardsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +98,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     }
                 }
         );
+        mSlidingPane = (SlidingUpPanelLayout) findViewById(R.id.map_sliding_pane);
+        mSlidingPaneHeight = getResources().getDimension(R.dimen.map_pollutants_pull_up_height);
+        mPollutantCardsFragment = (PollutantsAqiCardsFragment)
+                getFragmentManager().findFragmentById(R.id.map_pollutant_cards_fragment);
     }
 
     @Override
@@ -112,16 +120,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     private void setUpClusterer() {
-
-        // Position the map.
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(51.503186, -0.126446), 10));
-
-        // Initialize the manager with the context and the map.
-        // (Activity extends context, so we can pass 'this' in the constructor.)
-        mClusterManager = new ClusterManager<ClusterStation>(this, mMap);
-
-        // Point the map's listeners at the listeners implemented by the cluster
-        // manager.
+        mClusterManager = new ClusterManager<>(this, mMap);
         mMap.setOnMarkerClickListener(mClusterManager);
         mClusterManager.setOnClusterItemClickListener(this);
         mClusterManager.setRenderer(new ClusterRenderer(this, mMap, mClusterManager));
@@ -191,6 +190,20 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mOverlay = new MapOverlay(this, mMap);
         setUpMap();
         setUpClusterer();
+        try {
+            positionMap();
+        } catch (IllegalStateException e) {
+            mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                @Override
+                public void onMapLoaded() {
+                    positionMap();
+                }
+            });
+        }
+    }
+
+
+    private void positionMap() {
         LatLngBounds lastviewport = mSavedState.getLastViewport();
         if (lastviewport != null) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
@@ -198,9 +211,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             Location location = mLocation.getLocation();
             if (location != null)
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
+                        new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
         }
     }
+
 
     public void addStationToMap(CitiSenseStation station) {
         if (station.getLastMeasurement() != null) {
@@ -219,12 +233,27 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onMapClick(LatLng latLng) {
         if (mCurrentMarker != null) mCurrentMarker.remove();
+        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
         if (mCurrentMarker != null) mCurrentMarker.remove();
         mCurrentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
+        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsInArea(
+                new LatLngBounds(
+                        SphericalUtil.computeOffset(
+                                SphericalUtil.computeOffset(latLng, Constants.Map.station_radius_meters, 270),
+                                Constants.Map.station_radius_meters,
+                                180),
+                        SphericalUtil.computeOffset(
+                                SphericalUtil.computeOffset(latLng, Constants.Map.station_radius_meters, 0),
+                                Constants.Map.station_radius_meters,
+                                90)
+                )
+        );
+        mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
     }
 
     @Override
@@ -250,7 +279,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public boolean onClusterItemClick(ClusterStation clusterStation) {
-        Toast.makeText(this, clusterStation.station.getMaxAqi().toString(), Toast.LENGTH_SHORT).show();
+        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        mPollutantCardsFragment.setSourceStations(clusterStation.station);
         return false;
     }
 
@@ -345,6 +375,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 if (average_aqi == null) average_aqi = station.station.getMaxAqi();
                 average_aqi = (average_aqi + station.station.getMaxAqi())/2;
             }
+            if(average_aqi == null) average_aqi = 0;
             int clusterColor = AQI.getColor(average_aqi, mContext);
 
             int bucket = this.getBucket(cluster);

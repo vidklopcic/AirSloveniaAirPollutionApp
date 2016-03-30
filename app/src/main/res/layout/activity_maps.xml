@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map_sliding_pane"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="bottom"
+    android:background="#fff"
+    sothree:umanoPanelHeight="@dimen/map_pollutants_pull_up_height"
+    sothree:umanoShadowHeight="2dp"
+    sothree:umanoInitialState="hidden">
+
+<RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools">
@@ -20,3 +32,16 @@
             android:layout_height="wrap_content" />
     </RelativeLayout>
 </RelativeLayout>
+
+<RelativeLayout
+    android:id="@+id/map_sliding_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <fragment android:name="com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment"
+        android:id="@+id/map_pollutant_cards_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/pollutants_aqi_cards_overview_fragment" />
+</RelativeLayout>
+
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>

@@ -163,15 +163,15 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
         try {
-            HashMap<String, Integer> other = averages.get(AqiOverviewGraph.AVERAGES_OTHER);
+            HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
             String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
             String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
             mSubtitleContainer.setVisibility(View.VISIBLE);
             mCityText.setText(mCity);
             mTemperatureText.setText(temp);
             mHumidityText.setText(hum);
-            int max_aqi_val = Collections.max(averages.get(AqiOverviewGraph.AVERAGES_POLLUTANTS).values());
-            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(AqiOverviewGraph.AVERAGES_POLLUTANTS).values())));
+            int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
+            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values())));
             mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
             mAQISummary.setAqi(max_aqi_val);
         } catch (Exception ignored) {
