@@ -38,7 +38,8 @@ public class DataAPI {
     }
 
     public void setObservedStations(ArrayList<CitiSenseStation> stations) {
-        mActiveStations = stations;
+        if (stations != null)
+            mActiveStations = stations;
     }
 
     public void setDataUpdateListener(DataUpdateListener listener) {
@@ -90,6 +91,7 @@ public class DataAPI {
                                     stationdb.setCity(place_key);
                                     stationdb.setPollutants(pollutants);
                                     stationdb.setLocation(lat, lng);
+                                    stationdb.setConfigVersion(config_version);
                                 } else {
                                     stationdb = new CitiSenseStation(
                                             config_version, id, place_key, pollutants, lat, lng
