@@ -52,7 +52,7 @@ public abstract class AQI {
     }
 
     public static int getLinearColor(Integer aqi, Activity c) {
-        aqi -= (int) Constants.AQI.MODERATE/2;
+        //aqi -= (int) Constants.AQI.MODERATE/2;
         if (aqi < 0) aqi = 0;
         if (aqi < Constants.AQI.MODERATE) {
             int color1 = ContextCompat.getColor(c, R.color.aqi_good);
