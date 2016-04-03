@@ -71,6 +71,10 @@ public class CitiSenseStation extends SugarRecord {
         }
     }
 
+    public boolean hasPollutant(String pollutant) {
+        return pollutants.contains("\""+pollutant+"\"");
+    }
+
     public LatLng getLocation() {
         return new LatLng(lat, lng);
     }
@@ -122,6 +126,18 @@ public class CitiSenseStation extends SugarRecord {
         return AQI.getColor(getMaxAqi());
     }
 
+    public static List<CitiSenseStation> getStationsAroundPoint(LatLng latLng, Double half_square_side) {
+        return getStationsInArea(new LatLngBounds(
+                SphericalUtil.computeOffset(
+                        SphericalUtil.computeOffset(latLng, half_square_side, 270),
+                        half_square_side,
+                        180),
+                SphericalUtil.computeOffset(
+                        SphericalUtil.computeOffset(latLng, half_square_side, 0),
+                        half_square_side,
+                        90)
+        ));
+    }
     public static List<CitiSenseStation> getStationsInArea(LatLngBounds bounds) {
         Double b1 = bounds.northeast.latitude;
         Double b2 = bounds.southwest.latitude;
@@ -212,6 +228,18 @@ public class CitiSenseStation extends SugarRecord {
         result.add(aqi);
         result.add(other);
         return result;
+    }
+
+    public Integer getPollutantAqi(String pollutant, JSONArray measurement) {
+        try {
+            for (int i = 0; i < measurement.length(); i++) {
+                JSONObject m = measurement.getJSONObject(i);
+                if (m.getString(Constants.CitiSenseStation.pollutant_name_key).equals(pollutant)) {
+                    return getAqi(pollutant, m.getDouble(Constants.CitiSenseStation.value_key));
+                }
+            }
+        } catch (JSONException ignored) {}
+        return null;
     }
 
     public static LatLngBounds getBounds(List<CitiSenseStation> stations) {

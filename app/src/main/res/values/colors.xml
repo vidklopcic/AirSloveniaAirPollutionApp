@@ -31,4 +31,5 @@
     <color name="light_gray_bg">#f3f3f3</color>
     <color name="dark_gray">#484848</color>
     <color name="black_semi_transparent">#aa000000</color>
+    <color name="gray">#666666</color>
 </resources>

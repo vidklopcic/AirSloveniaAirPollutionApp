@@ -79,6 +79,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private SlidingUpPanelLayout mSlidingPane;
     private PollutantsAqiCardsFragment mPollutantCardsFragment;
     private FABPollutants mFABPollutants;
+    private String mPollutantFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +107,21 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 getFragmentManager().findFragmentById(R.id.map_pollutant_cards_fragment);
 
         mFABPollutants = new FABPollutants(this, (FloatingActionMenu) findViewById(R.id.fab_pollutants), this);
+        mSlidingPane.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View view, float v) {
+
+            }
+
+            @Override
+            public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
+                if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                    mPollutantCardsFragment.hide();
+                } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+                    mPollutantCardsFragment.show();
+                }
+            }
+        });
     }
 
     @Override
@@ -124,25 +140,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private void setPointOfInterest(LatLng poi, Marker marker) {
         if (mCurrentMarker != null)
             mCurrentMarker.remove();
-        mPointOfInterest = null;
         mPointOfInterest = poi;
         mCurrentMarker = marker;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        mSlidingPane.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View view, float v) {
-
-            }
-
-            @Override
-            public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
-                if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
-                    mPollutantCardsFragment.hide();
-                } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
-                    mPollutantCardsFragment.show();
-                }
-            }
-        });
     }
 
     private void setPointOfInterest(LatLng poi) {
@@ -169,6 +169,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mMap.setOnMapClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnCameraChangeListener(this);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
         mDataApi.setDataUpdateListener(this);
         mLocation = new LocationHelper(this);
         if (mLocation.hasPermission()) mMap.setMyLocationEnabled(true);
@@ -196,6 +197,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
         mCurrentPlace = place;
         setPointOfInterest(place.getLatLng(), mMap.addMarker(new MarkerOptions().position(place.getLatLng())));
+        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsAroundPoint(place.getLatLng(), Constants.Map.station_radius_meters);
+        mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
         LatLngBounds bounds = mCurrentPlace.getViewport();
         if (bounds != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mCurrentPlace.getViewport(), 0));
@@ -256,7 +259,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
 
     public void addStationToMap(CitiSenseStation station) {
-        if (station.getLastMeasurement() != null) {
+        if (station.getLastMeasurement() != null && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
@@ -276,18 +279,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsInArea(
-                new LatLngBounds(
-                        SphericalUtil.computeOffset(
-                                SphericalUtil.computeOffset(latLng, Constants.Map.station_radius_meters, 270),
-                                Constants.Map.station_radius_meters,
-                                180),
-                        SphericalUtil.computeOffset(
-                                SphericalUtil.computeOffset(latLng, Constants.Map.station_radius_meters, 0),
-                                Constants.Map.station_radius_meters,
-                                90)
-                )
-        );
+        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
         mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
         setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
     }
@@ -298,7 +290,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
-        mOverlay.draw(viewport_stations, mMap.getProjection());
+        mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations(viewport_stations);
         List<CitiSenseStation> stations = new ArrayList<>(mStationsOnMap.keySet());
         viewport_stations.removeAll(stations);
@@ -330,12 +322,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onDataUpdate() {
         mClusterManager.clearItems();
-        List<ClusterStation> stations = new ArrayList<>(mStationsOnMap.values());
-        for (ClusterStation station : stations) {
-            mClusterManager.addItem(station);
-        }
-        mOverlay.draw(new ArrayList<>(mStationsOnMap.keySet()), mMap.getProjection());
-        mOverlay.draw(new ArrayList<>(mStationsOnMap.keySet()), mMap.getProjection());
+        mClusterManager.cluster();
+        mStationsOnMap.clear();
+        onCameraChange(mMap.getCameraPosition());
     }
 
     @Override
@@ -343,8 +332,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     @Override
-    public void onPollutantSelected(String pollutant) {
-        // todo
+    public void onFABPollutantSelected(String pollutant) {
+        mOverlay.setPollutant(pollutant);
+        mPollutantFilter = pollutant;
+        onDataUpdate();
     }
 
     public class ClusterStation implements ClusterItem {
@@ -367,7 +358,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
             Drawable shapeDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.station_marker, null);
             assert shapeDrawable != null;
-            shapeDrawable.setColorFilter(AQI.getLinearColor(station.getMaxAqi(), getContext()), PorterDuff.Mode.MULTIPLY);
+            Integer aqi;
+            if (mPollutantFilter != null)
+                aqi = station.getPollutantAqi(mPollutantFilter, station.getLastMeasurement());
+            else
+                aqi = station.getMaxAqi();
+            shapeDrawable.setColorFilter(AQI.getLinearColor(aqi, getContext()), PorterDuff.Mode.MULTIPLY);
             iconGen.setBackground(shapeDrawable);
 
             View view = new View(getContext());
@@ -412,8 +408,13 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             Collection<ClusterStation> stations = cluster.getItems();
             Integer average_aqi = null;
             for (ClusterStation station : stations) {
-                if (average_aqi == null) average_aqi = station.station.getMaxAqi();
-                average_aqi = (average_aqi + station.station.getMaxAqi())/2;
+                Integer aqi;
+                if (mPollutantFilter != null)
+                    aqi = station.station.getPollutantAqi(mPollutantFilter, station.station.getLastMeasurement());
+                else
+                    aqi = station.station.getMaxAqi();
+                if (average_aqi == null) average_aqi = aqi;
+                average_aqi = (average_aqi + aqi)/2;
             }
             if(average_aqi == null) average_aqi = 0;
             int clusterColor = AQI.getColor(average_aqi, mContext);

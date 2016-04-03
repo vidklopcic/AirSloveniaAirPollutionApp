@@ -31,6 +31,9 @@ public class MapOverlay {
     HashMap<LatLngBounds, BitmapDescriptor> buffer;
     GroundOverlay mCurrentOverlay;
     DrawImageTask task;
+    private String mPollutant;
+    private List<CitiSenseStation> mCurrentStations;
+    private Projection mCurrentProjection;
 
     public MapOverlay(Activity context, GoogleMap map) {
         mContext = context;
@@ -38,7 +41,9 @@ public class MapOverlay {
         mDefaultProjection = mMap.getProjection();
     }
 
-    public void draw(ArrayList<CitiSenseStation> stations, Projection projection) {
+    public void draw(List<CitiSenseStation> stations, Projection projection) {
+        mCurrentProjection = projection;
+        mCurrentStations = stations;
         if (task != null) task.stop();
         task = new DrawImageTask(stations, projection);
         task.execute();
@@ -47,6 +52,11 @@ public class MapOverlay {
     public static LatLng getOffset(LatLng latLng, Double meters) {
         LatLng tmp = SphericalUtil.computeOffset(SphericalUtil.computeOffset(latLng, meters, 0), meters, 90);
         return new LatLng(tmp.latitude-latLng.latitude, tmp.longitude - latLng.longitude);
+    }
+
+    public void setPollutant(String pollutant) {
+        mPollutant = pollutant;
+        draw(mCurrentStations, mCurrentProjection);
     }
 
     class DrawImageTask {
@@ -92,12 +102,7 @@ public class MapOverlay {
                     if (bounds == null) return;
                     x_img_size = (int) (Math.abs(bounds.southwest.longitude - bounds.northeast.longitude)/mPixelSize.longitude);
                     y_img_size = (int) (Math.abs(bounds.southwest.latitude - bounds.northeast.latitude)/mPixelSize.latitude);
-                    try {
-                        pixels = new int[x_img_size*y_img_size];
-                    } catch (OutOfMemoryError e) {
-                        Log.d("MapOverlay", "no overlay - out of memory");
-                        return;
-                    }
+                    pixels = new int[x_img_size*y_img_size];
                     Log.d("asdfg", x_img_size.toString() + " x " + y_img_size.toString());
                     if (y_img_size < 1 || x_img_size < 1) return;
                     candidates = CitiSenseStation.getStationsInArea(bounds);
@@ -207,7 +212,8 @@ public class MapOverlay {
                                 center, Constants.Map.station_radius_meters, candidates);
 
                         for (int i=0;i<affecting_stations.size();i++) {
-                            if (!affecting_stations.get(i).hasData()) {
+                            if (!affecting_stations.get(i).hasData() ||
+                                    mPollutant != null && !affecting_stations.get(i).hasPollutant(mPollutant)) {
                                 affecting_stations.remove(i);
                                 i--;
                             }
@@ -234,7 +240,15 @@ public class MapOverlay {
 
                             pixel_intensity = 0d;
                             for (int i = 0; i < importance.size(); i++) {
-                                current_aqi = affecting_stations.get(i).getMaxAqi() * importance.get(i) * weight;
+                                CitiSenseStation station = affecting_stations.get(i);
+                                if (mPollutant != null) {
+                                    Integer pollutant_aqi = station.getPollutantAqi(mPollutant, station.getLastMeasurement());
+                                    if (pollutant_aqi != null)
+                                        current_aqi =  pollutant_aqi * importance.get(i) * weight;
+                                    else
+                                        current_aqi = 0d;
+                                } else
+                                    current_aqi = station.getMaxAqi() * importance.get(i) * weight;
                                 pixel_intensity += current_aqi;
                             }
 

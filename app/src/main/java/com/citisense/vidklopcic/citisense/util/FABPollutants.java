@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class FABPollutants {
     public interface FABPollutantsListener {
-        void onPollutantSelected(String pollutant);
+        void onFABPollutantSelected(String pollutant);
     }
     private Integer mCurrentPollutantIcon = R.drawable.ic_sum;
     private FloatingActionMenu mFABPollutants;
@@ -43,7 +43,7 @@ public class FABPollutants {
         mFABPollutants.getMenuIconView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mFABPollutantsIsOpened = !mFABPollutants.isOpened();
+                mFABPollutantsIsOpened = !mFABPollutantsIsOpened;
                 if (mFABPollutantsIsOpened)
                     mFABPollutants.open(true);
                 else
@@ -60,7 +60,18 @@ public class FABPollutants {
                 mCurrentPollutantIcon = R.drawable.ic_sum;
                 mSelectedPollutant = null;
                 mSet.cancel();
+                mFABPollutantsIsOpened = false;
                 mFABPollutants.close(true);
+                mListener.onFABPollutantSelected(null);
+            }
+        });
+        mSumFab.setLabelText(mContext.getString(R.string.overview));
+
+        mFABPollutants.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
+            @Override
+            public void onMenuToggle(boolean b) {
+                if (!b)
+                    mFABPollutants.getMenuIconView().setImageResource(mCurrentPollutantIcon);
             }
         });
     }
@@ -91,17 +102,25 @@ public class FABPollutants {
                     setSelectedPollutant(pollutant, pollutants.get(pollutant));
                 addPollutant(pollutant, pollutants.get(pollutant));
             }
+            int max_color = AQI.getLinearColor(Collections.max(pollutants.values()), mContext);
+            mSumFab.setColorPressed(max_color);
+            mSumFab.setColorNormal(max_color);
             if (mSelectedPollutant == null) {
-                mFABPollutants.setMenuButtonColorNormal(
-                        AQI.getLinearColor(Collections.max(pollutants.values()), mContext)
-                );
+                mFABPollutants.setMenuButtonColorNormal(max_color);
+                mFABPollutants.setMenuButtonColorPressed(max_color);
             }
+        } else {
+            mFABPollutants.setMenuButtonColorNormalResId(R.color.gray);
+            mFABPollutants.setMenuButtonColorPressedResId(R.color.gray);
+            mSumFab.setColorNormalResId(R.color.gray);
+            mSumFab.setColorPressedResId(R.color.gray);
         }
     }
 
     private void clear() {
         mFABPollutants.removeAllMenuButtons();
         mButtons.clear();
+        mFABPollutants.addMenuButton(mSumFab);
     }
 
     private void addPollutant(String pollutant, Integer aqi) {
@@ -111,6 +130,7 @@ public class FABPollutants {
         FloatingActionButton fab = new FloatingActionButton(mContext);
         fab.setImageResource(icon);
         fab.setColorNormal(AQI.getLinearColor(aqi, mContext));
+        fab.setColorPressed(AQI.getLinearColor(aqi, mContext));
         fab.setLabelText("AQI is " + aqi.toString());
         fab.setTag(R.id.pollutant_tag, pollutant);
         fab.setTag(R.id.aqi_tag, aqi);
@@ -120,7 +140,9 @@ public class FABPollutants {
                 String pollutant = (String) v.getTag(R.id.pollutant_tag);
                 Integer aqi = (Integer) v.getTag(R.id.aqi_tag);
                 setSelectedPollutant(pollutant, aqi);
+                mFABPollutantsIsOpened = false;
                 mFABPollutants.close(true);
+                mListener.onFABPollutantSelected(pollutant);
             }
         });
         fab.setButtonSize(FloatingActionButton.SIZE_MINI);
@@ -133,7 +155,6 @@ public class FABPollutants {
     }
 
     private void setSelectedPollutant(String pollutant, int aqi) {
-        mListener.onPollutantSelected(pollutant);
         mCurrentPollutantIcon = getDrawableForPollutant(pollutant);
         mSelectedPollutant = pollutant;
         mFABPollutants.setMenuButtonColorNormal(AQI.getLinearColor(aqi, mContext));

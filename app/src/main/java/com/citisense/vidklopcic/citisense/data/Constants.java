@@ -43,7 +43,7 @@ public abstract class Constants {
     public static class Map {
         public static final int default_zoom = 16;
         public static final double station_radius_meters = 1000;
-        public static final int max_overlay_resolution_meters = 100;
+        public static final int max_overlay_resolution_meters = 200;
         public static final int default_overlay_resolution_pixels = 10;
         public static final double overlay_transparency = 0.5;
 
