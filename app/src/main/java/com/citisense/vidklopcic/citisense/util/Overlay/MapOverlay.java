@@ -38,10 +38,6 @@ public class MapOverlay {
         mDefaultProjection = mMap.getProjection();
     }
 
-    public void update() {
-
-    }
-
     public void draw(List<CitiSenseStation> stations, Projection projection) {
         if (task != null) task.stop();
         task = new DrawImageTask(stations, projection);

@@ -29,4 +29,5 @@
     <color name="dark_blue">#2979c1</color>
     <color name="maps_blue">#3d87f7</color>
     <color name="light_gray_bg">#f3f3f3</color>
+    <color name="dark_gray">#484848</color>
 </resources>

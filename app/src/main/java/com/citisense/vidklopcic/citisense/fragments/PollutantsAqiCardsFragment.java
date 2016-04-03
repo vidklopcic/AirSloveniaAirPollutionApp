@@ -1,30 +1,21 @@
 package com.citisense.vidklopcic.citisense.fragments;
 
-import android.app.Activity;
-import android.content.Context;
-import android.net.Uri;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.zip.Inflater;
 
 
 public class PollutantsAqiCardsFragment extends Fragment {
@@ -36,7 +27,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
     TextView mAqiText;
     TextView mHumidityText;
     LinearLayout mPollutantsContainer;
-    SwipeRefreshLayout mLoading;
+    View mLayout;
     String mNoData;
     public PollutantsAqiCardsFragment() {
         mPollutantCards = new HashMap<>();
@@ -58,11 +49,19 @@ public class PollutantsAqiCardsFragment extends Fragment {
         mTemperatureText = (TextView) view.findViewById(R.id.card_pollutants_title_temperature);
         mAqiText = (TextView) view.findViewById(R.id.card_polltants_title_aqi);
         mHumidityText = (TextView) view.findViewById(R.id.card_polltants_title_humidity);
-        mLoading = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
-        mLoading.setRefreshing(true);
         mPollutantsContainer = (LinearLayout) view.findViewById(R.id.pollutants_container);
         mNoData = getString(R.string.no_data);
+        mLayout = view;
         return view;
+    }
+
+
+    public void hide() {
+        mLayout.animate().alpha(0f).setDuration(200);
+    }
+
+    public void show() {
+        mLayout.animate().alpha(1f).setDuration(200);
     }
 
     public void setSourceStations(ArrayList<CitiSenseStation> stations) {
@@ -82,6 +81,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
 
     public void setNoData() {
         mAqiText.setText(mNoData);
+        mAqiText.setBackgroundColor(ContextCompat.getColor(mContext, R.color.dark_gray));
         setNoHumidity();
         setNoTemperature();
     }
@@ -104,7 +104,6 @@ public class PollutantsAqiCardsFragment extends Fragment {
         mAqiText.setText(AQI.toText(max_aqi));
         mAqiText.setBackgroundColor(ContextCompat.getColor(mContext, AQI.getColor(max_aqi)));
 
-        mLoading.setRefreshing(false);
         HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
         HashMap<String, Integer> pollutants = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
         if (other.keySet().contains(Constants.CitiSenseStation.TEMPERATURE_KEY))
@@ -145,7 +144,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
     public void setCard(LinearLayout card, Integer aqi) {
         ((TextView) card.findViewById(R.id.pollutant_aqi)).setText(aqi.toString());
         ((TextView) card.findViewById(R.id.pollutant_name)).setTextColor(
-                ContextCompat.getColor(mContext, AQI.getColor(aqi))
+                AQI.getLinearColor(aqi, mContext)
         );
     }
 }

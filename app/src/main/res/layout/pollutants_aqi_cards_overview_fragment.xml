@@ -2,13 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment">
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/refresh_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/map_pollutants_pull_up_height">
     <LinearLayout
         android:orientation="vertical" android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="@dimen/map_pollutants_pull_up_height">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
@@ -53,5 +49,4 @@
             android:padding="3dp">
         </LinearLayout>
     </LinearLayout>
-    </android.support.v4.widget.SwipeRefreshLayout>
 </FrameLayout>

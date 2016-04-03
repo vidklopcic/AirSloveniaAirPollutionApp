@@ -1,6 +1,7 @@
 package com.citisense.vidklopcic.citisense.util;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 
@@ -51,7 +52,7 @@ public abstract class AQI {
         return getColor(aqi.intValue());
     }
 
-    public static int getLinearColor(Integer aqi, Activity c) {
+    public static int getLinearColor(Integer aqi, Context c) {
         //aqi -= (int) Constants.AQI.MODERATE/2;
         if (aqi < 0) aqi = 0;
         if (aqi < Constants.AQI.MODERATE) {

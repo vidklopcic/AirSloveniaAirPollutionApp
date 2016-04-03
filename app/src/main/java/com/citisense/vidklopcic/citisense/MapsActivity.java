@@ -66,6 +66,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private LocationHelper mLocation;
     private SlidingMenu mMenu;
     private Marker mCurrentMarker;
+    private LatLng mPointOfInterest;
     private Place mCurrentPlace;
     private ClusterManager<ClusterStation> mClusterManager;
     private SavedState mSavedState;
@@ -85,16 +86,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+        final PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(this);
         autocompleteFragment.getActivity().findViewById(R.id.place_autocomplete_clear_button).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mCurrentMarker != null) {
-                            mCurrentMarker.remove();
-                        }
+                        removePointOfInterest();
+                        autocompleteFragment.setText("");
                     }
                 }
         );
@@ -108,6 +108,41 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+    }
+
+    private void removePointOfInterest() {
+        if (mCurrentMarker != null)
+            mCurrentMarker.remove();
+        mPointOfInterest = null;
+        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+    }
+
+    private void setPointOfInterest(LatLng poi, Marker marker) {
+        if (mCurrentMarker != null)
+            mCurrentMarker.remove();
+        mPointOfInterest = null;
+        mPointOfInterest = poi;
+        mCurrentMarker = marker;
+        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        mSlidingPane.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View view, float v) {
+
+            }
+
+            @Override
+            public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
+                if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                    mPollutantCardsFragment.hide();
+                } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+                    mPollutantCardsFragment.show();
+                }
+            }
+        });
+    }
+
+    private void setPointOfInterest(LatLng poi) {
+        setPointOfInterest(poi, null);
     }
 
     private void setUpMapIfNeeded() {
@@ -156,7 +191,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         }
 
         mCurrentPlace = place;
-        mCurrentMarker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()));
+        setPointOfInterest(place.getLatLng(), mMap.addMarker(new MarkerOptions().position(place.getLatLng())));
         LatLngBounds bounds = mCurrentPlace.getViewport();
         if (bounds != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mCurrentPlace.getViewport(), 0));
@@ -232,15 +267,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onMapClick(LatLng latLng) {
-        if (mCurrentMarker != null) mCurrentMarker.remove();
-        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        removePointOfInterest();
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        if (mCurrentMarker != null) mCurrentMarker.remove();
-        mCurrentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsInArea(
                 new LatLngBounds(
                         SphericalUtil.computeOffset(
@@ -254,6 +285,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 )
         );
         mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
+        setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
     }
 
     @Override
@@ -275,20 +307,20 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mClusterManager.onCameraChange(cameraPosition);
 
         mCurrentZoom = mMap.getCameraPosition().zoom;
+        if (mPointOfInterest != null && !mMap.getProjection().getVisibleRegion().latLngBounds.contains(mPointOfInterest)) {
+            removePointOfInterest();
+        }
     }
 
     @Override
     public boolean onClusterItemClick(ClusterStation clusterStation) {
-        if (mCurrentMarker != null)
-            mCurrentMarker.remove();
-        mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        setPointOfInterest(clusterStation.getPosition());
         mPollutantCardsFragment.setSourceStations(clusterStation.station);
         return false;
     }
 
     @Override
     public void onDataReady() {
-
     }
 
     @Override
@@ -299,14 +331,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             mClusterManager.addItem(station);
         }
         mOverlay.draw(new ArrayList<>(mStationsOnMap.keySet()), mMap.getProjection());
+        mOverlay.draw(new ArrayList<>(mStationsOnMap.keySet()), mMap.getProjection());
     }
 
     @Override
     public void onStationUpdate(CitiSenseStation station) {
-        ClusterStation cstation = mStationsOnMap.get(station);
-        if (cstation != null) {
-            addStationToMap(station);
-        }
     }
 
     public class ClusterStation implements ClusterItem {
