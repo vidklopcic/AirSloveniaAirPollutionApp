@@ -79,6 +79,10 @@
     <style name="AqiChartLabel.subtitle" parent="Wrap">
         <item name="android:textSize">10sp</item>
     </style>
+    <style name="FABLabel">
+        <item name="android:background">@drawable/fab_label_background</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
 
 
 </resources>

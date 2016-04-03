@@ -167,7 +167,9 @@ public class LocationHelper implements LocationListener {
                 addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
                 if (addresses.size() > 0)
                     return addresses.get(0).getLocality();
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                return "Ljubljana";
+            }
             return "";
         }
 

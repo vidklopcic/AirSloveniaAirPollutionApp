@@ -26,9 +26,11 @@ import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
+import com.citisense.vidklopcic.citisense.util.FABPollutants;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
 import com.citisense.vidklopcic.citisense.util.UI;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
@@ -60,7 +62,8 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener {
+
+public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener, FABPollutants.FABPollutantsListener {
     private MapOverlay mOverlay;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationHelper mLocation;
@@ -74,8 +77,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private DataAPI mDataApi;
     private Float mCurrentZoom;
     private SlidingUpPanelLayout mSlidingPane;
-    private float mSlidingPaneHeight;
     private PollutantsAqiCardsFragment mPollutantCardsFragment;
+    private FABPollutants mFABPollutants;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,9 +102,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 }
         );
         mSlidingPane = (SlidingUpPanelLayout) findViewById(R.id.map_sliding_pane);
-        mSlidingPaneHeight = getResources().getDimension(R.dimen.map_pollutants_pull_up_height);
         mPollutantCardsFragment = (PollutantsAqiCardsFragment)
                 getFragmentManager().findFragmentById(R.id.map_pollutant_cards_fragment);
+
+        mFABPollutants = new FABPollutants(this, (FloatingActionMenu) findViewById(R.id.fab_pollutants), this);
     }
 
     @Override
@@ -290,12 +294,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        List<CitiSenseStation> viewport_stations = CitiSenseStation.getStationsInArea(
+        ArrayList<CitiSenseStation> viewport_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsInArea(
                 mMap.getProjection().getVisibleRegion().latLngBounds
         );
-
-        mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
-        mDataApi.setObservedStations((ArrayList<CitiSenseStation>) viewport_stations);
+        mFABPollutants.update(viewport_stations);
+        mOverlay.draw(viewport_stations, mMap.getProjection());
+        mDataApi.setObservedStations(viewport_stations);
         List<CitiSenseStation> stations = new ArrayList<>(mStationsOnMap.keySet());
         viewport_stations.removeAll(stations);
 
@@ -336,6 +340,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onStationUpdate(CitiSenseStation station) {
+    }
+
+    @Override
+    public void onPollutantSelected(String pollutant) {
+        // todo
     }
 
     public class ClusterStation implements ClusterItem {

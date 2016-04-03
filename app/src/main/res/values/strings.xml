@@ -26,7 +26,13 @@
     <string name="aqi_summary_good_title">GOOD</string>
     <string name="search_hint">Search</string>
     <string name="no_data">NO DATA</string>
+    <string name="overview">Overview</string>
+    <string name="CO">Carbon monoxide</string>
+    <string name="PM2.5">Particulate matter 2.5um</string>
+    <string name="PM10">Particulate matter 10um</string>
+    <string name="O3">Ozone</string>
+    <string name="NO2">Nitrogen oxides</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <item type="id" name="pollutant_tag"/>
+    <item type="id" name="aqi_tag"/>
 </resources>

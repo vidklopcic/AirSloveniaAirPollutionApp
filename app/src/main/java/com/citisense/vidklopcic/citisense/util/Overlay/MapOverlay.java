@@ -38,7 +38,7 @@ public class MapOverlay {
         mDefaultProjection = mMap.getProjection();
     }
 
-    public void draw(List<CitiSenseStation> stations, Projection projection) {
+    public void draw(ArrayList<CitiSenseStation> stations, Projection projection) {
         if (task != null) task.stop();
         task = new DrawImageTask(stations, projection);
         task.execute();
@@ -92,7 +92,12 @@ public class MapOverlay {
                     if (bounds == null) return;
                     x_img_size = (int) (Math.abs(bounds.southwest.longitude - bounds.northeast.longitude)/mPixelSize.longitude);
                     y_img_size = (int) (Math.abs(bounds.southwest.latitude - bounds.northeast.latitude)/mPixelSize.latitude);
-                    pixels = new int[x_img_size*y_img_size];
+                    try {
+                        pixels = new int[x_img_size*y_img_size];
+                    } catch (OutOfMemoryError e) {
+                        Log.d("MapOverlay", "no overlay - out of memory");
+                        return;
+                    }
                     Log.d("asdfg", x_img_size.toString() + " x " + y_img_size.toString());
                     if (y_img_size < 1 || x_img_size < 1) return;
                     candidates = CitiSenseStation.getStationsInArea(bounds);

@@ -25,6 +25,7 @@ public class DataAPI {
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
     private SavedState mSavedState;
+    private UpdateTask mUpdateTask;
     public interface DataUpdateListener {
         void onDataReady();
         void onDataUpdate();
@@ -35,6 +36,7 @@ public class DataAPI {
         mSavedState = new SavedState().getSavedState();
         getConfig();
         mActiveStations = new ArrayList<>();
+        mUpdateTask = new UpdateTask();
     }
 
     public void setObservedStations(ArrayList<CitiSenseStation> stations) {
@@ -116,7 +118,7 @@ public class DataAPI {
 
         protected void onPostExecute(Void result) {
             Log.d(LOG_ID, "config loaded");
-            new UpdateTask().execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
+            mUpdateTask.execute(mActiveStations.toArray(new CitiSenseStation[mActiveStations.size()]));
         }
     }
 
