@@ -6,6 +6,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private TextView mHumidityText;
     private LinearLayout mSubtitleContainer;
     private TextView mAqiNameSubtitle;
+    private SwipeRefreshLayout mSwipeRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,8 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mTemperatureText = (TextView) findViewById(R.id.actionbar_temperature_text);
         mHumidityText = (TextView) findViewById(R.id.actionbar_humidity_text);
         mAqiNameSubtitle = (TextView)findViewById(R.id.actionbar_aqi_text);
-        mOverviewFragment.setSwipeRefreshListener(new OverviewFragment.SwipeRefreshListener() {
+        mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
+        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mDataAPI.updateData();
@@ -65,6 +68,11 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         if (mSavedState.getCity() != null) {
             onCityChange(mSavedState.getCity());
         }
+        mSwipeRefresh.post(new Runnable() {
+            @Override public void run() {
+                mSwipeRefresh.setRefreshing(true);
+            }
+        });
     }
 
     @Override
@@ -77,9 +85,6 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     public void onResume() {
         super.onResume();
         mDataAPI.setObservedStations(mStations);
-    }
-
-    public void fragmentClicked(View view) {
     }
 
     public void openSlidingMenu(View view) {
@@ -135,6 +140,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mDataAPI.setObservedStations(city_stations);
         ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
+        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 
@@ -142,6 +148,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     public void onDataUpdate() {
         ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
+        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 

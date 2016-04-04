@@ -10,4 +10,5 @@
     <dimen name="map_pollutants_pull_up_height">107dp</dimen>
     <dimen name="dashboard_action_bar_height">75dp</dimen>
     <dimen name="action_bar_height">48dp</dimen>
+    <dimen name="maps_pullup_buttons_height">60dp</dimen>
 </resources>

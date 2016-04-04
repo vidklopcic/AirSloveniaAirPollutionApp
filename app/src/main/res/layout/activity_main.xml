@@ -7,6 +7,10 @@
     android:background="#fff"
     sothree:umanoPanelHeight="90dp"
     sothree:umanoShadowHeight="2dp">
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <RelativeLayout
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -85,6 +89,7 @@
             android:layout_below="@+id/dashboard_title_bar_layout"
             tools:layout="@layout/fragment_overview" />
     </RelativeLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"

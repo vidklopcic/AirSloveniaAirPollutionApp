@@ -63,6 +63,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout="@layout/pollutants_aqi_cards_overview_fragment" />
+    <RelativeLayout
+        android:id="@+id/maps_pullup_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/maps_pullup_buttons"/>
+    <RelativeLayout
+        android:id="@+id/maps_pullup_buttons"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_height="@dimen/maps_pullup_buttons_height"
+        android:background="@color/white">
+
+    </RelativeLayout>
 </RelativeLayout>
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
     <LinearLayout

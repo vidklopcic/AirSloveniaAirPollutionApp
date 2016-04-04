@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class AqiOverviewGraph extends Fragment {
+    public interface OnFragmentLoadedListener {
+        void onLoaded();
+    }
     LinearLayout mAQILabelsContainer;
     private RelativeLayout mAqiChartContainer;
     private LinearLayout mAQIBarsContainer;
@@ -33,9 +36,14 @@ public class AqiOverviewGraph extends Fragment {
     private int mChartRange = Constants.AQI.BAR_OFFSET;
     private Integer mAQIBarsContainerHeight;
     private ArrayList<CitiSenseStation> mStations;
+    private OnFragmentLoadedListener mOnLoadedListener;
 
     public AqiOverviewGraph() {
         // Required empty public constructor
+    }
+
+    public void setOnLoadedListener(OnFragmentLoadedListener listener) {
+        mOnLoadedListener = listener;
     }
 
     @Override
@@ -70,6 +78,7 @@ public class AqiOverviewGraph extends Fragment {
                 });
             }
         });
+        if (mOnLoadedListener != null) mOnLoadedListener.onLoaded();
         return view;
     }
 

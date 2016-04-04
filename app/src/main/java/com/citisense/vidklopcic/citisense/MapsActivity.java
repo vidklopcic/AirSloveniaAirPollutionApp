@@ -32,6 +32,7 @@ import com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.FABPollutants;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
+import com.citisense.vidklopcic.citisense.util.MapPullUpPager;
 import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
 import com.citisense.vidklopcic.citisense.util.UI;
 import com.github.clans.fab.FloatingActionMenu;
@@ -87,6 +88,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private Integer mActionBarHeight;
     private TextView mActionBarTitle;
     private RelativeLayout mSearchContaienr;
+    private MapPullUpPager mPullUpPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,9 +126,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
                 if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
                     mPollutantCardsFragment.hide();
-
+                    mPullUpPager.setOverviewFragment();
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
                     mPollutantCardsFragment.show();
+                    mPullUpPager.close();
                 }
             }
         });
@@ -136,6 +139,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(0).start();
         mActionBarTitle = (TextView) findViewById(R.id.actionbar_title_text);
         mSearchContaienr = (RelativeLayout) findViewById(R.id.maps_search_container);
+
+        mPullUpPager = new MapPullUpPager(this);
     }
 
     @Override
@@ -150,6 +155,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPointOfInterest = null;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         hideActionBar();
+        mPullUpPager.close();
     }
 
     private void setPointOfInterest(LatLng poi, Marker marker) {
@@ -321,6 +327,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onMapLongClick(LatLng latLng) {
         ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
+        mPullUpPager.setDataSource(affecting_stations);
         mPollutantCardsFragment.setSourceStations(affecting_stations);
         setActionBar(latLng);
         setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
@@ -356,6 +363,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPollutantCardsFragment.setSourceStations(clusterStation.station);
         ArrayList<CitiSenseStation> list = new ArrayList<>();
         list.add(clusterStation.station);
+        mPullUpPager.setDataSource(list);
         setActionBar(clusterStation.station.getLocation());
         return false;
     }

@@ -3,7 +3,6 @@ package com.citisense.vidklopcic.citisense.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,16 +16,15 @@ import java.util.Collections;
 import java.util.HashMap;
 
 
-public class OverviewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
-    public interface SwipeRefreshListener {
-        void onRefresh();
+public class OverviewFragment extends Fragment implements MeasuringStationDataFragment {
+    public interface OnFragmentLoadedListener {
+        void onLoaded();
     }
 
+    private OnFragmentLoadedListener mOnLoadedListener;
     Context mContext;
     private UI.AQISummary mAQISummary;
     AqiOverviewGraph mGraphFragment;
-    SwipeRefreshLayout mSwipeRefresh;
-    SwipeRefreshListener mListener;
     public OverviewFragment() {
         // Required empty public constructor
     }
@@ -43,47 +41,37 @@ public class OverviewFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         android.support.v4.app.FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         mGraphFragment = new AqiOverviewGraph();
+        mGraphFragment.setOnLoadedListener(new AqiOverviewGraph.OnFragmentLoadedListener() {
+            @Override
+            public void onLoaded() {
+                if (mOnLoadedListener != null)
+                    mOnLoadedListener.onLoaded();
+            }
+        });
         transaction.add(R.id.graph_fragment_container, mGraphFragment).commit();
 
         mContext = view.getContext();
         mAQISummary = new UI.AQISummary(mContext, view, inflater, R.id.aqi_summary_layout);
 
-        mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
-        mSwipeRefresh.setOnRefreshListener(this);
-        mSwipeRefresh.post(new Runnable() {
-            @Override
-            public void run() {
-                mSwipeRefresh.setRefreshing(true);
-            }
-        });
         return view;
     }
 
-    @Override
-    public void onRefresh() {
-        if (mListener != null) {
-            mListener.onRefresh();
-        } else {
-            mSwipeRefresh.setRefreshing(false);
-        }
-    }
-
-    public void setSwipeRefreshListener(SwipeRefreshListener listener) {
-        mListener = listener;
-    }
-
-    public void setRefreshing(boolean refreshing) {
-        mSwipeRefresh.setRefreshing(refreshing);
+    public void setOnLoadedListener(OnFragmentLoadedListener listener) {
+        mOnLoadedListener = listener;
     }
 
     public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
-        mSwipeRefresh.setRefreshing(false);
+        if (mGraphFragment == null) return null;
         ArrayList<HashMap<String, Integer>> averages = mGraphFragment.updateGraph(stations);
         if (averages != null) {
-            mSwipeRefresh.setRefreshing(false);
             int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
             mAQISummary.setAqi(max_aqi_val);
         }
         return averages;
+    }
+
+    @Override
+    public void update(ArrayList<CitiSenseStation> stations) {
+        updateGraph(stations);
     }
 }

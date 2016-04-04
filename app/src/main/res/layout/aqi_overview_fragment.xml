@@ -2,8 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph"
-    android:clickable="true"
-    android:onClick="fragmentClicked">
+    android:clickable="true">
     <RelativeLayout
         android:id="@+id/aqi_overview_chart_container"
         android:layout_width="match_parent"
