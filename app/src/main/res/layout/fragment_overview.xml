@@ -1,0 +1,28 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.citisense.vidklopcic.citisense.fragments.OverviewFragment">
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_above="@+id/aqi_summary_layout"
+        android:layout_height="match_parent">
+    <FrameLayout android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph"
+        android:id="@+id/graph_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    </android.support.v4.widget.SwipeRefreshLayout>
+    <LinearLayout
+        android:visibility="invisible"
+        android:orientation="horizontal"
+        android:id="@+id/aqi_summary_layout"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_height="100dp"
+        android:gravity="center"
+        android:background="@drawable/card"
+        android:padding="10dp"
+        android:layout_margin="7dp">
+    </LinearLayout>
+</RelativeLayout>

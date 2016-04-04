@@ -1,6 +1,6 @@
 package com.citisense.vidklopcic.citisense.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
@@ -33,7 +32,6 @@ public class AqiOverviewGraph extends Fragment {
     private LayoutInflater mInflater;
     private int mChartRange = Constants.AQI.BAR_OFFSET;
     private Integer mAQIBarsContainerHeight;
-    private DataAPI mDataAPI;
     private ArrayList<CitiSenseStation> mStations;
 
     public AqiOverviewGraph() {
@@ -170,6 +168,7 @@ public class AqiOverviewGraph extends Fragment {
     }
 
     public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
+        if (mAQIBars == null) return null;
         ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;

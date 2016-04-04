@@ -124,6 +124,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
                 if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
                     mPollutantCardsFragment.hide();
+
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
                     mPollutantCardsFragment.show();
                 }

@@ -6,7 +6,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,7 +14,7 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
+import com.citisense.vidklopcic.citisense.fragments.OverviewFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
@@ -26,9 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
-    AqiOverviewGraph mChartFragment;
+    OverviewFragment mOverviewFragment;
     private SlidingMenu mMenu;
-    private UI.AQISummary mAQISummary;
     private LocationHelper mLocation;
     private ArrayList<CitiSenseStation> mStations;
     private String mCity;
@@ -40,15 +38,13 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private TextView mHumidityText;
     private LinearLayout mSubtitleContainer;
     private TextView mAqiNameSubtitle;
-    private SwipeRefreshLayout mSwipeRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mChartFragment = (AqiOverviewGraph) getFragmentManager().findFragmentById(R.id.dashboard_bar_chart_fragment);
+        mOverviewFragment = (OverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
-        mAQISummary = new UI.AQISummary(this, R.id.aqi_summary_layout);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
         mDataAPI = new DataAPI();
@@ -58,8 +54,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mTemperatureText = (TextView) findViewById(R.id.actionbar_temperature_text);
         mHumidityText = (TextView) findViewById(R.id.actionbar_humidity_text);
         mAqiNameSubtitle = (TextView)findViewById(R.id.actionbar_aqi_text);
-        mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
-        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mOverviewFragment.setSwipeRefreshListener(new OverviewFragment.SwipeRefreshListener() {
             @Override
             public void onRefresh() {
                 mDataAPI.updateData();
@@ -70,11 +65,6 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         if (mSavedState.getCity() != null) {
             onCityChange(mSavedState.getCity());
         }
-        mSwipeRefresh.post(new Runnable() {
-            @Override public void run() {
-                mSwipeRefresh.setRefreshing(true);
-            }
-        });
     }
 
     @Override
@@ -131,7 +121,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mStations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mDataAPI.setDataUpdateListener(this);
-        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
         updateDashboard(averages);
     }
@@ -143,17 +133,15 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mStations = city_stations;
         mDataAPI.setObservedStations(city_stations);
-        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
-        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 
     @Override
     public void onDataUpdate() {
-        ArrayList<HashMap<String, Integer>> averages = mChartFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
-        mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
 
@@ -173,7 +161,6 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
             mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values())));
             mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
-            mAQISummary.setAqi(max_aqi_val);
         } catch (Exception ignored) {
             mCityText.setText("No data for current location");
         }

@@ -1,8 +1,10 @@
 package com.citisense.vidklopcic.citisense.util;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Point;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -35,17 +37,17 @@ public abstract class UI {
     }
 
     public static class AQISummary {
-        Activity mContext;
+        Context mContext;
         LinearLayout mContainer;
         LinearLayout mContent;
         TextView mTitle;
         TextView mText;
         ImageView mIcon;
 
-        public AQISummary(Activity context, int container) {
+        public AQISummary(Context context, View root, LayoutInflater inflater, int container) {
             mContext = context;
-            mContainer = (LinearLayout) mContext.findViewById(container);
-            mContent = (LinearLayout) mContext.getLayoutInflater().inflate(R.layout.aqi_summary_layout,
+            mContainer = (LinearLayout) root.findViewById(container);
+            mContent = (LinearLayout) inflater.inflate(R.layout.aqi_summary_layout,
                     mContainer, false);
             mContainer.addView(mContent);
 

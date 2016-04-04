@@ -7,10 +7,6 @@
     android:background="#fff"
     sothree:umanoPanelHeight="90dp"
     sothree:umanoShadowHeight="2dp">
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/refresh_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
     <RelativeLayout
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -82,27 +78,13 @@
             android:onClick="openSlidingMenu"
             android:layout_margin="4dp"
             android:src="@drawable/menu"/>
-        <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph"
-            android:id="@+id/dashboard_bar_chart_fragment"
+        <fragment android:name="com.citisense.vidklopcic.citisense.fragments.OverviewFragment"
+            android:id="@+id/overview_fragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/dashboard_title_bar_layout"
-            android:layout_above="@+id/aqi_summary_layout"
-            tools:layout="@layout/aqi_overview_fragment" />
-        <LinearLayout
-            android:visibility="invisible"
-            android:orientation="horizontal"
-            android:id="@+id/aqi_summary_layout"
-            android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_height="100dp"
-            android:gravity="center"
-            android:background="@drawable/card"
-            android:padding="10dp"
-            android:layout_margin="7dp">
-        </LinearLayout>
+            tools:layout="@layout/fragment_overview" />
     </RelativeLayout>
-    </android.support.v4.widget.SwipeRefreshLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
