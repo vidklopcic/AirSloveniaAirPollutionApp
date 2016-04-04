@@ -19,19 +19,19 @@
         <RelativeLayout
             android:id="@+id/dashboard_title_bar_layout"
             android:layout_width="match_parent"
-            android:layout_height="75dp"
+            android:layout_height="@dimen/dashboard_action_bar_height"
             android:gravity="center"
             android:clickable="true"
             android:background="@color/dashboard_top_bg">
             <TextView
-                android:id="@+id/dashboard_city_text"
+                android:id="@+id/actionbar_title_text"
                 style="@style/BoldTitleWhite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <LinearLayout
-                android:id="@+id/dashboard_aqi_subtitle_container"
+                android:id="@+id/actionbar_aqi_subtitle_container"
                 android:visibility="invisible"
-                android:layout_below="@id/dashboard_city_text"
+                android:layout_below="@id/actionbar_title_text"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_centerInParent="true"
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content">
                 <TextView
                     style="@style/SubtitleWhite"
-                    android:id="@+id/dashboard_temperature_text"
+                    android:id="@+id/actionbar_temperature_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
                 <View
@@ -50,7 +50,7 @@
                     android:background="@drawable/dot_separator"/>
                 <TextView
                     style="@style/SubtitleBoldWhite"
-                    android:id="@+id/dashboard_aqi_name_subtitle"
+                    android:id="@+id/actionbar_aqi_text"
                     android:textColor="@color/aqi_unhealthy_for_sensitive"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
@@ -61,7 +61,7 @@
                     android:background="@drawable/dot_separator"/>
                 <TextView
                     style="@style/SubtitleWhite"
-                    android:id="@+id/dashboard_humidity_text"
+                    android:id="@+id/actionbar_humidity_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
@@ -87,12 +87,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/dashboard_title_bar_layout"
-            android:layout_above="@+id/dashboard_aqi_summary_layout"
+            android:layout_above="@+id/aqi_summary_layout"
             tools:layout="@layout/aqi_overview_fragment" />
         <LinearLayout
             android:visibility="invisible"
             android:orientation="horizontal"
-            android:id="@+id/dashboard_aqi_summary_layout"
+            android:id="@+id/aqi_summary_layout"
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
             android:layout_height="100dp"

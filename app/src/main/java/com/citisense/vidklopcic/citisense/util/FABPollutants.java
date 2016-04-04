@@ -70,8 +70,10 @@ public class FABPollutants {
         mFABPollutants.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
             @Override
             public void onMenuToggle(boolean b) {
-                if (!b)
+                if (!b) {
+                    mFABPollutantsIsOpened = false;
                     mFABPollutants.getMenuIconView().setImageResource(mCurrentPollutantIcon);
+                }
             }
         });
     }

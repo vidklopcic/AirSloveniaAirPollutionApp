@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
+import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +20,9 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
@@ -46,7 +50,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -80,6 +83,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private PollutantsAqiCardsFragment mPollutantCardsFragment;
     private FABPollutants mFABPollutants;
     private String mPollutantFilter;
+    private LinearLayout mActionBarContainer;
+    private Integer mActionBarHeight;
+    private TextView mActionBarTitle;
+    private RelativeLayout mSearchContaienr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +129,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 }
             }
         });
+
+        mActionBarContainer = (LinearLayout) findViewById(R.id.maps_action_bar);
+        mActionBarHeight = (int) getResources().getDimension(R.dimen.action_bar_height);
+        mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(0).start();
+        mActionBarTitle = (TextView) findViewById(R.id.actionbar_title_text);
+        mSearchContaienr = (RelativeLayout) findViewById(R.id.maps_search_container);
     }
 
     @Override
@@ -135,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             mCurrentMarker.remove();
         mPointOfInterest = null;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        hideActionBar();
     }
 
     private void setPointOfInterest(LatLng poi, Marker marker) {
@@ -143,6 +157,39 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPointOfInterest = poi;
         mCurrentMarker = marker;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        showActionBar();
+    }
+
+    public void setActionBar(LatLng location) {
+        clearActionBarData();
+        LocationHelper.getAddressFromLatLng(location, this, new LocationHelper.AddressFromLatLngListener() {
+            @Override
+            public void onResult(Address address) {
+                if (address == null) return;
+                mActionBarTitle.setText(address.getAddressLine(0));
+            }
+        });
+    }
+
+    public void clearActionBarData() {
+        mActionBarTitle.setText("...");
+    }
+
+    public void showActionBar() {
+        mActionBarContainer.animate().translationY(0).setDuration(200).start();
+        mSearchContaienr.animate().alpha(0).setDuration(200).start();
+    }
+
+    public void hideActionBar() {
+        mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(200).start();
+        mSearchContaienr.animate().alpha(1).setDuration(200).start();
+    }
+
+    public void addToFavorites(View view) {
+    }
+
+    public void onActionBarBack(View view) {
+        removePointOfInterest();
     }
 
     private void setPointOfInterest(LatLng poi) {
@@ -191,14 +238,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onPlaceSelected(Place place) {
-        if (mCurrentMarker != null) {
-            mCurrentMarker.remove();
-        }
-
         mCurrentPlace = place;
-        setPointOfInterest(place.getLatLng(), mMap.addMarker(new MarkerOptions().position(place.getLatLng())));
-        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsAroundPoint(place.getLatLng(), Constants.Map.station_radius_meters);
-        mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
         LatLngBounds bounds = mCurrentPlace.getViewport();
         if (bounds != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mCurrentPlace.getViewport(), 0));
@@ -279,8 +319,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        List<CitiSenseStation> affecting_stations = CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
-        mPollutantCardsFragment.setSourceStations((ArrayList<CitiSenseStation>) affecting_stations);
+        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
+        mPollutantCardsFragment.setSourceStations(affecting_stations);
+        setActionBar(latLng);
         setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
     }
 
@@ -312,6 +353,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     public boolean onClusterItemClick(ClusterStation clusterStation) {
         setPointOfInterest(clusterStation.getPosition());
         mPollutantCardsFragment.setSourceStations(clusterStation.station);
+        ArrayList<CitiSenseStation> list = new ArrayList<>();
+        list.add(clusterStation.station);
+        setActionBar(clusterStation.station.getLocation());
         return false;
     }
 

@@ -8,4 +8,6 @@
     <dimen name="marker_size">10dp</dimen>
     <dimen name="pollutant_card_size">50dp</dimen>
     <dimen name="map_pollutants_pull_up_height">107dp</dimen>
+    <dimen name="dashboard_action_bar_height">75dp</dimen>
+    <dimen name="action_bar_height">48dp</dimen>
 </resources>

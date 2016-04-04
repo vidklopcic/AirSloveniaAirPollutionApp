@@ -107,11 +107,11 @@ public class PollutantsAqiCardsFragment extends Fragment {
         HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
         HashMap<String, Integer> pollutants = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
         if (other.keySet().contains(Constants.CitiSenseStation.TEMPERATURE_KEY))
-            mTemperatureText.setText(other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C");
+            mTemperatureText.setText(other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT);
         else
             setNoTemperature();
         if (other.keySet().contains(Constants.CitiSenseStation.HUMIDITY_KEY))
-            mHumidityText.setText(other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%");
+            mHumidityText.setText(other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT);
         else
             setNoHumidity();
         for (String pollutant : pollutants.keySet()) {

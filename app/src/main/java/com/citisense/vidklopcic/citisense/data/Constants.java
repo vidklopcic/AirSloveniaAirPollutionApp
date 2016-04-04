@@ -8,6 +8,9 @@ import com.google.maps.android.SphericalUtil;
 
 public abstract class Constants {
     public static final int MILLI = 1000;
+    public static final String TEMPERATURE_UNIT = "°C";
+    public static final String HUMIDITY_UNIT = "%";
+
     public static class DataSources {
         public static final String config_version_url = "http://pastebin.com/raw/RQnbq08t";
         public static final String config_url = "http://pastebin.com/raw/P1dnQb0L";

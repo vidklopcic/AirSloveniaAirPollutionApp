@@ -32,4 +32,6 @@
     <color name="dark_gray">#484848</color>
     <color name="black_semi_transparent">#aa000000</color>
     <color name="gray">#666666</color>
+    <color name="button_selected_blue">#4285f4</color>
+    <color name="button_gray">#757575</color>
 </resources>

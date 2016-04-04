@@ -45,7 +45,7 @@ public abstract class UI {
         public AQISummary(Activity context, int container) {
             mContext = context;
             mContainer = (LinearLayout) mContext.findViewById(container);
-            mContent = (LinearLayout) mContext.getLayoutInflater().inflate(R.layout.dashboard_aqi_summary,
+            mContent = (LinearLayout) mContext.getLayoutInflater().inflate(R.layout.aqi_summary_layout,
                     mContainer, false);
             mContainer.addView(mContent);
 

@@ -48,16 +48,16 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         setContentView(R.layout.activity_main);
         mChartFragment = (AqiOverviewGraph) getFragmentManager().findFragmentById(R.id.dashboard_bar_chart_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
-        mAQISummary = new UI.AQISummary(this, R.id.dashboard_aqi_summary_layout);
+        mAQISummary = new UI.AQISummary(this, R.id.aqi_summary_layout);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
         mDataAPI = new DataAPI();
 
-        mSubtitleContainer = (LinearLayout) findViewById(R.id.dashboard_aqi_subtitle_container);
-        mCityText = (TextView) findViewById(R.id.dashboard_city_text);
-        mTemperatureText = (TextView) findViewById(R.id.dashboard_temperature_text);
-        mHumidityText = (TextView) findViewById(R.id.dashboard_humidity_text);
-        mAqiNameSubtitle = (TextView)findViewById(R.id.dashboard_aqi_name_subtitle);
+        mSubtitleContainer = (LinearLayout) findViewById(R.id.actionbar_aqi_subtitle_container);
+        mCityText = (TextView) findViewById(R.id.actionbar_title_text);
+        mTemperatureText = (TextView) findViewById(R.id.actionbar_temperature_text);
+        mHumidityText = (TextView) findViewById(R.id.actionbar_humidity_text);
+        mAqiNameSubtitle = (TextView)findViewById(R.id.actionbar_aqi_text);
         mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
         mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -164,8 +164,8 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
         try {
             HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
-            String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + "°C";
-            String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + "%";
+            String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
+            String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
             mSubtitleContainer.setVisibility(View.VISIBLE);
             mCityText.setText(mCity);
             mTemperatureText.setText(temp);

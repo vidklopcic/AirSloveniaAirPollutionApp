@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
+import com.orm.dsl.NotNull;
 
 /**
  * Various methods for calculating aqis dependent on AQI scale
@@ -53,7 +54,6 @@ public abstract class AQI {
     }
 
     public static int getLinearColor(Integer aqi, Context c) {
-        //aqi -= (int) Constants.AQI.MODERATE/2;
         if (aqi < 0) aqi = 0;
         if (aqi < Constants.AQI.MODERATE) {
             int color1 = ContextCompat.getColor(c, R.color.aqi_good);

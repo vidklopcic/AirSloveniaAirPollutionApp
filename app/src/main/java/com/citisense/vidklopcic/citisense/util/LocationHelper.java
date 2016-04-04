@@ -13,9 +13,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +34,10 @@ public class LocationHelper implements LocationListener {
     public interface LocationHelperListener {
         void onLocationChanged(Location location);
         void onCityChange(String city);
+    }
+
+    public interface AddressFromLatLngListener {
+        void onResult(Address address);
     }
 
     public LocationHelper(Activity context) {
@@ -80,8 +84,8 @@ public class LocationHelper implements LocationListener {
         mListener = listener;
     }
 
-    public void getCityFromLatLng(LatLng location) {
-        new GetCityTask().execute(location);
+    public static void getAddressFromLatLng(LatLng location, Context context, AddressFromLatLngListener listener) {
+        new GetAddressFromLatLngTask(context, listener).execute(location);
     }
 
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {
@@ -139,8 +143,13 @@ public class LocationHelper implements LocationListener {
         if (isBetterLocation(location, mBestLocation)) {
             mBestLocation = location;
             if (mListener != null) mListener.onLocationChanged(location);
-            getCityFromLatLng(new LatLng(location.getLatitude(), location.getLongitude()));
+            updateCity(new LatLng(location.getLatitude(), location.getLongitude()));
         }
+    }
+
+    private void updateCity(LatLng latLng) {
+        if (mListener == null) return;
+        new GetCityTask().execute(latLng);
     }
 
     @Override
@@ -158,6 +167,7 @@ public class LocationHelper implements LocationListener {
 
     }
 
+    // todo join tasks below into one
     class GetCityTask extends AsyncTask<LatLng, Void, String> {
         @Override
         protected String doInBackground(LatLng... params) {
@@ -179,6 +189,35 @@ public class LocationHelper implements LocationListener {
                 mCity = city;
                 mListener.onCityChange(mCity);
             }
+        }
+    }
+
+    static class GetAddressFromLatLngTask extends AsyncTask<LatLng, Void, Address> {
+        private static final String LOG_TAG = "AddressFromLatLng";
+        Context mContext;
+        AddressFromLatLngListener mListener;
+        public GetAddressFromLatLngTask(Context context, AddressFromLatLngListener listener) {
+            mContext = context;
+            mListener = listener;
+        }
+
+        @Override
+        protected Address doInBackground(LatLng... params) {
+            Geocoder gcd = new Geocoder(mContext, Locale.getDefault());
+            List<Address> addresses;
+            try {
+                addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
+                if (addresses.size() > 0)
+                    return addresses.get(0);
+            } catch (IOException e) {
+                Log.d(LOG_TAG, "Geocoder exception");
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Address address) {
+            mListener.onResult(address);
         }
     }
 }

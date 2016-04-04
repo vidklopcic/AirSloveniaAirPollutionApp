@@ -72,7 +72,11 @@ public class CitiSenseStation extends SugarRecord {
     }
 
     public boolean hasPollutant(String pollutant) {
-        return pollutants.contains("\""+pollutant+"\"");
+        return getPollutantAqi(pollutant, getLastMeasurement()) != null;
+    }
+
+    public boolean hasPollutant(String pollutant, JSONArray measurement) {
+        return getPollutantAqi(pollutant, measurement) != null;
     }
 
     public LatLng getLocation() {
