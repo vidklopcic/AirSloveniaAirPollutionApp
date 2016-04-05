@@ -1,5 +1,6 @@
 package com.citisense.vidklopcic.citisense.util.anim;
 
+import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
@@ -15,9 +16,9 @@ public class BackgroundColorAnimation extends Animation {
     int mStartColor;
     int mEndColor;
 
-    public BackgroundColorAnimation(View view, int start_color, int end_color) {
+    public BackgroundColorAnimation(View view, int end_color) {
         mView = view;
-        mStartColor = start_color;
+        mStartColor = ((ColorDrawable)view.getBackground()).getColor();
         mEndColor = end_color;
         setDuration(DURATION);
     }

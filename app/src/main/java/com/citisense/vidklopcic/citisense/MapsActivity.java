@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
@@ -18,8 +19,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -27,6 +34,7 @@ import android.widget.TextView;
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.FavoritePlace;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
@@ -87,9 +95,13 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private String mPollutantFilter;
     private LinearLayout mActionBarContainer;
     private Integer mActionBarHeight;
-    private TextView mActionBarTitle;
+    private EditText mActionBarTitle;
+    private String mPOIAddress;
+    private boolean mActionBarHasAddress = false;
     private RelativeLayout mSearchContaienr;
     private MapPullUpPager mPullUpPager;
+    private ImageView mFavoritesStar;
+    private boolean mPOIIsFavorite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,7 +141,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mPollutantCardsFragment.hide();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
-                            ContextCompat.getColor(getContext(), R.color.maps_blue),
                             ContextCompat.getColor(getContext(), R.color.dashboard_top_bg)));
                     mPullUpPager.setOverviewFragment();
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
@@ -137,7 +148,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mPullUpPager.close();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
-                            ContextCompat.getColor(getContext(), R.color.dashboard_top_bg),
                             ContextCompat.getColor(getContext(), R.color.maps_blue)));
                 }
             }
@@ -146,10 +156,41 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mActionBarContainer = (LinearLayout) findViewById(R.id.maps_action_bar);
         mActionBarHeight = (int) getResources().getDimension(R.dimen.action_bar_height);
         mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(0).start();
-        mActionBarTitle = (TextView) findViewById(R.id.actionbar_title_text);
+        mActionBarTitle = (EditText) findViewById(R.id.actionbar_title_text);
+        mActionBarTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus && !mPOIIsFavorite && mActionBarTitle.isEnabled()) {
+                        addToFavorites(null);
+                }
+                if (!mActionBarTitle.isEnabled())
+                    mActionBarTitle.clearFocus();
+
+                if (!hasFocus && mActionBarTitle.isEnabled()) {
+                    List<FavoritePlace> places = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+                    if (places.size() != 0) {
+                        places.get(0).setNickname(mActionBarTitle.getText().toString());
+                    }
+                }
+            }
+        });
+
+        mActionBarTitle.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    mActionBarTitle.clearFocus();
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(mActionBarTitle.getWindowToken(), 0);
+                }
+                return false;
+            }
+        });
         mSearchContaienr = (RelativeLayout) findViewById(R.id.maps_search_container);
 
         mPullUpPager = new MapPullUpPager(this);
+        mFavoritesStar = (ImageView) findViewById(R.id.actionbar_favorites_button);
+        mActionBarTitle.setEnabled(false);
     }
 
     @Override
@@ -161,13 +202,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private void removePointOfInterest() {
         if (mCurrentMarker != null)
             mCurrentMarker.remove();
+        mActionBarTitle.setEnabled(false);
         mPointOfInterest = null;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         hideActionBar();
+        setFavorite(false);
         mPullUpPager.close();
         mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                 mActionBarContainer,
-                ContextCompat.getColor(getContext(), R.color.dashboard_top_bg),
                 ContextCompat.getColor(getContext(), R.color.maps_blue)));
     }
 
@@ -186,13 +228,40 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             @Override
             public void onResult(Address address) {
                 if (address == null) return;
-                mActionBarTitle.setText(address.getAddressLine(0));
+                mPOIAddress = address.getAddressLine(0);
+                mActionBarTitle.setText(mPOIAddress);
+                mActionBarHasAddress = true;
+                mActionBarTitle.setEnabled(true);
+                List<FavoritePlace> places = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+                if (places.size() != 0) {
+                    setFavorite(true);
+                    mActionBarTitle.setText(places.get(0).getNickname());
+                }
             }
         });
     }
 
+
+    @Override
+    public boolean dispatchTouchEvent(@NonNull MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if ( v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
+                    v.clearFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        }
+        return super.dispatchTouchEvent( event );
+    }
+
     public void clearActionBarData() {
         mActionBarTitle.setText("...");
+        mActionBarHasAddress = false;
     }
 
     public void showActionBar() {
@@ -206,6 +275,31 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     public void addToFavorites(View view) {
+        if (!mActionBarHasAddress) return;
+        mPOIIsFavorite = !mPOIIsFavorite;
+        setFavorite(mPOIIsFavorite);
+        if (mPOIIsFavorite) {
+            FavoritePlace new_fav = new FavoritePlace(
+                    mPointOfInterest, mPOIAddress, mActionBarTitle.getText().toString());
+            new_fav.save();
+        } else {
+            List<FavoritePlace> matches = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+            mActionBarTitle.setText(mPOIAddress);
+            if (matches.size() != 0) {
+                for (FavoritePlace match : matches) {
+                    match.delete();
+                }
+            }
+        }
+    }
+
+    public void setFavorite(boolean is_favorite) {
+        if (is_favorite) {
+            mFavoritesStar.setImageResource(R.drawable.ic_star_full);
+        } else {
+            mFavoritesStar.setImageResource(R.drawable.ic_star_outline);
+        }
+        mPOIIsFavorite = is_favorite;
     }
 
     public void onActionBarBack(View view) {

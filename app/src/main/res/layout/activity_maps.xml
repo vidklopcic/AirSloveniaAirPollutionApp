@@ -160,12 +160,15 @@
             android:layout_marginLeft="4dp"
             android:onClick="onActionBarBack"
             android:src="@drawable/ic_android_arrow_back"/>
-        <TextView
+        <EditText
             android:id="@+id/actionbar_title_text"
             style="@style/BoldTitleWhite"
+            android:singleLine="true"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:selectAllOnFocus="true"
+            android:background="@color/transparent"
             android:gravity="center"/>
         <ImageView
             android:id="@+id/actionbar_favorites_button"
