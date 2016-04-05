@@ -235,6 +235,7 @@ public class CitiSenseStation extends SugarRecord {
     }
 
     public Integer getPollutantAqi(String pollutant, JSONArray measurement) {
+        if (measurement == null) return null;
         try {
             for (int i = 0; i < measurement.length(); i++) {
                 JSONObject m = measurement.getJSONObject(i);
