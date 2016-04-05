@@ -35,6 +35,7 @@ import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.MapPullUpPager;
 import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
 import com.citisense.vidklopcic.citisense.util.UI;
+import com.citisense.vidklopcic.citisense.util.anim.BackgroundColorAnimation;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -126,10 +127,18 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
                 if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
                     mPollutantCardsFragment.hide();
+                    mActionBarContainer.startAnimation(new BackgroundColorAnimation(
+                            mActionBarContainer,
+                            ContextCompat.getColor(getContext(), R.color.maps_blue),
+                            ContextCompat.getColor(getContext(), R.color.dashboard_top_bg)));
                     mPullUpPager.setOverviewFragment();
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
                     mPollutantCardsFragment.show();
                     mPullUpPager.close();
+                    mActionBarContainer.startAnimation(new BackgroundColorAnimation(
+                            mActionBarContainer,
+                            ContextCompat.getColor(getContext(), R.color.dashboard_top_bg),
+                            ContextCompat.getColor(getContext(), R.color.maps_blue)));
                 }
             }
         });
@@ -156,6 +165,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         hideActionBar();
         mPullUpPager.close();
+        mActionBarContainer.startAnimation(new BackgroundColorAnimation(
+                mActionBarContainer,
+                ContextCompat.getColor(getContext(), R.color.dashboard_top_bg),
+                ContextCompat.getColor(getContext(), R.color.maps_blue)));
     }
 
     private void setPointOfInterest(LatLng poi, Marker marker) {

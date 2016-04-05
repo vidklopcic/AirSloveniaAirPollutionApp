@@ -1,5 +1,7 @@
 package com.citisense.vidklopcic.citisense.util;
 
+import android.graphics.Color;
+
 import com.citisense.vidklopcic.citisense.data.Constants;
 
 import java.io.BufferedReader;
@@ -113,5 +115,21 @@ public abstract class Conversion {
             sum += o;
         }
         return sum;
+    }
+
+    private static float interpolate(float a, float b, float proportion) {
+        Float shortest_angle=((((b - a) % 360) + 540) % 360) - 180;
+        return (a + (shortest_angle * proportion));
+    }
+
+    public static int interpolateColor(int a, int b, float proportion) {
+        float[] hsva = new float[3];
+        float[] hsvb = new float[3];
+        Color.colorToHSV(a, hsva);
+        Color.colorToHSV(b, hsvb);
+        for (int i = 0; i < 3; i++) {
+            hsvb[i] = Conversion.interpolate(hsva[i], hsvb[i], proportion);
+        }
+        return Color.HSVToColor(hsvb);
     }
 }

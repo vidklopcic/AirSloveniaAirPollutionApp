@@ -68,14 +68,80 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/maps_pullup_buttons"/>
-    <RelativeLayout
-        android:id="@+id/maps_pullup_buttons"
+    <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:background="@drawable/shadow"
+        android:layout_above="@id/maps_pullup_buttons"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/maps_pullup_buttons"
         android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
         android:layout_height="@dimen/maps_pullup_buttons_height"
         android:background="@color/white">
-
-    </RelativeLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/pullup_cards_button_container"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/pullup_button_icon"
+                android:padding="1dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_aqi_cards"/>
+            <TextView
+                android:id="@+id/pullup_button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/button_gray"
+                android:textSize="12sp"
+                android:text="@string/overview"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:id="@+id/pullup_overview_button_container"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@id/pullup_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_aqi_overview_graph"/>
+            <TextView
+                android:id="@id/pullup_button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/button_gray"
+                android:text="@string/overview"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:id="@+id/pullup_graph_history_button_container"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@id/pullup_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_aqi_graph_history"/>
+            <TextView
+                android:id="@id/pullup_button_text"
+                android:layout_width="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/button_gray"
+                android:layout_height="wrap_content"
+                android:text="@string/overview"/>
+        </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
     <LinearLayout
