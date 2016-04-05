@@ -107,8 +107,6 @@ public class MapOverlay {
                     if (y_img_size < 1 || x_img_size < 1) return;
                     candidates = CitiSenseStation.getStationsInArea(bounds);
 
-                    Log.d("asdfg", "start");
-
                     int chunk = y_img_size / THREAD_LIMIT;
 
                     for (int i=0;i<THREAD_LIMIT;i++) {
@@ -121,7 +119,6 @@ public class MapOverlay {
                     if (Thread.currentThread().isInterrupted()) return;
 
                     Bitmap bitmap = Bitmap.createBitmap(pixels, x_img_size, y_img_size, Bitmap.Config.ARGB_8888);
-                    Log.d("asdfg", "fin");
                     result = new GroundOverlayOptions()
                             .image(BitmapDescriptorFactory.fromBitmap(bitmap))
                             .position(

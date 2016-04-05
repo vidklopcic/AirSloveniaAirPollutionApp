@@ -86,7 +86,8 @@
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@drawable/blue_button_ripple">
             <ImageView
                 android:id="@+id/pullup_button_icon"
                 android:padding="1dp"
@@ -107,7 +108,8 @@
             android:id="@+id/pullup_overview_button_container"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@drawable/blue_button_ripple">
             <ImageView
                 android:id="@id/pullup_button_icon"
                 android:layout_width="30dp"
@@ -127,7 +129,8 @@
             android:id="@+id/pullup_graph_history_button_container"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@drawable/blue_button_ripple">
             <ImageView
                 android:id="@id/pullup_button_icon"
                 android:layout_width="30dp"

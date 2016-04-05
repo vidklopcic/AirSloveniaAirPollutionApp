@@ -180,7 +180,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     mActionBarTitle.clearFocus();
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(mActionBarTitle.getWindowToken(), 0);
                 }
                 return false;
@@ -433,6 +433,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onMapLongClick(LatLng latLng) {
+        if (latLng == mPointOfInterest) return;
         ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
         mPullUpPager.setDataSource(affecting_stations);
         mPollutantCardsFragment.setSourceStations(affecting_stations);
@@ -466,12 +467,13 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public boolean onClusterItemClick(ClusterStation clusterStation) {
+        if (mPointOfInterest == clusterStation.getPosition()) return false;
+        setActionBar(clusterStation.getPosition());
         setPointOfInterest(clusterStation.getPosition());
         mPollutantCardsFragment.setSourceStations(clusterStation.station);
         ArrayList<CitiSenseStation> list = new ArrayList<>();
         list.add(clusterStation.station);
         mPullUpPager.setDataSource(list);
-        setActionBar(clusterStation.station.getLocation());
         return false;
     }
 
