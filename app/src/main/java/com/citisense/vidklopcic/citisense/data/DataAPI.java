@@ -171,14 +171,6 @@ public class DataAPI {
             if (mListener != null && mFirstRun) {
                 mListener.onDataReady();
                 mFirstRun = false;
-                Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.YEAR, 2016);
-                cal.set(Calendar.MONTH, Calendar.APRIL);
-                cal.set(Calendar.DAY_OF_MONTH, 1);
-                Date start = cal.getTime();
-                cal.set(Calendar.DAY_OF_MONTH, 2);
-                Date end = cal.getTime();
-                new GetDataRangeTask(CitiSenseStation.listAll(CitiSenseStation.class), start, end).execute();
             }
         }
     }
@@ -189,9 +181,8 @@ public class DataAPI {
         Long end;
         List<CitiSenseStation> mStations;
         public GetDataRangeTask(List<CitiSenseStation> stations, Date start, Date end) {
-            SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
-            String start_date = format.format(start);
-            String end_date = format.format(end);
+            String start_date = CitiSenseStation.dateToString(start);
+            String end_date = CitiSenseStation.dateToString(end);
             this.start = start.getTime();
             this.end = end.getTime();
             mStations = stations;
@@ -210,7 +201,6 @@ public class DataAPI {
                     station.setMeasurements(measurements);
                 } catch (IOException | JSONException ignored) {}
             }
-            List<StationMeasurement> stations = CitiSenseStation.listAll(CitiSenseStation.class).get(0).getMeasurementsInRange(start, end);
             return null;
         }
     }

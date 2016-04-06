@@ -64,10 +64,15 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             }
         });
 
-        mSavedState = new SavedState().getSavedState();
-        if (mSavedState.getCity() != null) {
-            onCityChange(mSavedState.getCity());
-        }
+        mOverviewFragment.setOnLoadedListener(new OverviewFragment.OnFragmentLoadedListener() {
+            @Override
+            public void onLoaded() {
+                mSavedState = new SavedState().getSavedState();
+                if (mSavedState.getCity() != null) {
+                    onCityChange(mSavedState.getCity());
+                }
+            }
+        });
         mSwipeRefresh.post(new Runnable() {
             @Override public void run() {
                 mSwipeRefresh.setRefreshing(true);

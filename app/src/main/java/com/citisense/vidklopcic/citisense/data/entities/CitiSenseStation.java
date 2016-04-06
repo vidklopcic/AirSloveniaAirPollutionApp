@@ -358,4 +358,8 @@ public class CitiSenseStation extends SugarRecord {
         SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
         return format.format(date);
     }
+
+    public Long getOldestStoredMeasurementTime() {
+        return oldest_stored_measurement;
+    }
 }
