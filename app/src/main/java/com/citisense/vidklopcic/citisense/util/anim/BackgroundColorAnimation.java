@@ -11,7 +11,7 @@ import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 
 public class BackgroundColorAnimation extends Animation {
-    private static final long DURATION = 200;
+    private static final long DURATION = 400;
     View mView;
     int mStartColor;
     int mEndColor;

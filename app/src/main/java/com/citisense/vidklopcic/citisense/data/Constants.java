@@ -28,11 +28,15 @@ public abstract class Constants {
     }
 
     public static class CitiSenseStation {
-        public static final String date_format = "yyyy-MM-ddTHH:mm:ss.000";
+        public static final String date_format = "yyyy-MM-dd'T'HH:mm:ss.000";
         public static final String time_key = "start_time";
         public static final String pollutant_name_key = "observedproperty";
         public static String value_key = "value";
         public static final String last_measurement_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/lastobservation?sensorid=";
+        public static final String measurement_range_url_id = "{id}";
+        public static final String measurement_range_url_start = "{start}";
+        public static final String measurement_range_url_end = "{end}";
+        public static final String measurement_range_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/observationfinishtime/between?sensorid={id}&from={start}&to={end}";
         public static final int update_interval = 900 * MILLI;
         public static final String CO_KEY = "CO";
         public static final String NO2_KEY = "NO2";

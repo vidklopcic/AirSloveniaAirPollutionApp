@@ -100,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/button_gray"
                 android:textSize="12sp"
-                android:text="@string/overview"/>
+                android:text="@string/pollutants"/>
         </LinearLayout>
         <LinearLayout
             android:orientation="vertical"
@@ -142,7 +142,7 @@
                 android:textSize="12sp"
                 android:textColor="@color/button_gray"
                 android:layout_height="wrap_content"
-                android:text="@string/overview"/>
+                android:text="@string/graph"/>
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

@@ -9,9 +9,15 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
 import com.orm.SugarRecord;
 import com.orm.dsl.Unique;
+import com.orm.query.Condition;
+import com.orm.query.Select;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,8 +33,10 @@ public class CitiSenseStation extends SugarRecord {
     @Unique
     String station_id;
     Integer config_version;
-    String last_measurement;
     Long last_measurement_time;
+    Long last_update_time;
+    String last_measurement;
+    Long oldest_stored_measurement;
 
     public CitiSenseStation() {}
 
@@ -42,25 +50,34 @@ public class CitiSenseStation extends SugarRecord {
     }
 
     public void setLastMeasurement(String measurement) throws JSONException {
-            JSONArray lm = new JSONArray(measurement);
-            this.last_measurement = measurement;
-            last_measurement_time = new Date().getTime();  // milliseconds since 1970
+        last_update_time = new Date().getTime();
+        Long new_measurement_time = getMeasurementTime(new JSONArray(measurement));
+        if (last_measurement_time != null && last_measurement_time.equals(new_measurement_time)) return;
+
+        last_measurement_time = new_measurement_time;  // milliseconds since 1970
+        last_measurement = measurement;
     }
 
     public JSONArray getLastMeasurement() {
+        if (last_measurement == null) return null;
         try {
             return new JSONArray(last_measurement);
         } catch (Exception e) {
             Log.d("CitiSenseStation", "error parsing last_measurement");
-            return null;
         }
+        return null;
     }
 
     public Long getLastMeasurementTime() {
-        if (last_measurement_time == null) {
+        if (last_measurement_time == null)
             return 0l;
-        }
         return last_measurement_time;
+    }
+
+    public Long getLastUpdateTime() {
+        if (last_update_time == null)
+            return 0l;
+        return last_update_time;
     }
 
     public JSONArray getPollutants() {
@@ -69,6 +86,18 @@ public class CitiSenseStation extends SugarRecord {
         } catch (JSONException e) {
             return null;
         }
+    }
+
+    public static Long getMeasurementTime(JSONArray measurement) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
+            Date date = stringToDate(measurement.getJSONObject(0).getString(Constants.CitiSenseStation.time_key));
+            if (date == null) return null;
+            return date.getTime();
+        } catch (JSONException e) {
+            Log.d("CitiSenseStation", "date parsing failed");
+        }
+        return null;
     }
 
     public boolean hasPollutant(String pollutant) {
@@ -123,7 +152,7 @@ public class CitiSenseStation extends SugarRecord {
     }
 
     public boolean hasData() {
-        return last_measurement != null;
+        return getLastMeasurement() != null;
     }
 
     public int getColor() {
@@ -275,5 +304,58 @@ public class CitiSenseStation extends SugarRecord {
         return new LatLngBounds(
                 new LatLng(southwest_lat-offset.latitude, southwest_lng-offset.longitude),
                 new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
+    }
+
+    public List<StationMeasurement> getMeasurementsInRange(Long start, Long end) {
+        return Select.from(StationMeasurement.class).where(
+                Condition.prop("measuringstation").eq(getId()),
+                Condition.prop("measurementtime").gt(start),
+                Condition.prop("measurementtime").lt(end)
+        ).list();
+    }
+
+    public void setMeasurements(JSONArray measurements) {
+        Long oldest_in_list = null;
+        ArrayList<StationMeasurement> measurement_objects = new ArrayList<>();
+        for (int i=0;i<measurements.length();i++) {
+            try {
+                Date date = stringToDate(measurements.getJSONObject(i).getString(Constants.CitiSenseStation.time_key));
+                if (date != null) {
+                    JSONObject measurement = measurements.getJSONObject(i);
+                    String pollutant = measurement.getString(Constants.CitiSenseStation.pollutant_name_key);
+
+                    if (oldest_stored_measurement == null || date.getTime() < oldest_stored_measurement) {
+                        if (oldest_in_list == null || oldest_in_list > date.getTime())
+                            oldest_in_list = date.getTime();
+                        measurement_objects.add(
+                                new StationMeasurement(
+                                        this,
+                                        date.getTime(),
+                                        pollutant,
+                                        measurement.getDouble(Constants.CitiSenseStation.value_key))
+                        );
+                    }
+                }
+            } catch (JSONException ignored) {}
+        }
+        CitiSenseStation.saveInTx(measurement_objects);
+        if (oldest_in_list != null) {
+            oldest_stored_measurement = oldest_in_list;
+            save();
+        }
+    }
+
+    public static Date stringToDate(String time) {
+        SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
+        try {
+            return format.parse(time);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    public static String dateToString(Date date) {
+        SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
+        return format.format(date);
     }
 }

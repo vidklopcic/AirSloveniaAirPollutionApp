@@ -141,7 +141,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mPollutantCardsFragment.hide();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
-                            ContextCompat.getColor(getContext(), R.color.dashboard_top_bg)));
+                            ContextCompat.getColor(getContext(), R.color.maps_pullup_actionbar)));
                     mPullUpPager.setOverviewFragment();
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
                     mPollutantCardsFragment.show();
@@ -265,13 +265,13 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     public void showActionBar() {
-        mActionBarContainer.animate().translationY(0).setDuration(200).start();
-        mSearchContaienr.animate().alpha(0).setDuration(200).start();
+        mActionBarContainer.animate().translationY(0).setDuration(400).start();
+        mSearchContaienr.animate().alpha(0).setDuration(400).start();
     }
 
     public void hideActionBar() {
         mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(200).start();
-        mSearchContaienr.animate().alpha(1).setDuration(200).start();
+        mSearchContaienr.animate().alpha(1).setDuration(400).start();
     }
 
     public void addToFavorites(View view) {
@@ -474,6 +474,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         ArrayList<CitiSenseStation> list = new ArrayList<>();
         list.add(clusterStation.station);
         mPullUpPager.setDataSource(list);
+        setFavorite(false);
         return false;
     }
 

@@ -32,7 +32,7 @@ public class SavedState extends SugarRecord{
         return configversion;
     }
 
-    public void setConfigVersion(int config_version) {
+    public void setConfigVersion(Integer config_version) {
         this.configversion = config_version;
         save();
     }
