@@ -79,7 +79,9 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
 
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
-        mStartDate = new Date().getTime() - DATA_SET_LEN_MINS * SECONDS * MILLIS;
+        if (mStartDate != null &&
+                new Date().getTime() - DATA_SET_LEN_MILLIS < mStartDate+DATA_SET_LEN_MILLIS) return;
+        mStartDate = new Date().getTime() - DATA_SET_LEN_MILLIS;
         if (stations != null && stations.size() == 1) {
             mStations = stations;
         }

@@ -10,13 +10,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.citisense.vidklopcic.citisense.fragments.AqiCardsFragment;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
-import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
-import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
-
 import com.citisense.vidklopcic.citisense.R;
+import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.fragments.AqiCardsFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
+import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
 
 import java.util.ArrayList;
 
@@ -50,47 +49,75 @@ public class MapPullUpPager {
 
     public void setOverviewFragment() {
         if (mCurrentFragmentType == CurrentFragment.OVERVIEW) return;
-        close();
         mButtons.setButton(mButtons.mButtonOverviewContainer);
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
+            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
+        else {
+            FragmentTransaction transaction = hide();
+            transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment, CurrentFragment.OVERVIEW.toString());
+            transaction.commit();
+        }
         mCurrentFragmentType = CurrentFragment.OVERVIEW;
-        FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment);
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        transaction.commit();
         mCurrentFragment = mAqiOverviewFragment;
         update();
     }
 
     public void setCardsFragment() {
         if (mCurrentFragmentType == CurrentFragment.CARDS) return;
-        close();
         mButtons.setButton(mButtons.mButtonCardsContainer);
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
+            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
+        else {
+            FragmentTransaction transaction = hide();
+            transaction.add(R.id.maps_pullup_fragment_container, mAqiCardsFragment, CurrentFragment.CARDS.toString());
+            transaction.commit();
+        }
         mCurrentFragmentType = CurrentFragment.CARDS;
-        FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.add(R.id.maps_pullup_fragment_container, mAqiCardsFragment);
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        transaction.commit();
         mCurrentFragment = mAqiCardsFragment;
         update();
     }
 
     public void setGraphFragment() {
         if (mCurrentFragmentType == CurrentFragment.GRAPH) return;
-        close();
         mButtons.setButton(mButtons.mButtonGraphContainer);
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
+            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
+        else {
+            FragmentTransaction transaction = hide();
+            transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment, CurrentFragment.GRAPH.toString());
+            transaction.commit();
+        }
         mCurrentFragmentType = CurrentFragment.GRAPH;
-        FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment);
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        transaction.commit();
         mCurrentFragment = mAqiGraphFragment;
         update();
     }
 
-    public void close() {
-        if (mCurrentFragment == null) return;
+    public void showFragment(MeasuringStationDataFragment fragment) {
+        FragmentTransaction transaction = hide();
+        transaction.show((Fragment) fragment);
+        transaction.commit();
+    }
+
+    public FragmentTransaction hide() {
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.remove((Fragment) mCurrentFragment);
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
+            transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
+            transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
+            transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        return transaction;
+    }
+
+    public void close() {
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
+            transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
+            transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
+            transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
         mCurrentFragment = null;
