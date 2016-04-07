@@ -8,12 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
 
 public abstract class Conversion {
     public static class IO {
@@ -29,13 +24,6 @@ public abstract class Conversion {
                 return "";
             }
             return total.toString();
-        }
-    }
-
-    public static class Time {
-        public static Date stringToDate(String format, String date) throws ParseException {
-            SimpleDateFormat f = new SimpleDateFormat(format);
-            return f.parse(date);
         }
     }
 

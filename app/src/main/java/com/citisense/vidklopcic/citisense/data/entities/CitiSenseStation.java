@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 public class CitiSenseStation extends SugarRecord {
     public static final int AVERAGES_POLLUTANTS = 0;
@@ -90,7 +91,6 @@ public class CitiSenseStation extends SugarRecord {
 
     public static Long getMeasurementTime(JSONArray measurement) {
         try {
-            SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
             Date date = stringToDate(measurement.getJSONObject(0).getString(Constants.CitiSenseStation.time_key));
             if (date == null) return null;
             return date.getTime();
@@ -347,6 +347,7 @@ public class CitiSenseStation extends SugarRecord {
 
     public static Date stringToDate(String time) {
         SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
             return format.parse(time);
         } catch (ParseException e) {
@@ -356,6 +357,7 @@ public class CitiSenseStation extends SugarRecord {
 
     public static String dateToString(Date date) {
         SimpleDateFormat format = new SimpleDateFormat(Constants.CitiSenseStation.date_format);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.format(date);
     }
 

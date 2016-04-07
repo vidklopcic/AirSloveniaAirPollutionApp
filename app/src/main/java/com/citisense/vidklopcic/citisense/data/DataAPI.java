@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
-import com.citisense.vidklopcic.citisense.data.entities.StationMeasurement;
 import com.citisense.vidklopcic.citisense.util.Network;
 
 import org.json.JSONArray;
@@ -14,9 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
