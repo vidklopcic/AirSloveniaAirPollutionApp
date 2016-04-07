@@ -199,6 +199,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         setUpMapIfNeeded();
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle bundle) {
+        // todo save instance state on activity destroy
+        super.onSaveInstanceState(bundle);
+    }
+
     private void removePointOfInterest() {
         if (mCurrentMarker != null)
             mCurrentMarker.remove();

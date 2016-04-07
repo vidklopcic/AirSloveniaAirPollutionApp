@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 
-public class OverviewFragment extends Fragment implements MeasuringStationDataFragment {
+public class AqiOverviewFragment extends Fragment implements MeasuringStationDataFragment {
     public interface OnFragmentLoadedListener {
         void onLoaded();
     }
@@ -25,7 +25,7 @@ public class OverviewFragment extends Fragment implements MeasuringStationDataFr
     Context mContext;
     private UI.AQISummary mAQISummary;
     AqiOverviewGraph mGraphFragment;
-    public OverviewFragment() {
+    public AqiOverviewFragment() {
         // Required empty public constructor
     }
 

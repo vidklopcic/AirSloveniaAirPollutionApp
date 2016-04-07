@@ -1,21 +1,19 @@
-package com.citisense.vidklopcic.citisense;
+package com.citisense.vidklopcic.citisense.fragments;
 
-import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
-import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
 
 import java.util.ArrayList;
 
-
-public class AqiCardsFragment extends Fragment implements MeasuringStationDataFragment {
-    public AqiCardsFragment() {
+public class AqiGraphFragment extends Fragment implements MeasuringStationDataFragment {
+    String FRAGMENT_RESTORED = "prev_fragment_state";
+    public AqiGraphFragment() {
         // Required empty public constructor
     }
 
@@ -27,13 +25,14 @@ public class AqiCardsFragment extends Fragment implements MeasuringStationDataFr
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_aqi_cards, container, false);;
+        View view = inflater.inflate(R.layout.fragment_aqi_graph, container, false);
         return view;
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onSaveInstanceState(Bundle bundle) {
+        bundle.putBoolean(FRAGMENT_RESTORED, true);
+        super.onSaveInstanceState(bundle);
     }
 
     @Override

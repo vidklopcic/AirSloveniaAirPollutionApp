@@ -15,7 +15,7 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
-import com.citisense.vidklopcic.citisense.fragments.OverviewFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
-    OverviewFragment mOverviewFragment;
+    AqiOverviewFragment mAqiOverviewFragment;
     private SlidingMenu mMenu;
     private LocationHelper mLocation;
     private ArrayList<CitiSenseStation> mStations;
@@ -45,7 +45,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mOverviewFragment = (OverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
+        mAqiOverviewFragment = (AqiOverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             }
         });
 
-        mOverviewFragment.setOnLoadedListener(new OverviewFragment.OnFragmentLoadedListener() {
+        mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 mSavedState = new SavedState().getSavedState();
@@ -131,7 +131,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mStations = (ArrayList<CitiSenseStation>)
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mDataAPI.setDataUpdateListener(this);
-        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
         updateDashboard(averages);
     }
@@ -143,7 +143,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                 CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
         mStations = city_stations;
         mDataAPI.setObservedStations(city_stations);
-        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
         mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
@@ -151,7 +151,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataUpdate() {
-        ArrayList<HashMap<String, Integer>> averages = mOverviewFragment.updateGraph(mStations);
+        ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
         mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);

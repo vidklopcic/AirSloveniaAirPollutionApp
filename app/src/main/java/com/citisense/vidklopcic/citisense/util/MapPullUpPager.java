@@ -10,9 +10,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.citisense.vidklopcic.citisense.AqiCardsFragment;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
-import com.citisense.vidklopcic.citisense.fragments.OverviewFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
 
 import com.citisense.vidklopcic.citisense.R;
 
@@ -23,32 +26,62 @@ public class MapPullUpPager {
     CurrentFragment mCurrentFragmentType;
     MeasuringStationDataFragment mCurrentFragment;
     FragmentActivity mContext;
-    OverviewFragment mOverviewFragment;
+    AqiOverviewFragment mAqiOverviewFragment;
+    AqiCardsFragment mAqiCardsFragment;
+    AqiGraphFragment mAqiGraphFragment;
     android.support.v4.app.FragmentManager mFragmentManager;
     ArrayList<CitiSenseStation> mDataSource;
     Buttons mButtons;
 
     public MapPullUpPager(FragmentActivity context) {
         mContext = context;
-        mOverviewFragment = new OverviewFragment();
-        mOverviewFragment.setOnLoadedListener(new OverviewFragment.OnFragmentLoadedListener() {
+        mAqiOverviewFragment = new AqiOverviewFragment();
+        mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 update();
             }
         });
+
+        mAqiCardsFragment = new AqiCardsFragment();
+        mAqiGraphFragment = new AqiGraphFragment();
         mFragmentManager = mContext.getSupportFragmentManager();
         mButtons = new Buttons();
     }
 
     public void setOverviewFragment() {
         if (mCurrentFragmentType == CurrentFragment.OVERVIEW) return;
+        close();
         mCurrentFragmentType = CurrentFragment.OVERVIEW;
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.add(R.id.maps_pullup_fragment_container, mOverviewFragment);
+        transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         transaction.commit();
-        mCurrentFragment = mOverviewFragment;
+        mCurrentFragment = mAqiOverviewFragment;
+        update();
+    }
+
+    public void setCardsFragment() {
+        if (mCurrentFragmentType == CurrentFragment.CARDS) return;
+        close();
+        mCurrentFragmentType = CurrentFragment.CARDS;
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        transaction.add(R.id.maps_pullup_fragment_container, mAqiCardsFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        transaction.commit();
+        mCurrentFragment = mAqiCardsFragment;
+        update();
+    }
+
+    public void setGraphFragment() {
+        if (mCurrentFragmentType == CurrentFragment.GRAPH) return;
+        close();
+        mCurrentFragmentType = CurrentFragment.GRAPH;
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        transaction.commit();
+        mCurrentFragment = mAqiGraphFragment;
         update();
     }
 
@@ -61,6 +94,8 @@ public class MapPullUpPager {
         mCurrentFragment = null;
         mCurrentFragmentType = null;
     }
+
+
 
     public void setDataSource(ArrayList<CitiSenseStation> stations) {
         mDataSource = stations;
@@ -98,6 +133,7 @@ public class MapPullUpPager {
                 @Override
                 public void onClick(View v) {
                     setButton(mButtonCardsContainer);
+                    setCardsFragment();
                 }
             });
 
@@ -113,6 +149,7 @@ public class MapPullUpPager {
                 @Override
                 public void onClick(View v) {
                     setButton(mButtonHistoryContainer);
+                    setGraphFragment();
                 }
             });
         }
