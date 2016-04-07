@@ -28,12 +28,12 @@ public abstract class Conversion {
     }
 
     public enum AQI {
-        NO2(53,100,360,649,1249,1649,2049, "ppb"),    // ppb
-        O3(54,70,85,105,200,504,604, "ppb"),    // ppb
-        PM10(54,154,254,354,424,504,604, "ug/m3"),    // ug/m3
-        PM25(12,35.4f,55.4f,150.4f,250.4f,350.4f,500.4f, "ug/m3"),    // ug/m3
-        CO(4400f,9400f,12400f,15400f,30400f,40400f,50400f, "ppm"),    // ppm
-        SO2(35,75,185,304,604,804,1004, "ppb");    // ppb
+        NO2(53,100,360,649,1249,1649,2049, "ppb", 0xffe91e63),    // ppb
+        O3(54,70,85,105,200,504,604, "ppb", 0xff03a9f4),    // ppb
+        PM10(54,154,254,354,424,504,604, "ug/m3", 0xffff5722),  // ug/m3
+        PM25(12,35.4f,55.4f,150.4f,250.4f,350.4f,500.4f, "ug/m3", 0xffffc107),  // ug/m3
+        CO(4400f,9400f,12400f,15400f,30400f,40400f,50400f, "ppm", 0xff259b24),    // ppm
+        SO2(35,75,185,304,604,804,1004, "ppb", 0xffffc107);    // ppb
         public static final int GOOD_RANGE = 50;
         public static final int MODERATE_RANGE = 50;
         public static final int UNH_FOR_SENS_RANGE = 50;
@@ -42,8 +42,10 @@ public abstract class Conversion {
         public static final int HAZ_RANGE = 100;
         public static final int VERY_HAZ_RANGE = 100;
         private float good, moderate, unh_for_sens, unh, very_unh, haz, very_haz;
+        private int color;
+
         public String UNIT;
-        AQI(float good, float moderate, float unh_for_sens, float unh, float very_unh, float haz, float very_haz, String unit) {
+        AQI(float good, float moderate, float unh_for_sens, float unh, float very_unh, float haz, float very_haz, String unit, int color) {
             this.good = good;
             this.moderate = moderate;
             this.unh_for_sens = unh_for_sens;
@@ -52,9 +54,15 @@ public abstract class Conversion {
             this.haz = haz;
             this.very_haz = very_haz;
             this.UNIT = unit;
+            this.color = color;
+        }
+
+        public int getColor() {
+            return color;
         }
 
         public Integer getAqi(Double C) {
+            if (C<0) return null;
             float Chigh, Clow, Ilow;
             int range;
             if (C < good) {
@@ -95,6 +103,12 @@ public abstract class Conversion {
             }
             return (int) ((range / (Chigh - Clow)) *  (C - Clow) + Ilow);
         }
+    }
+
+    public static AQI getPollutant(String pollutant) {
+        if (pollutant.equals(Constants.CitiSenseStation.PM2_5_KEY))
+            return AQI.PM25;
+        return AQI.valueOf(pollutant);
     }
 
     public static Double sum(Collection<Double> coll) {

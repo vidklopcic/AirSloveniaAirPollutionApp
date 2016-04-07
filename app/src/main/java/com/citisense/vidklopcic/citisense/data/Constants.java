@@ -1,10 +1,10 @@
 package com.citisense.vidklopcic.citisense.data;
 
-import android.location.Location;
-
 import com.citisense.vidklopcic.citisense.util.Overlay.MapOverlay;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.SphericalUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class Constants {
     public static final int MILLI = 1000;
@@ -25,6 +25,13 @@ public abstract class Constants {
         public static final float HAZARDOUS = 301;
         public static final float SUM = 500;
         public static final int BAR_OFFSET = 20;
+        public static final List<String> supported_pollutants = Arrays.asList(
+                "CO",
+                "NO2",
+                "O3",
+                "PM2.5",
+                "PM10"
+        );
     }
 
     public static class CitiSenseStation {

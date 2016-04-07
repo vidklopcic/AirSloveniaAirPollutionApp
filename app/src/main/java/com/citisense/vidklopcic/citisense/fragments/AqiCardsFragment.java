@@ -1,15 +1,13 @@
-package com.citisense.vidklopcic.citisense;
+package com.citisense.vidklopcic.citisense.fragments;
 
-import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
-import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
 
 import java.util.ArrayList;
 

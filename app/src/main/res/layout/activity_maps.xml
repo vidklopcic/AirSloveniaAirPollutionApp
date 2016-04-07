@@ -69,6 +69,7 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/maps_pullup_buttons"/>
     <LinearLayout
+        android:id="@+id/maps_pullup_buttons_shadow"
         android:layout_width="match_parent"
         android:layout_height="5dp"
         android:background="@drawable/shadow"

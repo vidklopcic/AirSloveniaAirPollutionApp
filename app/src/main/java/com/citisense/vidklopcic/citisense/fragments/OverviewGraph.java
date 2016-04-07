@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class AqiOverviewGraph extends Fragment {
+public class OverviewGraph extends Fragment {
     public interface OnFragmentLoadedListener {
         void onLoaded();
     }
@@ -38,7 +38,7 @@ public class AqiOverviewGraph extends Fragment {
     private ArrayList<CitiSenseStation> mStations;
     private OnFragmentLoadedListener mOnLoadedListener;
 
-    public AqiOverviewGraph() {
+    public OverviewGraph() {
         // Required empty public constructor
     }
 

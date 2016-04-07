@@ -1,7 +1,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ap="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment">
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/aqi_line_comparison_chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
 
+    </com.github.mikephil.charting.charts.LineChart>
 </RelativeLayout>

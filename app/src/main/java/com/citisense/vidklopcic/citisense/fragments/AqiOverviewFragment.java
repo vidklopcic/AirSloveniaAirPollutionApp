@@ -3,6 +3,7 @@ package com.citisense.vidklopcic.citisense.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.util.UI;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,10 +23,12 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
         void onLoaded();
     }
 
-    private OnFragmentLoadedListener mOnLoadedListener;
+    OnFragmentLoadedListener mOnLoadedListener;
     Context mContext;
-    private UI.AQISummary mAQISummary;
-    AqiOverviewGraph mGraphFragment;
+    UI.AQISummary mAQISummary;
+    OverviewGraph mGraphFragment;
+    FragmentManager mFragmentManager;
+
     public AqiOverviewFragment() {
         // Required empty public constructor
     }
@@ -32,6 +36,7 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mFragmentManager = getChildFragmentManager();
     }
 
     @Override
@@ -39,9 +44,9 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_overview, container, false);
 
-        android.support.v4.app.FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        mGraphFragment = new AqiOverviewGraph();
-        mGraphFragment.setOnLoadedListener(new AqiOverviewGraph.OnFragmentLoadedListener() {
+        android.support.v4.app.FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        mGraphFragment = new OverviewGraph();
+        mGraphFragment.setOnLoadedListener(new OverviewGraph.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 if (mOnLoadedListener != null)
@@ -73,5 +78,22 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
         updateGraph(stations);
+    }
+
+
+    // fix for a bug in support fragment library which can cause java.lang.IllegalStateException: Activity has been destroyed
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
+            childFragmentManager.setAccessible(true);
+            childFragmentManager.set(this, null);
+
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -32,6 +32,10 @@ public class DataAPI {
         void onStationUpdate(CitiSenseStation station);
     }
 
+    public interface DataRangeListener {
+        void onDataRetrieved(Long limit);
+    }
+
     public DataAPI() {
         mSavedState = new SavedState().getSavedState();
         getConfig();
@@ -54,6 +58,10 @@ public class DataAPI {
 
     private void getConfig() {
         new LoadConfigTask().execute(Constants.DataSources.config_version_url, Constants.DataSources.config_url);
+    }
+
+    public static void getMeasurementsInRange(List<CitiSenseStation> stations, Long limit_millis, DataRangeListener listener) {
+        new GetDataRangeTask(stations, limit_millis, listener).execute();
     }
 
     class LoadConfigTask extends AsyncTask<String, Void, Void> {
@@ -172,33 +180,57 @@ public class DataAPI {
         }
     }
 
-    class GetDataRangeTask extends AsyncTask<Void, Void, Void> {
+    static class GetDataRangeTask extends AsyncTask<Void, Void, Void> {
         String mUrl;
-        Long start;
-        Long end;
+        Long limit;
         List<CitiSenseStation> mStations;
-        public GetDataRangeTask(List<CitiSenseStation> stations, Date start, Date end) {
-            String start_date = CitiSenseStation.dateToString(start);
-            String end_date = CitiSenseStation.dateToString(end);
-            this.start = start.getTime();
-            this.end = end.getTime();
-            mStations = stations;
+        DataRangeListener mListener;
 
-            mUrl = Constants.CitiSenseStation.measurement_range_url
-                    .replace(Constants.CitiSenseStation.measurement_range_url_start, start_date)
-                    .replace(Constants.CitiSenseStation.measurement_range_url_end, end_date);
+        public GetDataRangeTask(List<CitiSenseStation> stations, Long limit, DataRangeListener listener) {
+            this.limit = limit;
+            mListener = listener;
+            mStations = stations;
         }
 
         @Override
         protected Void doInBackground(Void... params) {
             for (CitiSenseStation station : mStations) {
-                String id = station.getStationId();
-                try {
-                    JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
-                    station.setMeasurements(measurements);
-                } catch (IOException | JSONException ignored) {}
+                long start = 0;
+                long end = 0;
+                if (station.getLastRangeUpdateTime() == null || station.getOldestStoredMeasurementTime() == null) {
+                    if (limit < new Date().getTime()) {
+                        start = limit;
+                        end = new Date().getTime();
+                    }
+                } else if (limit+Constants.CitiSenseStation.update_interval < station.getOldestStoredMeasurementTime()) {
+                    start = limit;
+                    end = station.getOldestStoredMeasurementTime();
+                } else if (limit-Constants.CitiSenseStation.update_interval > station.getLastRangeUpdateTime()) {
+                    start = station.getLastRangeUpdateTime();
+                    end = limit;
+                }
+
+                if (start != 0 && end != 0) {
+                    String start_date = CitiSenseStation.dateToString(new Date(start));
+                    String end_date = CitiSenseStation.dateToString(new Date(end));
+
+                    mUrl = Constants.CitiSenseStation.measurement_range_url
+                            .replace(Constants.CitiSenseStation.measurement_range_url_start, start_date)
+                            .replace(Constants.CitiSenseStation.measurement_range_url_end, end_date);
+
+                    String id = station.getStationId();
+                    try {
+                        JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
+                        station.setMeasurements(measurements);
+                    } catch (IOException | JSONException ignored) {
+                    }
+                }
             }
             return null;
+        }
+
+        protected void onPostExecute(Void params) {
+            mListener.onDataRetrieved(limit);
         }
     }
 }

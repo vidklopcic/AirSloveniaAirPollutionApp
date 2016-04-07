@@ -2,12 +2,9 @@ package com.citisense.vidklopcic.citisense.util.anim;
 
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-import android.widget.LinearLayout;
 
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 
 public class BackgroundColorAnimation extends Animation {

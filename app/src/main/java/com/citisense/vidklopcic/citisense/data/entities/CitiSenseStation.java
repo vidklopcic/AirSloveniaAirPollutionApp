@@ -1,4 +1,5 @@
 package com.citisense.vidklopcic.citisense.data.entities;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
@@ -25,6 +26,10 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class CitiSenseStation extends SugarRecord {
+    public interface MeasurementsTransactionListener {
+        void onTransactionFinished(List<StationMeasurement> measurements);
+    }
+
     public static final int AVERAGES_POLLUTANTS = 0;
     public static final int AVERAGES_OTHER = 1;
     String city;
@@ -34,7 +39,7 @@ public class CitiSenseStation extends SugarRecord {
     @Unique
     String station_id;
     Integer config_version;
-    Long last_measurement_time;
+    Long last_range_update_time;
     Long last_update_time;
     String last_measurement;
     Long oldest_stored_measurement;
@@ -52,10 +57,6 @@ public class CitiSenseStation extends SugarRecord {
 
     public void setLastMeasurement(String measurement) throws JSONException {
         last_update_time = new Date().getTime();
-        Long new_measurement_time = getMeasurementTime(new JSONArray(measurement));
-        if (last_measurement_time != null && last_measurement_time.equals(new_measurement_time)) return;
-
-        last_measurement_time = new_measurement_time;  // milliseconds since 1970
         last_measurement = measurement;
     }
 
@@ -69,10 +70,8 @@ public class CitiSenseStation extends SugarRecord {
         return null;
     }
 
-    public Long getLastMeasurementTime() {
-        if (last_measurement_time == null)
-            return 0l;
-        return last_measurement_time;
+    public Long getLastRangeUpdateTime() {
+        return last_range_update_time;
     }
 
     public Long getLastUpdateTime() {
@@ -306,15 +305,32 @@ public class CitiSenseStation extends SugarRecord {
                 new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
     }
 
-    public List<StationMeasurement> getMeasurementsInRange(Long start, Long end) {
-        return Select.from(StationMeasurement.class).where(
-                Condition.prop("measuringstation").eq(getId()),
-                Condition.prop("measurementtime").gt(start),
-                Condition.prop("measurementtime").lt(end)
-        ).list();
+    public void getMeasurementsInRange(Long start, Long end, MeasurementsTransactionListener listener) {
+        new GetMeasurementsInRangeTask(listener).execute(start, end);
+    }
+
+    class GetMeasurementsInRangeTask extends AsyncTask<Long, Void, List<StationMeasurement>> {
+        MeasurementsTransactionListener mListener;
+        public GetMeasurementsInRangeTask(MeasurementsTransactionListener listener) {
+            mListener = listener;
+        }
+        @Override
+        protected List<StationMeasurement> doInBackground(Long... params) {
+            return Select.from(StationMeasurement.class).where(
+                    Condition.prop("measuringstation").eq(getId()),
+                    Condition.prop("measurementtime").gt(params[0]),
+                    Condition.prop("measurementtime").lt(params[1])
+            ).list();
+        }
+
+        @Override
+        protected void onPostExecute(List<StationMeasurement> measurements) {
+            mListener.onTransactionFinished(measurements);
+        }
     }
 
     public void setMeasurements(JSONArray measurements) {
+        last_range_update_time = new Date().getTime();
         Long oldest_in_list = null;
         ArrayList<StationMeasurement> measurement_objects = new ArrayList<>();
         for (int i=0;i<measurements.length();i++) {
@@ -341,8 +357,8 @@ public class CitiSenseStation extends SugarRecord {
         CitiSenseStation.saveInTx(measurement_objects);
         if (oldest_in_list != null) {
             oldest_stored_measurement = oldest_in_list;
-            save();
         }
+        save();
     }
 
     public static Date stringToDate(String time) {

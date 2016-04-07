@@ -1,7 +1,6 @@
 package com.citisense.vidklopcic.citisense.data.entities;
 
 import com.orm.SugarRecord;
-import java.util.Date;
 
 public class StationMeasurement extends SugarRecord {
     Long measurement_time;
@@ -23,8 +22,8 @@ public class StationMeasurement extends SugarRecord {
         return property;
     }
 
-    public Date getMeasurementTime() {
-        return new Date(measurement_time);
+    public Long getMeasurementTime() {
+        return measurement_time;
     }
 
     public Double getValue() {

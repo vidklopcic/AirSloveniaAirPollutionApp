@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.citisense.vidklopcic.citisense.AqiCardsFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiCardsFragment;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
 import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
@@ -101,6 +101,10 @@ public class MapPullUpPager {
 
     public void setDataSource(ArrayList<CitiSenseStation> stations) {
         mDataSource = stations;
+        if (mDataSource != null && mDataSource.size() == 1)
+            mButtons.setVisibility(View.VISIBLE);
+        else
+            mButtons.setVisibility(View.GONE);
         update();
     }
 
@@ -134,6 +138,7 @@ public class MapPullUpPager {
             mButtonCardsContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (mAqiCardsFragment.isRemoving()) return;
                     setCardsFragment();
                 }
             });
@@ -141,6 +146,7 @@ public class MapPullUpPager {
             mButtonOverviewContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (mAqiOverviewFragment.isRemoving()) return;
                     setOverviewFragment();
                 }
             });
@@ -148,6 +154,7 @@ public class MapPullUpPager {
             mButtonGraphContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (mAqiGraphFragment.isRemoving()) return;
                     setGraphFragment();
                 }
             });
@@ -172,6 +179,11 @@ public class MapPullUpPager {
             icon.animate().scaleX(1).scaleY(1).setDuration(ANIMATION_DURATION).start();
             text.animate().scaleX(1).scaleY(1).setDuration(ANIMATION_DURATION).start();
             text.setTextColor(ContextCompat.getColor(mContext, R.color.button_gray));
+        }
+
+        public void setVisibility(int visibility) {
+            mContext.findViewById(R.id.maps_pullup_buttons).setVisibility(visibility);
+            mContext.findViewById(R.id.maps_pullup_buttons_shadow).setVisibility(visibility);
         }
     }
 }
