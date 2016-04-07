@@ -13,7 +13,6 @@ import android.widget.TextView;
 import com.citisense.vidklopcic.citisense.AqiCardsFragment;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewGraph;
 import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
 
@@ -52,6 +51,7 @@ public class MapPullUpPager {
     public void setOverviewFragment() {
         if (mCurrentFragmentType == CurrentFragment.OVERVIEW) return;
         close();
+        mButtons.setButton(mButtons.mButtonOverviewContainer);
         mCurrentFragmentType = CurrentFragment.OVERVIEW;
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
         transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment);
@@ -64,6 +64,7 @@ public class MapPullUpPager {
     public void setCardsFragment() {
         if (mCurrentFragmentType == CurrentFragment.CARDS) return;
         close();
+        mButtons.setButton(mButtons.mButtonCardsContainer);
         mCurrentFragmentType = CurrentFragment.CARDS;
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
         transaction.add(R.id.maps_pullup_fragment_container, mAqiCardsFragment);
@@ -76,6 +77,7 @@ public class MapPullUpPager {
     public void setGraphFragment() {
         if (mCurrentFragmentType == CurrentFragment.GRAPH) return;
         close();
+        mButtons.setButton(mButtons.mButtonGraphContainer);
         mCurrentFragmentType = CurrentFragment.GRAPH;
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
         transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment);
@@ -110,9 +112,9 @@ public class MapPullUpPager {
     class Buttons {
         static final float ANIMATION_SCALE = 1.1f;
         static final int ANIMATION_DURATION = 200;
-        LinearLayout mButtonCardsContainer;
-        LinearLayout mButtonOverviewContainer;
-        LinearLayout mButtonHistoryContainer;
+        public LinearLayout mButtonCardsContainer;
+        public LinearLayout mButtonOverviewContainer;
+        public LinearLayout mButtonGraphContainer;
         int mNormalColor;
         int mSelectedColor;
 
@@ -123,16 +125,15 @@ public class MapPullUpPager {
             mSelectedColor = ContextCompat.getColor(mContext, R.color.button_selected_blue);
             mButtonCardsContainer = (LinearLayout) mContext.findViewById(R.id.pullup_cards_button_container);
             mButtonOverviewContainer = (LinearLayout) mContext.findViewById(R.id.pullup_overview_button_container);
-            mButtonHistoryContainer = (LinearLayout) mContext.findViewById(R.id.pullup_graph_history_button_container);
+            mButtonGraphContainer = (LinearLayout) mContext.findViewById(R.id.pullup_graph_history_button_container);
             ((ImageView)mButtonCardsContainer.findViewById(R.id.pullup_button_icon)).setColorFilter(mNormalColor, PorterDuff.Mode.MULTIPLY);
             ((ImageView)mButtonOverviewContainer.findViewById(R.id.pullup_button_icon)).setColorFilter(mNormalColor, PorterDuff.Mode.MULTIPLY);
-            ((ImageView)mButtonHistoryContainer.findViewById(R.id.pullup_button_icon)).setColorFilter(mNormalColor, PorterDuff.Mode.MULTIPLY);
+            ((ImageView) mButtonGraphContainer.findViewById(R.id.pullup_button_icon)).setColorFilter(mNormalColor, PorterDuff.Mode.MULTIPLY);
             setButton(mButtonOverviewContainer);
 
             mButtonCardsContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    setButton(mButtonCardsContainer);
                     setCardsFragment();
                 }
             });
@@ -140,15 +141,13 @@ public class MapPullUpPager {
             mButtonOverviewContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    setButton(mButtonOverviewContainer);
                     setOverviewFragment();
                 }
             });
 
-            mButtonHistoryContainer.setOnClickListener(new View.OnClickListener() {
+            mButtonGraphContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    setButton(mButtonHistoryContainer);
                     setGraphFragment();
                 }
             });

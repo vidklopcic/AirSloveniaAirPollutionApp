@@ -143,6 +143,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                             mActionBarContainer,
                             ContextCompat.getColor(getContext(), R.color.maps_pullup_actionbar)));
                     mPullUpPager.setOverviewFragment();
+                    mSlidingPane.setEnabled(false);
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
                     mPollutantCardsFragment.show();
                     mPullUpPager.close();
@@ -309,7 +310,19 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     public void onActionBarBack(View view) {
-        removePointOfInterest();
+        onBackPressed();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mSlidingPane.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+            removePointOfInterest();
+        } else if (mSlidingPane.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            mSlidingPane.setEnabled(true);
+            mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void setPointOfInterest(LatLng poi) {
