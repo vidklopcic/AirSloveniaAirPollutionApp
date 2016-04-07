@@ -2,9 +2,11 @@ package com.citisense.vidklopcic.citisense.data.entities;
 
 
 import com.google.android.gms.maps.model.LatLng;
-import com.orm.SugarRecord;
 
-public class FavoritePlace extends SugarRecord {
+import io.realm.Realm;
+import io.realm.RealmObject;
+
+public class FavoritePlace extends RealmObject {
     Double latitude;
     Double longitude;
     String address;
@@ -12,17 +14,23 @@ public class FavoritePlace extends SugarRecord {
 
     public FavoritePlace() {}
 
-    public FavoritePlace(LatLng location, String street_name, String nickname) {
-        this.latitude = location.latitude;
-        this.longitude = location.longitude;
-        this.address = street_name;
-        this.nickname = nickname;
-        save();
+    public static FavoritePlace create(LatLng location, String street_name, String nickname) {
+        Realm r = Realm.getDefaultInstance();
+        r.beginTransaction();
+        FavoritePlace place = r.createObject(FavoritePlace.class);
+        place.latitude = location.latitude;
+        place.longitude = location.longitude;
+        place.address = street_name;
+        place.nickname = nickname;
+        r.commitTransaction();
+        return place;
     }
 
     public void setNickname(String nickaname) {
+        Realm r = Realm.getDefaultInstance();
+        r.beginTransaction();
         this.nickname = nickaname;
-        save();
+        r.commitTransaction();
     }
 
     public String getNickname() {

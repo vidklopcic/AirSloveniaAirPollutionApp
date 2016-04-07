@@ -24,7 +24,6 @@ public class DataAPI {
     private DataUpdateListener mListener;
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
-    private SavedState mSavedState;
     private UpdateTask mUpdateTask;
     public interface DataUpdateListener {
         void onDataReady();
@@ -37,7 +36,6 @@ public class DataAPI {
     }
 
     public DataAPI() {
-        mSavedState = new SavedState().getSavedState();
         getConfig();
         mActiveStations = new ArrayList<>();
         mUpdateTask = new UpdateTask();
@@ -65,9 +63,10 @@ public class DataAPI {
     }
 
     class LoadConfigTask extends AsyncTask<String, Void, Void> {
-
+        SavedState mSavedState;
         @Override
         protected Void doInBackground(String... params) {
+            mSavedState = SavedState.getSavedState();
             try {
                 int config_version = Integer.valueOf(Network.GET(params[0]));
                 if (mSavedState.getConfigVersion() != null && config_version == mSavedState.getConfigVersion()) {

@@ -1,14 +1,13 @@
 package com.citisense.vidklopcic.citisense.data.entities;
 
-import android.util.Log;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.orm.SugarRecord;
 
-import java.util.Iterator;
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
 
-public class SavedState extends SugarRecord{
+public class SavedState extends RealmObject{
     String city;
     Integer configversion;
     Double top_lat;
@@ -19,8 +18,10 @@ public class SavedState extends SugarRecord{
     public SavedState() {}
 
     public void setCity(String city) {
+        Realm r = Realm.getDefaultInstance();
+        r.beginTransaction();
         this.city = city;
-        save();
+        r.commitTransaction();
     }
 
     public String getCity() {
@@ -33,16 +34,23 @@ public class SavedState extends SugarRecord{
     }
 
     public void setConfigVersion(Integer config_version) {
+        Realm r = Realm.getDefaultInstance();
+        r.beginTransaction();
         this.configversion = config_version;
-        save();
+        r.commitTransaction();
     }
 
-    public SavedState getSavedState() {
-        Iterator<SavedState> iterator = SavedState.findAll(SavedState.class);
-        if (iterator.hasNext()) {
-            return iterator.next();
+    public static SavedState getSavedState() {
+        Realm r = Realm.getDefaultInstance();
+        RealmResults<SavedState> iterator = r.allObjects(SavedState.class);;
+        if (iterator.size() != 0) {
+            return iterator.get(0);
+        } else {
+            r.beginTransaction();
+            SavedState state = r.createObject(SavedState.class);
+            r.commitTransaction();
+            return state;
         }
-        return this;
     }
 
     public LatLngBounds getLastViewport() {
@@ -54,12 +62,14 @@ public class SavedState extends SugarRecord{
     }
 
     public void setLastViewport(LatLngBounds bounds) {
+        Realm r = Realm.getDefaultInstance();
+        r.beginTransaction();
         LatLng tmp = bounds.southwest;
         top_lat = tmp.latitude;
         top_lng = tmp.longitude;
         tmp = bounds.northeast;
         bot_lat = tmp.latitude;
         bot_lng = tmp.longitude;
-        save();
+        r.commitTransaction();
     }
 }

@@ -74,6 +74,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 
 public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener, FABPollutants.FABPollutantsListener {
@@ -168,7 +170,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mActionBarTitle.clearFocus();
 
                 if (!hasFocus && mActionBarTitle.isEnabled()) {
-                    List<FavoritePlace> places = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+                    RealmResults<FavoritePlace> places = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
                     if (places.size() != 0) {
                         places.get(0).setNickname(mActionBarTitle.getText().toString());
                     }
@@ -239,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 mActionBarTitle.setText(mPOIAddress);
                 mActionBarHasAddress = true;
                 mActionBarTitle.setEnabled(true);
-                List<FavoritePlace> places = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+                RealmResults<FavoritePlace> places = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
                 if (places.size() != 0) {
                     setFavorite(true);
                     mActionBarTitle.setText(places.get(0).getNickname());
@@ -286,15 +288,18 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPOIIsFavorite = !mPOIIsFavorite;
         setFavorite(mPOIIsFavorite);
         if (mPOIIsFavorite) {
-            FavoritePlace new_fav = new FavoritePlace(
+            FavoritePlace.create(
                     mPointOfInterest, mPOIAddress, mActionBarTitle.getText().toString());
-            new_fav.save();
         } else {
-            List<FavoritePlace> matches = FavoritePlace.find(FavoritePlace.class, "address = ?", mPOIAddress);
+            RealmResults<FavoritePlace> matches = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
             mActionBarTitle.setText(mPOIAddress);
             if (matches.size() != 0) {
-                for (FavoritePlace match : matches) {
-                    match.delete();
+                while (matches.iterator().hasNext()) {
+                    FavoritePlace match = matches.iterator().next();
+                    Realm r = Realm.getDefaultInstance();
+                    r.beginTransaction();
+                    match.removeFromRealm();
+                    r.commitTransaction();
                 }
             }
         }

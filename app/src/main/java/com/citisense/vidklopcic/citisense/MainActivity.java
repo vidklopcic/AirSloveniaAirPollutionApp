@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
     AqiOverviewFragment mAqiOverviewFragment;
     private SlidingMenu mMenu;
@@ -44,6 +47,8 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        RealmConfiguration config = new RealmConfiguration.Builder(this).build();
+        Realm.setDefaultConfiguration(config);
         setContentView(R.layout.activity_main);
         mAqiOverviewFragment = (AqiOverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
@@ -67,7 +72,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
-                mSavedState = new SavedState().getSavedState();
+                mSavedState = SavedState.getSavedState();
                 if (mSavedState.getCity() != null) {
                     onCityChange(mSavedState.getCity());
                 }
