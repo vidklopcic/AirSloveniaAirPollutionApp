@@ -199,19 +199,20 @@ public class DataAPI {
     static class GetDataRangeTask extends AsyncTask<Void, Void, Void> {
         String mUrl;
         Long limit;
-        List<CitiSenseStation> mStations;
+        List<String> mStationIds;
         DataRangeListener mListener;
 
         public GetDataRangeTask(List<CitiSenseStation> stations, Long limit, DataRangeListener listener) {
             this.limit = limit;
             mListener = listener;
-            mStations = stations;
+            mStationIds = CitiSenseStation.stationsToIdList(stations);
         }
 
         @Override
         protected Void doInBackground(Void... params) {
             Realm realm = Realm.getDefaultInstance();
-            for (CitiSenseStation station : mStations) {
+            List<CitiSenseStation> stations = CitiSenseStation.idListToStations(realm, mStationIds);
+            for (CitiSenseStation station : stations) {
                 long start = 0;
                 long end = 0;
                 if (station.getLastRangeUpdateTime() == null || station.getOldestStoredMeasurementTime() == null) {

@@ -1,5 +1,4 @@
 package com.citisense.vidklopcic.citisense.data.entities;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
@@ -22,7 +21,10 @@ import java.util.List;
 import java.util.TimeZone;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
 public class CitiSenseStation extends RealmObject {
@@ -43,6 +45,11 @@ public class CitiSenseStation extends RealmObject {
     Long last_update_time;
     String last_measurement;
     Long oldest_stored_measurement;
+
+    @Ignore
+    MeasurementsTransactionListener mMeasurementTransactionListener;
+    @Ignore
+    RealmResults<StationMeasurement> mMeasurementTransactionResults;
 
     public CitiSenseStation() {}
 
@@ -78,6 +85,14 @@ public class CitiSenseStation extends RealmObject {
 
     public Long getLastRangeUpdateTime() {
         return last_range_update_time;
+    }
+
+    public void setLastRangeUpdateTime(Long time) {
+        last_range_update_time = time;
+    }
+
+    public void setOldestStoredMeasurement(Long time) {
+        oldest_stored_measurement = time;
     }
 
     public Long getLastUpdateTime() {
@@ -322,43 +337,49 @@ public class CitiSenseStation extends RealmObject {
                 new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
     }
 
-    public void getMeasurementsInRange(Long start, Long end, MeasurementsTransactionListener listener) {
-        new GetMeasurementsInRangeTask(listener).execute(start, end);
-    }
-
-    class GetMeasurementsInRangeTask extends AsyncTask<Long, Void, List<StationMeasurement>> {
-        MeasurementsTransactionListener mListener;
-        public GetMeasurementsInRangeTask(MeasurementsTransactionListener listener) {
-            mListener = listener;
-        }
-        @Override
-        protected List<StationMeasurement> doInBackground(Long... params) {
-            Realm r = Realm.getDefaultInstance();
-            List<StationMeasurement> result =  r.where(StationMeasurement.class)
-                    .equalTo("measuring_station.id", id)
-                    .greaterThan("measurement_time", params[0])
-                    .lessThan("measurement_time", params[1]).findAll();
-            r.close();
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(List<StationMeasurement> measurements) {
-            mListener.onTransactionFinished(measurements);
-        }
+    public void getMeasurementsInRange(Realm realm, Long start, Long end, MeasurementsTransactionListener listener) {
+        mMeasurementTransactionListener = listener;
+        mMeasurementTransactionResults = realm.where(StationMeasurement.class)
+                .equalTo("measuring_station.id", id)
+                .greaterThan("measurement_time", start)
+                .lessThan("measurement_time", end).findAllAsync();
+        mMeasurementTransactionResults.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                mMeasurementTransactionListener.onTransactionFinished(mMeasurementTransactionResults);
+            }
+        });
     }
 
     public void setMeasurements(Realm r, JSONArray measurements) {
         r.beginTransaction();
-        last_range_update_time = new Date().getTime();
+        setLastRangeUpdateTime(new Date().getTime());
         Long oldest_in_list = null;
         for (int i=0;i<measurements.length();i++) {
+            try {
+                Date date = stringToDate(measurements.getJSONObject(i).getString(Constants.CitiSenseStation.time_key));
+                if (date != null) {
+                    JSONObject measurement = measurements.getJSONObject(i);
+                    String pollutant = measurement.getString(Constants.CitiSenseStation.pollutant_name_key);
 
+                    if (getOldestStoredMeasurementTime() == null || date.getTime() < getOldestStoredMeasurementTime()) {
+                        if (oldest_in_list == null || oldest_in_list > date.getTime())
+                            oldest_in_list = date.getTime();
+                        StationMeasurement.createForNested(
+                                r,
+                                this,
+                                date.getTime(),
+                                pollutant,
+                                measurement.getDouble(Constants.CitiSenseStation.value_key));
+                    }
+                }
+            } catch (JSONException ignored) {}
         }
         if (oldest_in_list != null) {
-            oldest_stored_measurement = oldest_in_list;
+            setOldestStoredMeasurement(oldest_in_list);
         }
         r.commitTransaction();
+
     }
 
     public static Date stringToDate(String time) {

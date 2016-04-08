@@ -111,6 +111,7 @@ public class MapPullUpPager {
     }
 
     public void close() {
+        mButtons.setButton(mButtons.mButtonOverviewContainer);
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
         if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));

@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import io.realm.Realm;
+
 public class AqiGraphFragment extends Fragment implements MeasuringStationDataFragment, DataAPI.DataRangeListener {
     static final Integer MILLIS = 1000;
     static final Integer SECONDS = 60;
@@ -44,7 +46,7 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
     ArrayList<String> mXdata;
     Long mStartDate;
     ArrayList<CitiSenseStation> mStations;
-    DataAPI mDataApi;
+    Realm mRealm;
 
     public AqiGraphFragment() {
     }
@@ -55,6 +57,19 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
         mXdata = new ArrayList<>();
         for (int i=0;i<DATA_SET_LEN_MINS;i+=TICK_INTERVAL_MINS) mXdata.add("");
         mChartData = new LineData(mXdata);
+        mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle bundle) {
+        mRealm.close();
+        super.onSaveInstanceState(bundle);
+    }
+
+    @Override
+    public void onPause() {
+        mStartDate = null;
+        super.onPause();
     }
 
     @Override
@@ -71,7 +86,8 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
                 Calendar cal = Calendar.getInstance();
                 cal.setTimeInMillis(mStartDate + TICK_INTERVAL_MINS * SECONDS * MILLIS * index);
                 cal.setTimeZone(TimeZone.getDefault());
-                return String.valueOf(cal.get(Calendar.HOUR_OF_DAY));
+                return String.valueOf(cal.get(Calendar.HOUR_OF_DAY)) + ":"
+                        + String.valueOf(cal.get(Calendar.MINUTE));
             }
         });
         return view;
@@ -93,7 +109,7 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
     @Override
     public void onDataRetrieved(Long limit) {
         mLockUpdate = false;
-        mStations.get(0).getMeasurementsInRange(limit, limit + DATA_SET_LEN_MILLIS, new CitiSenseStation.MeasurementsTransactionListener() {
+        mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS, new CitiSenseStation.MeasurementsTransactionListener() {
             @Override
             public void onTransactionFinished(List<StationMeasurement> measurements) {
                 HashMap<String, ArrayList<Entry>> ydata = new HashMap<>();
