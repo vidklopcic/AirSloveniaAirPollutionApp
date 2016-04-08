@@ -66,10 +66,9 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
         super.onSaveInstanceState(bundle);
     }
 
-    @Override
-    public void onPause() {
+    public void onDetach() {
         mStartDate = null;
-        super.onPause();
+        super.onDetach();
     }
 
     @Override
@@ -84,6 +83,7 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
             @Override
             public String getXValue(String original, int index, ViewPortHandler viewPortHandler) {
                 Calendar cal = Calendar.getInstance();
+                if (mStartDate == null) return "";
                 cal.setTimeInMillis(mStartDate + TICK_INTERVAL_MINS * SECONDS * MILLIS * index);
                 cal.setTimeZone(TimeZone.getDefault());
                 return String.valueOf(cal.get(Calendar.HOUR_OF_DAY)) + ":"
