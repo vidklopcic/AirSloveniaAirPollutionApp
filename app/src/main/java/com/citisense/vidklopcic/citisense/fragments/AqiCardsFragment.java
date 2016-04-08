@@ -7,12 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.citisense.vidklopcic.citisense.R;
+import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 
 import java.util.ArrayList;
 
 
 public class AqiCardsFragment extends Fragment implements MeasuringStationDataFragment {
+    private static final int DATA_LEN_MILLIS = 6 * Constants.MINUTES * Constants.SECONDS * Constants.MILLI;
     public AqiCardsFragment() {
         // Required empty public constructor
     }
@@ -25,7 +27,7 @@ public class AqiCardsFragment extends Fragment implements MeasuringStationDataFr
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_aqi_cards, container, false);;
+        View view = inflater.inflate(R.layout.fragment_aqi_cards, container, false);
         return view;
     }
 

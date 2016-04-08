@@ -480,7 +480,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                  mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
-        mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
+        if (cameraPosition.zoom >= Constants.Map.max_overlay_zoom)
+            mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations(viewport_stations);
         List<String> stations_on_map = CitiSenseStation.stationsToIdList(new ArrayList<>(mStationsOnMap.keySet()));
         List<String> viewport_stations_ids = CitiSenseStation.stationsToIdList(viewport_stations);

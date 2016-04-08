@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="@dimen/pollutant_overview_graph_card_height"
+    android:layout_margin="5dp"
+    android:backgroundTint="@color/aqi_good"
+    android:background="@drawable/card">
+    <LinearLayout
+        android:id="@+id/pollutant_graph_card_text_container"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:layout_height="@dimen/pollutant_overview_graph_info_bar_height">
+        <TextView
+            android:id="@+id/pollutant_name"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:text="PM2.5"
+            android:minWidth="60dp"
+            android:textStyle="bold"
+            android:textColor="@color/white"/>
+        <TextView
+            android:id="@+id/pollutant_aqi_text"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="UNHEALTHY FOR SENSITIVE"
+            android:minWidth="90dp"
+            android:singleLine="true"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/pollutant_aqi_value"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="right"
+            android:singleLine="true"
+            android:minWidth="60dp"
+            android:text="400"/>
+    </LinearLayout>
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/pollutant_graph_card_chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

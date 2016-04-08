@@ -3,6 +3,9 @@ package com.citisense.vidklopcic.citisense.util;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -97,6 +100,16 @@ public abstract class UI {
             mTitle.setText(aqi_title);
             mTitle.setTextColor(mContext.getResources().getColor(color));
             mIcon.setImageResource(aqi_icon);
+        }
+    }
+
+    public static void setViewBackground(Context context, View view, int color) {
+        Drawable background = view.getBackground();
+        background.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            view.setBackground(background);
+        } else {
+            view.setBackgroundDrawable(background);
         }
     }
 }

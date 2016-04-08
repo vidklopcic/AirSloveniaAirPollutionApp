@@ -101,7 +101,8 @@ public abstract class Conversion {
                 range = VERY_HAZ_RANGE;
                 Ilow = Constants.AQI.HAZARDOUS + range;
             }
-            return (int) ((range / (Chigh - Clow)) *  (C - Clow) + Ilow);
+            int aqi = (int) ((range / (Chigh - Clow)) *  (C - Clow) + Ilow);
+            return aqi < 501 ? aqi : 500;
         }
     }
 
@@ -133,5 +134,11 @@ public abstract class Conversion {
             hsvb[i] = Conversion.interpolate(hsva[i], hsvb[i], proportion);
         }
         return Color.HSVToColor(hsvb);
+    }
+
+    public static String zfill(Integer num, int size) {
+        String s = num+"";
+        while (s.length() < size) s = "0" + s;
+        return s;
     }
 }

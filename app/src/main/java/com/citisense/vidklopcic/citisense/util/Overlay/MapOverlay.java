@@ -61,7 +61,7 @@ public class MapOverlay {
     }
 
     class DrawImageTask {
-        int THREAD_LIMIT = 15;
+        int THREAD_LIMIT = 5;
         public List<String> mStationIds;
         public List<CitiSenseStation> mStations;
         public Projection mProjection;

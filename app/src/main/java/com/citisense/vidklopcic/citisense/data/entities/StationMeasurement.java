@@ -37,6 +37,8 @@ public class StationMeasurement extends RealmObject {
     }
 
     public Long getMeasurementTime() {
+        if (measurement_time == null)
+            return 0l;
         return measurement_time;
     }
 

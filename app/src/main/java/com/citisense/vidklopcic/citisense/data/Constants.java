@@ -8,6 +8,9 @@ import java.util.List;
 
 public abstract class Constants {
     public static final int MILLI = 1000;
+    public static final Integer SECONDS = 60;
+    public static final Integer MINUTES = 60;
+    public static final Integer HOURS = 24;
     public static final String TEMPERATURE_UNIT = "°C";
     public static final String HUMIDITY_UNIT = "%";
 
@@ -56,6 +59,7 @@ public abstract class Constants {
 
     public static class Map {
         public static final int default_zoom = 16;
+        public static final float max_overlay_zoom = 11.5f;
         public static final double station_radius_meters = 1000;
         public static final int max_overlay_resolution_meters = 200;
         public static final int default_overlay_resolution_pixels = 10;
