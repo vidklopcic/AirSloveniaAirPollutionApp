@@ -18,9 +18,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
+
 public class DataAPI {
     private static final String LOG_ID = "DataAPI";
-    private ArrayList<CitiSenseStation> mActiveStations;
+    private List<CitiSenseStation> mActiveStations;
     private DataUpdateListener mListener;
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
@@ -37,11 +40,10 @@ public class DataAPI {
 
     public DataAPI() {
         getConfig();
-        mActiveStations = new ArrayList<>();
         mUpdateTask = new UpdateTask();
     }
 
-    public void setObservedStations(ArrayList<CitiSenseStation> stations) {
+    public void setObservedStations(List<CitiSenseStation> stations) {
         if (stations != null)
             mActiveStations = stations;
     }
@@ -66,13 +68,14 @@ public class DataAPI {
         SavedState mSavedState;
         @Override
         protected Void doInBackground(String... params) {
-            mSavedState = SavedState.getSavedState();
+            Realm realm = Realm.getDefaultInstance();
+            mSavedState = SavedState.getSavedState(realm);
             try {
                 int config_version = Integer.valueOf(Network.GET(params[0]));
                 if (mSavedState.getConfigVersion() != null && config_version == mSavedState.getConfigVersion()) {
                     return null;
                 }
-                mSavedState.setConfigVersion(config_version);
+                mSavedState.setConfigVersion(realm, config_version);
             } catch (IOException ignored) {}
             Integer config_version = mSavedState.getConfigVersion();
             try {
@@ -90,38 +93,41 @@ public class DataAPI {
                             for (int i=0;i<place.length();i++)  {
                                 JSONArray station = place.getJSONArray(i);
                                 String id = station.getString(0);
-                                Float lat = (float) station.getDouble(1);
-                                Float lng = (float) station.getDouble(2);
+                                Double lat = station.getDouble(1);
+                                Double lng = station.getDouble(2);
                                 JSONArray pollutants = station.getJSONArray(3);
-                                List<CitiSenseStation> old_station = CitiSenseStation.find(CitiSenseStation.class, "stationid = ?", id);
+                                RealmResults<CitiSenseStation> old_station = realm.where(CitiSenseStation.class)
+                                        .equalTo("id", id).findAll();
                                 CitiSenseStation stationdb;
                                 if (old_station.size() != 0) {
                                     stationdb = old_station.get(0);
-                                    stationdb.setCity(place_key);
-                                    stationdb.setPollutants(pollutants);
-                                    stationdb.setLocation(lat, lng);
-                                    stationdb.setConfigVersion(config_version);
+                                    stationdb.setCity(realm, place_key);
+                                    stationdb.setPollutants(realm, pollutants);
+                                    stationdb.setLocation(realm, lat, lng);
+                                    stationdb.setConfigVersion(realm, config_version);
                                 } else {
-                                    stationdb = new CitiSenseStation(
-                                            config_version, id, place_key, pollutants, lat, lng
+                                    CitiSenseStation.create(
+                                            realm, config_version, id, place_key, pollutants, lat, lng
                                     );
                                 }
-                                stationdb.save();
                             }
                         }
                     }
-                    List<CitiSenseStation> stations_to_remove = CitiSenseStation.find(
-                            CitiSenseStation.class, "configversion != ?", config_version.toString()
-                    );
-                    for (CitiSenseStation station : stations_to_remove) station.delete();
+                    RealmResults<CitiSenseStation> stations_to_remove = realm.where(CitiSenseStation.class)
+                            .notEqualTo("config_version", config_version).findAll();
+                    realm.beginTransaction();
+                    while (stations_to_remove.iterator().hasNext())
+                        stations_to_remove.iterator().next().removeFromRealm();
+                    realm.commitTransaction();
                 } catch (JSONException e) {
                     Log.d(LOG_ID, "json can't be read");
-                    mSavedState.setConfigVersion(null);
+                    mSavedState.setConfigVersion(realm, null);
                 }
             } catch (IOException ignored) {
                 Log.d(LOG_ID, "config GET error");
-                mSavedState.setConfigVersion(null);
+                mSavedState.setConfigVersion(realm, null);
             }
+            realm.close();
             return null;
         }
 
@@ -132,31 +138,42 @@ public class DataAPI {
     }
 
     class UpdateTask extends AsyncTask<Void, CitiSenseStation, Boolean> {
+        List<String> mActiveStationsIds;
+        public UpdateTask() {
+            mActiveStationsIds = new ArrayList<>();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mActiveStationsIds = CitiSenseStation.stationsToIdList(mActiveStations);
+        }
 
         @Override
         protected Boolean doInBackground(Void... params) {
+            Realm realm = Realm.getDefaultInstance();
             Boolean updated = false;
             try {
                 Thread.sleep(Constants.MILLI);
             } catch (InterruptedException ignored) {}
-            for (CitiSenseStation station : mActiveStations) {
+            for (String station_id : mActiveStationsIds) {
+                CitiSenseStation station = CitiSenseStation.idToStation(realm, station_id);
                 if (new Date().getTime() - station.getLastUpdateTime()
                         > Constants.CitiSenseStation.update_interval || mForceUpdate) {
                     updated = true;
                     try {
                         String last_measurement = Network.GET(Constants.CitiSenseStation.last_measurement_url
                                 + station.getStationId());
-                        station.setLastMeasurement(last_measurement);
+                        station.setLastMeasurement(realm, last_measurement);
                     } catch (IOException e) {
                         Log.d(LOG_ID, "couldn't get last measurement for " + station.getStationId());
                     } catch (JSONException e) {
                         Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
                     }
-                    station.save();
                     publishProgress(station);
                 }
             }
             mForceUpdate = false;
+            realm.close();
             return updated;
         }
 
@@ -193,6 +210,7 @@ public class DataAPI {
 
         @Override
         protected Void doInBackground(Void... params) {
+            Realm realm = Realm.getDefaultInstance();
             for (CitiSenseStation station : mStations) {
                 long start = 0;
                 long end = 0;
@@ -220,7 +238,7 @@ public class DataAPI {
                     String id = station.getStationId();
                     try {
                         JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
-                        station.setMeasurements(measurements);
+                        station.setMeasurements(realm, measurements);
                     } catch (IOException | JSONException ignored) {
                     }
                 }

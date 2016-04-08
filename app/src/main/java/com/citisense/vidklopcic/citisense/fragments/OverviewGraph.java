@@ -35,7 +35,7 @@ public class OverviewGraph extends Fragment {
     private LayoutInflater mInflater;
     private int mChartRange = Constants.AQI.BAR_OFFSET;
     private Integer mAQIBarsContainerHeight;
-    private ArrayList<CitiSenseStation> mStations;
+    private List<CitiSenseStation> mStations;
     private OnFragmentLoadedListener mOnLoadedListener;
 
     public OverviewGraph() {
@@ -176,7 +176,7 @@ public class OverviewGraph extends Fragment {
         return max_aqi;
     }
 
-    public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
+    public ArrayList<HashMap<String, Integer>> updateGraph(List<CitiSenseStation> stations) {
         if (mAQIBars == null) return null;
         ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
         mStations = stations;

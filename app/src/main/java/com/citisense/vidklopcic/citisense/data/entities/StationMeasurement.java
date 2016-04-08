@@ -1,8 +1,9 @@
 package com.citisense.vidklopcic.citisense.data.entities;
 
-import com.orm.SugarRecord;
+import io.realm.Realm;
+import io.realm.RealmObject;
 
-public class StationMeasurement extends SugarRecord {
+public class StationMeasurement extends RealmObject {
     Long measurement_time;
     String property;
     Double value;
@@ -11,11 +12,24 @@ public class StationMeasurement extends SugarRecord {
 
     public StationMeasurement() {}
 
-    public StationMeasurement(CitiSenseStation measuring_station, Long measurement_time, String property, Double value) {
-        this.measuring_station = measuring_station;
-        this.measurement_time = measurement_time;
-        this.property = property;
-        this.value = value;
+    public static StationMeasurement create(Realm r, CitiSenseStation measuring_station, Long measurement_time, String property, Double value) {
+        r.beginTransaction();
+        StationMeasurement measurement = r.createObject(StationMeasurement.class);
+        measurement.measuring_station = measuring_station;
+        measurement.measurement_time = measurement_time;
+        measurement.property = property;
+        measurement.value = value;
+        r.commitTransaction();
+        return measurement;
+    }
+
+    public static StationMeasurement createForNested(Realm r, CitiSenseStation measuring_station, Long measurement_time, String property, Double value) {
+        StationMeasurement measurement =  r.createObject(StationMeasurement.class);
+        measurement.measuring_station = measuring_station;
+        measurement.measurement_time = measurement_time;
+        measurement.property = property;
+        measurement.value = value;
+        return measurement;
     }
 
     public String getProperty() {

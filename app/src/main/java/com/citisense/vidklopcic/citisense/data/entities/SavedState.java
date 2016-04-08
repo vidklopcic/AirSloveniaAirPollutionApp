@@ -17,8 +17,7 @@ public class SavedState extends RealmObject{
 
     public SavedState() {}
 
-    public void setCity(String city) {
-        Realm r = Realm.getDefaultInstance();
+    public void setCity(Realm r, String city) {
         r.beginTransaction();
         this.city = city;
         r.commitTransaction();
@@ -33,15 +32,13 @@ public class SavedState extends RealmObject{
         return configversion;
     }
 
-    public void setConfigVersion(Integer config_version) {
-        Realm r = Realm.getDefaultInstance();
+    public void setConfigVersion(Realm r, Integer config_version) {
         r.beginTransaction();
         this.configversion = config_version;
         r.commitTransaction();
     }
 
-    public static SavedState getSavedState() {
-        Realm r = Realm.getDefaultInstance();
+    public static SavedState getSavedState(Realm r) {
         RealmResults<SavedState> iterator = r.allObjects(SavedState.class);;
         if (iterator.size() != 0) {
             return iterator.get(0);
@@ -61,8 +58,7 @@ public class SavedState extends RealmObject{
         );
     }
 
-    public void setLastViewport(LatLngBounds bounds) {
-        Realm r = Realm.getDefaultInstance();
+    public void setLastViewport(Realm r, LatLngBounds bounds) {
         r.beginTransaction();
         LatLng tmp = bounds.southwest;
         top_lat = tmp.latitude;

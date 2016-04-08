@@ -17,6 +17,7 @@ import com.github.clans.fab.FloatingActionMenu;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class FABPollutants {
     public interface FABPollutantsListener {
@@ -26,7 +27,7 @@ public class FABPollutants {
     private FloatingActionMenu mFABPollutants;
     private HashMap<String, FloatingActionButton> mButtons;
     private String mSelectedPollutant;
-    private ArrayList<CitiSenseStation> mObservedStations;
+    private List<CitiSenseStation> mObservedStations;
     private FABPollutantsListener mListener;
     private FloatingActionButton mSumFab;
     private boolean mFABPollutantsIsOpened = false;
@@ -93,7 +94,7 @@ public class FABPollutants {
             return null;
     }
 
-    public void update(ArrayList<CitiSenseStation> stations) {
+    public void update(List<CitiSenseStation> stations) {
         clear();
         mObservedStations = stations;
         ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);

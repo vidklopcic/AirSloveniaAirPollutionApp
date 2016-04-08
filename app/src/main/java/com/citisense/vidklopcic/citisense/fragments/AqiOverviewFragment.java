@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class AqiOverviewFragment extends Fragment implements MeasuringStationDataFragment {
@@ -65,7 +66,7 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
         mOnLoadedListener = listener;
     }
 
-    public ArrayList<HashMap<String, Integer>> updateGraph(ArrayList<CitiSenseStation> stations) {
+    public ArrayList<HashMap<String, Integer>> updateGraph(List<CitiSenseStation> stations) {
         if (mGraphFragment == null) return null;
         ArrayList<HashMap<String, Integer>> averages = mGraphFragment.updateGraph(stations);
         if (averages != null) {

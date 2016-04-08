@@ -8,10 +8,6 @@ import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
-import com.orm.SugarRecord;
-import com.orm.dsl.Unique;
-import com.orm.query.Condition;
-import com.orm.query.Select;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
-public class CitiSenseStation extends SugarRecord {
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+
+public class CitiSenseStation extends RealmObject {
     public interface MeasurementsTransactionListener {
         void onTransactionFinished(List<StationMeasurement> measurements);
     }
@@ -34,10 +34,10 @@ public class CitiSenseStation extends SugarRecord {
     public static final int AVERAGES_OTHER = 1;
     String city;
     String pollutants;
-    Float lat;
-    Float lng;
-    @Unique
-    String station_id;
+    Double lat;
+    Double lng;
+    @PrimaryKey
+    String id;
     Integer config_version;
     Long last_range_update_time;
     Long last_update_time;
@@ -46,18 +46,24 @@ public class CitiSenseStation extends SugarRecord {
 
     public CitiSenseStation() {}
 
-    public CitiSenseStation(Integer config_version, String id, String city, JSONArray pollutants, Float lat, Float lng) {
-        this.config_version = config_version;
-        this.station_id = id;
-        this.city = city;
-        this.pollutants = pollutants.toString();
-        this.lat = lat;
-        this.lng = lng;
+    public static CitiSenseStation create(Realm r, Integer config_version, String id, String city, JSONArray pollutants, Double lat, Double lng) {
+        r.beginTransaction();
+        CitiSenseStation station = r.createObject(CitiSenseStation.class);
+        station.config_version = config_version;
+        station.id = id;
+        station.city = city;
+        station.pollutants = pollutants.toString();
+        station.lat = lat;
+        station.lng = lng;
+        r.commitTransaction();
+        return station;
     }
 
-    public void setLastMeasurement(String measurement) throws JSONException {
+    public void setLastMeasurement(Realm r, String measurement) throws JSONException {
+        r.beginTransaction();
         last_update_time = new Date().getTime();
         last_measurement = measurement;
+        r.commitTransaction();
     }
 
     public JSONArray getLastMeasurement() {
@@ -116,20 +122,26 @@ public class CitiSenseStation extends SugarRecord {
     }
 
     public String getStationId() {
-        return station_id;
+        return id;
     }
 
-    public void setCity(String city) {
+    public void setCity(Realm r, String city) {
+        r.beginTransaction();
         this.city = city;
+        r.commitTransaction();
     }
 
-    public void setLocation(Float lat, Float lng) {
+    public void setLocation(Realm r, Double lat, Double lng) {
+        r.beginTransaction();
         this.lat = lat;
         this.lng = lng;
+        r.commitTransaction();
     }
 
-    public void setPollutants(JSONArray pollutants) {
+    public void setPollutants(Realm r, JSONArray pollutants) {
+        r.beginTransaction();
         this.pollutants = pollutants.toString();
+        r.commitTransaction();
     }
 
     public Integer getMaxAqi() {
@@ -158,8 +170,8 @@ public class CitiSenseStation extends SugarRecord {
         return AQI.getColor(getMaxAqi());
     }
 
-    public static List<CitiSenseStation> getStationsAroundPoint(LatLng latLng, Double half_square_side) {
-        return getStationsInArea(new LatLngBounds(
+    public static List<CitiSenseStation> getStationsAroundPoint(Realm r, LatLng latLng, Double half_square_side) {
+        return getStationsInArea(r, new LatLngBounds(
                 SphericalUtil.computeOffset(
                         SphericalUtil.computeOffset(latLng, half_square_side, 270),
                         half_square_side,
@@ -170,14 +182,17 @@ public class CitiSenseStation extends SugarRecord {
                         90)
         ));
     }
-    public static List<CitiSenseStation> getStationsInArea(LatLngBounds bounds) {
+    public static List<CitiSenseStation> getStationsInArea(Realm r, LatLngBounds bounds) {
         Double b1 = bounds.northeast.latitude;
         Double b2 = bounds.southwest.latitude;
         Double b3 = bounds.northeast.longitude;
         Double b4 = bounds.southwest.longitude;
-        return CitiSenseStation.find(
-                CitiSenseStation.class, "lat < ? and lat > ? and lng < ? and lng > ?",
-                b1.toString(), b2.toString(), b3.toString(), b4.toString());
+
+        return r.where(CitiSenseStation.class)
+                .lessThan("lat", b1)
+                .greaterThan("lat", b2)
+                .lessThan("lng", b3)
+                .greaterThan("lng", b4).findAll();
     }
 
     public static List<CitiSenseStation> getStationsInRadius(LatLng center, Double meters, List<CitiSenseStation> candidates) {
@@ -193,7 +208,7 @@ public class CitiSenseStation extends SugarRecord {
     @Override
     public boolean equals(Object obj) {
         CitiSenseStation station = (CitiSenseStation) obj;
-        return station.getStationId().equals(this.station_id);
+        return station.getStationId().equals(this.id);
     }
 
     public static Integer getAqi(String pollutant_name, Double value) {
@@ -222,11 +237,13 @@ public class CitiSenseStation extends SugarRecord {
         return config_version;
     }
 
-    public void setConfigVersion(Integer version) {
+    public void setConfigVersion(Realm r, Integer version) {
+        r.beginTransaction();
         config_version = version;
+        r.commitTransaction();
     }
 
-    public static ArrayList<HashMap<String, Integer>> getAverages(ArrayList<CitiSenseStation> stations) {
+    public static ArrayList<HashMap<String, Integer>> getAverages(List<CitiSenseStation> stations) {
         if (stations.size() == 0) return null;
         ArrayList<HashMap<String, Integer>> result = new ArrayList<>();
         HashMap<String, Integer> aqi = new HashMap<>();
@@ -316,11 +333,13 @@ public class CitiSenseStation extends SugarRecord {
         }
         @Override
         protected List<StationMeasurement> doInBackground(Long... params) {
-            return Select.from(StationMeasurement.class).where(
-                    Condition.prop("measuringstation").eq(getId()),
-                    Condition.prop("measurementtime").gt(params[0]),
-                    Condition.prop("measurementtime").lt(params[1])
-            ).list();
+            Realm r = Realm.getDefaultInstance();
+            List<StationMeasurement> result =  r.where(StationMeasurement.class)
+                    .equalTo("measuring_station.id", id)
+                    .greaterThan("measurement_time", params[0])
+                    .lessThan("measurement_time", params[1]).findAll();
+            r.close();
+            return result;
         }
 
         @Override
@@ -329,36 +348,17 @@ public class CitiSenseStation extends SugarRecord {
         }
     }
 
-    public void setMeasurements(JSONArray measurements) {
+    public void setMeasurements(Realm r, JSONArray measurements) {
+        r.beginTransaction();
         last_range_update_time = new Date().getTime();
         Long oldest_in_list = null;
-        ArrayList<StationMeasurement> measurement_objects = new ArrayList<>();
         for (int i=0;i<measurements.length();i++) {
-            try {
-                Date date = stringToDate(measurements.getJSONObject(i).getString(Constants.CitiSenseStation.time_key));
-                if (date != null) {
-                    JSONObject measurement = measurements.getJSONObject(i);
-                    String pollutant = measurement.getString(Constants.CitiSenseStation.pollutant_name_key);
 
-                    if (oldest_stored_measurement == null || date.getTime() < oldest_stored_measurement) {
-                        if (oldest_in_list == null || oldest_in_list > date.getTime())
-                            oldest_in_list = date.getTime();
-                        measurement_objects.add(
-                                new StationMeasurement(
-                                        this,
-                                        date.getTime(),
-                                        pollutant,
-                                        measurement.getDouble(Constants.CitiSenseStation.value_key))
-                        );
-                    }
-                }
-            } catch (JSONException ignored) {}
         }
-        CitiSenseStation.saveInTx(measurement_objects);
         if (oldest_in_list != null) {
             oldest_stored_measurement = oldest_in_list;
         }
-        save();
+        r.commitTransaction();
     }
 
     public static Date stringToDate(String time) {
@@ -379,5 +379,30 @@ public class CitiSenseStation extends SugarRecord {
 
     public Long getOldestStoredMeasurementTime() {
         return oldest_stored_measurement;
+    }
+
+    public static List<String> stationsToIdList(List<CitiSenseStation> stations) {
+        if (stations == null) return new ArrayList<>();
+        List<String> result = new ArrayList<>();
+        for (CitiSenseStation station : stations) {
+            result.add(station.getStationId());
+        }
+        return result;
+    }
+
+    public static List<CitiSenseStation> idListToStations(Realm realm, List<String> id_list) {
+        List<CitiSenseStation> result = new ArrayList<>();
+        for (String id : id_list) {
+            CitiSenseStation station = realm.where(CitiSenseStation.class).equalTo("id", id).findFirst();
+            if (station != null) {
+                result.add(station);
+            }
+        }
+        return result;
+    }
+
+    public static CitiSenseStation idToStation(Realm realm, String id) {
+        CitiSenseStation station = realm.where(CitiSenseStation.class).equalTo("id", id).findFirst();
+        return station;
     }
 }

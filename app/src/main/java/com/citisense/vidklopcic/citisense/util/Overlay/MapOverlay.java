@@ -17,12 +17,13 @@ import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import io.realm.Realm;
 
 public class MapOverlay {
     Activity mContext;
@@ -61,10 +62,11 @@ public class MapOverlay {
 
     class DrawImageTask {
         int THREAD_LIMIT = 15;
+        public List<String> mStationIds;
         public List<CitiSenseStation> mStations;
         public Projection mProjection;
         public LatLng mPixelSize;
-        public List<CitiSenseStation> candidates;
+        public List<String> candidate_ids;
         public LatLngBounds bounds;
         public Integer y_img_size;
         public Integer x_img_size;
@@ -74,7 +76,7 @@ public class MapOverlay {
         int[] pixels;
 
         public DrawImageTask(List<CitiSenseStation> stations, Projection projection) {
-            mStations = stations;
+            mStationIds = CitiSenseStation.stationsToIdList(stations);
             mProjection = projection;
             tasks = new ArrayList<>();
         }
@@ -87,8 +89,13 @@ public class MapOverlay {
             worker = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    Realm realm = Realm.getDefaultInstance();
+                    mStations = CitiSenseStation.idListToStations(realm, mStationIds);
                     bounds = CitiSenseStation.getBounds(mStations);
-                    if (bounds == null) return;
+                    if (bounds == null) {
+                        realm.close();
+                        return;
+                    }
                     Double distance = SphericalUtil.computeDistanceBetween(
                             mProjection.fromScreenLocation(new Point(0, 0)),
                             mProjection.fromScreenLocation(new Point(Constants.Map.default_overlay_resolution_pixels, Constants.Map.default_overlay_resolution_pixels)));
@@ -99,13 +106,19 @@ public class MapOverlay {
                     mPixelSize = SphericalUtil.computeOffset(SphericalUtil.computeOffset(bounds.getCenter(), pixel_side, 0), pixel_side, 90);
                     mPixelSize = new LatLng(mPixelSize.latitude-bounds.getCenter().latitude, mPixelSize.longitude - bounds.getCenter().longitude);
 
-                    if (bounds == null) return;
+                    if (bounds == null) {
+                        realm.close();
+                        return;
+                    }
                     x_img_size = (int) (Math.abs(bounds.southwest.longitude - bounds.northeast.longitude)/mPixelSize.longitude);
                     y_img_size = (int) (Math.abs(bounds.southwest.latitude - bounds.northeast.latitude)/mPixelSize.latitude);
                     pixels = new int[x_img_size*y_img_size];
                     Log.d("asdfg", x_img_size.toString() + " x " + y_img_size.toString());
-                    if (y_img_size < 1 || x_img_size < 1) return;
-                    candidates = CitiSenseStation.getStationsInArea(bounds);
+                    if (y_img_size < 1 || x_img_size < 1) {
+                        realm.close();
+                        return;
+                    }
+                    candidate_ids = CitiSenseStation.stationsToIdList(CitiSenseStation.getStationsInArea(realm, bounds));
 
                     int chunk = y_img_size / THREAD_LIMIT;
 
@@ -116,7 +129,10 @@ public class MapOverlay {
                             spawnWorker(0, i * chunk, (i + 1) * chunk, x_img_size);
                     }
                     waitForTasks();
-                    if (Thread.currentThread().isInterrupted()) return;
+                    if (Thread.currentThread().isInterrupted()) {
+                        realm.close();
+                        return;
+                    }
 
                     Bitmap bitmap = Bitmap.createBitmap(pixels, x_img_size, y_img_size, Bitmap.Config.ARGB_8888);
                     result = new GroundOverlayOptions()
@@ -127,6 +143,7 @@ public class MapOverlay {
                             .transparency((float) Constants.Map.overlay_transparency);
 
                     finished();
+                    realm.close();
                 }
 
                 public void finished() {
@@ -189,6 +206,7 @@ public class MapOverlay {
 
             @Override
             public void run() {
+                Realm realm = Realm.getDefaultInstance();
                 LatLng center;
                 List<CitiSenseStation> affecting_stations;
                 List<Double> importance  = new ArrayList<>();
@@ -200,13 +218,14 @@ public class MapOverlay {
                 for (int y=y_start;y<y_end;y++) {
                     for (int x=x_start;x<x_end;x++) {
                         if (Thread.currentThread().isInterrupted()) {
+                            realm.close();
                             return;
                         }
                         center = new LatLng(
                                 bounds.southwest.latitude+(y+1)*mPixelSize.latitude,
                                 bounds.southwest.longitude+(x+1)*mPixelSize.longitude);
                         affecting_stations =  CitiSenseStation.getStationsInRadius(
-                                center, Constants.Map.station_radius_meters, candidates);
+                                center, Constants.Map.station_radius_meters, CitiSenseStation.idListToStations(realm, candidate_ids));
 
                         for (int i=0;i<affecting_stations.size();i++) {
                             if (!affecting_stations.get(i).hasData() ||
@@ -253,6 +272,7 @@ public class MapOverlay {
                         }
                     }
                 }
+                realm.close();
             }
         }
     }

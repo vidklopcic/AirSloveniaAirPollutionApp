@@ -24,6 +24,7 @@ import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -32,7 +33,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     AqiOverviewFragment mAqiOverviewFragment;
     private SlidingMenu mMenu;
     private LocationHelper mLocation;
-    private ArrayList<CitiSenseStation> mStations;
+    private List<CitiSenseStation> mStations;
     private String mCity;
     private DataAPI mDataAPI;
     private SavedState mSavedState;
@@ -43,12 +44,14 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private LinearLayout mSubtitleContainer;
     private TextView mAqiNameSubtitle;
     private SwipeRefreshLayout mSwipeRefresh;
+    private Realm mRealm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         RealmConfiguration config = new RealmConfiguration.Builder(this).build();
         Realm.setDefaultConfiguration(config);
+        mRealm = Realm.getDefaultInstance();
         setContentView(R.layout.activity_main);
         mAqiOverviewFragment = (AqiOverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
@@ -72,7 +75,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
-                mSavedState = SavedState.getSavedState();
+                mSavedState = SavedState.getSavedState(mRealm);
                 if (mSavedState.getCity() != null) {
                     onCityChange(mSavedState.getCity());
                 }
@@ -83,6 +86,12 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                 mSwipeRefresh.setRefreshing(true);
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        mRealm.close();
+        super.onDestroy();
     }
 
     @Override
@@ -131,10 +140,9 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     public void onCityChange(String city) {
         mCity = city;
         if ((mSavedState.getCity() != null && !mSavedState.getCity().equals(city)) || mSavedState.getCity() == null) {
-            mSavedState.setCity(city);
+            mSavedState.setCity(mRealm, city);
         }
-        mStations = (ArrayList<CitiSenseStation>)
-                CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
+        mStations = mRealm.where(CitiSenseStation.class).equalTo("city", mCity).findAll();
         mDataAPI.setDataUpdateListener(this);
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
@@ -144,10 +152,9 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onDataReady() {
-        ArrayList<CitiSenseStation> city_stations = (ArrayList<CitiSenseStation>)
-                CitiSenseStation.find(CitiSenseStation.class, "city = ?", mCity);
-        mStations = city_stations;
-        mDataAPI.setObservedStations(city_stations);
+        mStations = mRealm.where(CitiSenseStation.class)
+                .equalTo("city", mCity).findAll();
+        mDataAPI.setObservedStations(mStations);
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         if (averages == null) return;
         mSwipeRefresh.setRefreshing(false);

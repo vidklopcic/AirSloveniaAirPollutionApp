@@ -24,6 +24,7 @@ android {
 repositories {
     maven { url "http://jzaccone.github.io/SlidingMenu-aar" }
     maven { url "https://jitpack.io" }
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
 }
 
 dependencies {

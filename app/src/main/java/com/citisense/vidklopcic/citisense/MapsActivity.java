@@ -104,12 +104,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private MapPullUpPager mPullUpPager;
     private ImageView mFavoritesStar;
     private boolean mPOIIsFavorite = false;
+    private Realm mRealm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mRealm = Realm.getDefaultInstance();
         mStationsOnMap = new HashMap<>();
-        mSavedState = new SavedState().getSavedState();
+        mSavedState = SavedState.getSavedState(mRealm);
         mDataApi = new DataAPI();
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
@@ -172,7 +174,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 if (!hasFocus && mActionBarTitle.isEnabled()) {
                     RealmResults<FavoritePlace> places = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
                     if (places.size() != 0) {
-                        places.get(0).setNickname(mActionBarTitle.getText().toString());
+                        places.get(0).setNickname(mRealm, mActionBarTitle.getText().toString());
                     }
                 }
             }
@@ -194,6 +196,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPullUpPager = new MapPullUpPager(this);
         mFavoritesStar = (ImageView) findViewById(R.id.actionbar_favorites_button);
         mActionBarTitle.setEnabled(false);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mRealm.close();
+        super.onDestroy();
     }
 
     @Override
@@ -289,7 +297,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         setFavorite(mPOIIsFavorite);
         if (mPOIIsFavorite) {
             FavoritePlace.create(
-                    mPointOfInterest, mPOIAddress, mActionBarTitle.getText().toString());
+                    mRealm, mPointOfInterest, mPOIAddress, mActionBarTitle.getText().toString());
         } else {
             RealmResults<FavoritePlace> matches = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
             mActionBarTitle.setText(mPOIAddress);
@@ -300,6 +308,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     r.beginTransaction();
                     match.removeFromRealm();
                     r.commitTransaction();
+                    r.close();
                 }
             }
         }
@@ -458,7 +467,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onMapLongClick(LatLng latLng) {
         if (latLng == mPointOfInterest) return;
-        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(latLng, Constants.Map.station_radius_meters);
+        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(mRealm, latLng, Constants.Map.station_radius_meters);
         mPullUpPager.setDataSource(affecting_stations);
         mPollutantCardsFragment.setSourceStations(affecting_stations);
         setActionBar(latLng);
@@ -467,20 +476,21 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        ArrayList<CitiSenseStation> viewport_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsInArea(
-                mMap.getProjection().getVisibleRegion().latLngBounds
+        List<CitiSenseStation> viewport_stations = CitiSenseStation.getStationsInArea(
+                 mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
         mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations(viewport_stations);
-        List<CitiSenseStation> stations = new ArrayList<>(mStationsOnMap.keySet());
-        viewport_stations.removeAll(stations);
+        List<String> stations_on_map = CitiSenseStation.stationsToIdList(new ArrayList<>(mStationsOnMap.keySet()));
+        List<String> viewport_stations_ids = CitiSenseStation.stationsToIdList(viewport_stations);
+        viewport_stations_ids.removeAll(stations_on_map);
 
-        for (CitiSenseStation station : viewport_stations) {
+        for (CitiSenseStation station : CitiSenseStation.idListToStations(mRealm, viewport_stations_ids)) {
             addStationToMap(station);
         }
 
-        mSavedState.setLastViewport(mMap.getProjection().getVisibleRegion().latLngBounds);
+        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
         mClusterManager.onCameraChange(cameraPosition);
 
         mCurrentZoom = mMap.getCameraPosition().zoom;

@@ -14,8 +14,7 @@ public class FavoritePlace extends RealmObject {
 
     public FavoritePlace() {}
 
-    public static FavoritePlace create(LatLng location, String street_name, String nickname) {
-        Realm r = Realm.getDefaultInstance();
+    public static FavoritePlace create(Realm r, LatLng location, String street_name, String nickname) {
         r.beginTransaction();
         FavoritePlace place = r.createObject(FavoritePlace.class);
         place.latitude = location.latitude;
@@ -26,8 +25,7 @@ public class FavoritePlace extends RealmObject {
         return place;
     }
 
-    public void setNickname(String nickaname) {
-        Realm r = Realm.getDefaultInstance();
+    public void setNickname(Realm r, String nickaname) {
         r.beginTransaction();
         this.nickname = nickaname;
         r.commitTransaction();
