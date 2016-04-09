@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +37,7 @@ import io.realm.Realm;
 
 
 public class AqiPollutants extends Fragment implements PullUpBase {
-    private static final int DATA_LEN_MINS = 6 * Constants.MINUTES;
+    private static final int DATA_LEN_MINS = 12 * Constants.MINUTES;
     private static final int DATA_LEN_MILLIS = DATA_LEN_MINS * Constants.SECONDS * Constants.MILLIS;
     private static final int TICK_INTERVAL_MINS = 15;
     private static final int TICK_INTERVAL_MILLIS = TICK_INTERVAL_MINS * Constants.SECONDS * Constants.MILLIS;
@@ -70,7 +71,6 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mPollutantCards = new HashMap<>();
         View view = inflater.inflate(R.layout.fragment_pollutant_cards, container, false);
         mContext = view.getContext();
         mInflater = inflater;
@@ -123,6 +123,11 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     public void updatePollutant(String name, Integer aqi) {
         if (!mPollutantCards.containsKey(name))
             addPollutant(name);
+        LinearLayout pollutant_card = mPollutantCards.get(name);
+        if (!ViewCompat.isAttachedToWindow(pollutant_card)) {
+            ((LinearLayout)pollutant_card.getParent()).removeView(pollutant_card);
+            mContainer.addView(pollutant_card);
+        }
         setPollutantTopBar(name, aqi);
         setPollutantGraph(name);
         UI.setViewBackground(mContext, mPollutantCards.get(name), AQI.getLinearColor(aqi, mContext));
@@ -140,31 +145,32 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         LineChart chart = (LineChart) mPollutantCards.get(name).findViewById(R.id.pollutant_graph_card_chart);
         LineDataSet ydata = new LineDataSet(mYData.get(name), "");
 
-        ydata.setDrawCircles(false);
+        int white = ContextCompat.getColor(mContext, R.color.white);
+        ydata.setCircleColor(white);
+        ydata.setCircleRadius(3);
         ydata.setDrawCubic(true);
-        ydata.setLineWidth(3);
-        ydata.setColor(ContextCompat.getColor(mContext, R.color.white));
+        ydata.setLineWidth(2);
+        ydata.setColor(white);
         ydata.setDrawValues(false);
 
         LineData data = new LineData(mXData);
         data.addDataSet(ydata);
 
-        chart.setDescription(mContext.getString(R.string.measurements_from_past_6_hours));
-        chart.setDescriptionColor(ContextCompat.getColor(mContext, R.color.white));
+        chart.setDescription(mContext.getString(R.string.measurements_from_past_12_hours));
+        chart.setDescriptionColor(white);
         chart.getLegend().setEnabled(false);
         chart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         chart.setDrawGridBackground(false);
-        chart.setPinchZoom(false);
-        chart.setScaleEnabled(false);
         chart.getAxisRight().setEnabled(false);
         chart.getAxisLeft().setEnabled(true);
         chart.getAxisLeft().setAxisLineWidth(1);
         chart.getAxisLeft().setDrawGridLines(false);
-        chart.getAxisLeft().setAxisLineColor(ContextCompat.getColor(mContext, R.color.white));
-        chart.getAxisLeft().setTextColor(ContextCompat.getColor(mContext, R.color.white));
-        chart.getXAxis().setAxisLineColor(ContextCompat.getColor(mContext, R.color.white));
-        chart.getXAxis().setTextColor(ContextCompat.getColor(mContext, R.color.white));
+        chart.getAxisLeft().setAxisLineColor(white);
+        chart.getAxisLeft().setTextColor(white);
+        chart.getXAxis().setAxisLineColor(white);
+        chart.getXAxis().setTextColor(white);
         chart.getXAxis().setDrawGridLines(false);
+        chart.setTouchEnabled(false);
         chart.setData(data);
 
         chart.getXAxis().setValueFormatter(new XAxisValueFormatter() {

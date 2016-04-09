@@ -117,7 +117,6 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
                 LineDataSet set = new LineDataSet(ydata.get(pollutant), pollutant);
                 set.setColor(Conversion.getPollutant(pollutant).getColor());
                 set.setCircleColor(Conversion.getPollutant(pollutant).getColor());
-                set.setDrawCubic(true);
                 set.setLineWidth(2);
                 mChartData.addDataSet(set);
             }
