@@ -105,6 +105,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private ImageView mFavoritesStar;
     private boolean mPOIIsFavorite = false;
     private Realm mRealm;
+    private boolean mMapPositioned = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -421,14 +422,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         setUpClusterer();
         try {
             positionMap();
-        } catch (IllegalStateException e) {
-            mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-                @Override
-                public void onMapLoaded() {
-                    positionMap();
-                }
-            });
-        }
+            mMapPositioned = true;
+        } catch (IllegalStateException ignored) {}
     }
 
 
@@ -466,12 +461,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        if (latLng == mPointOfInterest) return;
-        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(mRealm, latLng, Constants.Map.station_radius_meters);
-        mPullUpPager.setDataSource(affecting_stations);
-        mPollutantCardsFragment.setSourceStations(affecting_stations);
-        setActionBar(latLng);
-        setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
+//        if (latLng == mPointOfInterest) return;
+//        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(mRealm, latLng, Constants.Map.station_radius_meters);
+//        mPullUpPager.setDataSource(affecting_stations);
+//        mPollutantCardsFragment.setSourceStations(affecting_stations);
+//        setActionBar(latLng);
+//        setPointOfInterest(latLng, mMap.addMarker(new MarkerOptions().position(latLng)));
     }
 
     @Override
@@ -491,7 +486,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             addStationToMap(station);
         }
 
+        if (!mMapPositioned) {
+            positionMap();
+            mMapPositioned = true;
+        }
         mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
+        mRealm.refresh();
         mClusterManager.onCameraChange(cameraPosition);
 
         mCurrentZoom = mMap.getCameraPosition().zoom;

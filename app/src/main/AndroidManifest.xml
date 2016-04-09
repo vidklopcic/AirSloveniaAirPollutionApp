@@ -14,11 +14,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
-        android:name="com.orm.SugarApp"
+        android:theme="@style/AppTheme"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name">
         <meta-data
             android:name="DATABASE"
             android:value="cache.db" />
@@ -35,9 +34,11 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCZOr59bhIHqcHJXt8XnnRVJfNlxFvsCDI" />
+        <!--android:value="AIzaSyCOxvkWhpiW8JQR36209EbdSJSWw4TMXrk" />-->
 
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,6 +53,7 @@
 
         <activity
             android:name=".MapsActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_maps" >
         </activity>
     </application>

@@ -9,9 +9,8 @@ android {
         applicationId "com.citisense.vidklopcic.citisense"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
-        multiDexEnabled true
+        versionCode 2
+        versionName "1.1"
     }
     buildTypes {
         release {
@@ -32,7 +31,7 @@ dependencies {
     repositories {
         mavenCentral()
     }
-    compile 'com.android.support:appcompat-v7:24.0.0-alpha1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.jeremyfeinstein.slidingmenu:library:1.3@aar'
     compile 'com.github.satyan:sugar:1.4'
     compile 'com.sothree.slidinguppanel:library:3.3.0'

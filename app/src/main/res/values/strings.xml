@@ -32,6 +32,31 @@
     <string name="PM10">Particulate matter 10um</string>
     <string name="O3">Ozone</string>
     <string name="NO2">Nitrogen oxides</string>
+    <string name="co_description">Carbon monoxide and black carbon arise at incomplete combustion. Carbon monoxide is a colorless and odorless gas that can cause serious health issues and even death. It binds with hemoglobin more easily than oxygen, therefore vital organs, like brain and hearth do not get enough of oxygen. Black carbon represent from 5 to 20 % of particulate matter (PM10). Main sources of pollution with black carbon are traffic and burning of biomass. In some regions around the Alps, burning of wood can generally be bigger environmental problem then traffic. In the atmosphere, black carbon absorbs sun light.</string>
+    <string name="no_description">Nitrogen dioxide and other compounds of nitrogen and oxygen often referred to as NOx are group of very reactive gasses and serious air pollutants. Main sources of pollution with nitrogen dioxide are traffic, thermoelectric plants and district heating plants or oil-fired furnaces with high temperatures. Nitrogen oxides have also some negative effects in stratosphere, like expanding the ozone hole, but these processes are not happening directly in our environment. (EPA, 2012)</string>
+    <string name="o3_description">Ozone is a pail blue gas with chemical formula O3, which is usually located in the stratosphere where protects life on earth from dangerous UV radiation. But, although ozone is very important, if not crucial for life on earth to exists, can, in lower layers of the atmosphere, be dangerous for human health. It mainly effect lungs and can cause health issues like chest pain, heavy breathing, and wounds on lungs and can worsen conditions like bronchitis or lung cancer. Kids are especially prone to poisoning with ozone, because they have smaller and sensitive lungs.</string>
+    <string name="particulate_mater_description">Particulate or particulate matter (PM) is a microscopic solid or liquid matter, usually invisible to the naked eye. It can originate from various man-made and natural sources. Based on it their size, we divide it in to two major groups: bigger particles (PM10), which have about 10 µm in diameter and smaller particles (PM2,5), which have about 2,5 µm in diameter. But size is not the only difference between this two groups; the bigger particulate, PM10, is usually found in the smoke, dirt and dust from factories, on farms and roads, in mold, pollen and spores while the major sources of pollution with the smaller particulate, PM2,5, are the Volatile organic compounds and toxic heavy metals which are very dangerous for human organism. The most dangerous compound of PM10 is the black carbon, which can represent from 5 – 40% of all the particles.</string>
+    <string name="so2_description">Sulfur dioxide arises, when burning material which contains sulfur. It is a colorless gas, with distinctive scent. Main sources of pollution with sulfur dioxide are various industrial processes and fuel combustion. Although some of SO2 is released at volcano eruptions or bigger fires, man-made sources still produce majority of sulfur dioxide in the troposphere. Sulfur dioxide mainly causes acid rain which have many negative effects on plants and water organisms, because it can drastically lower water’s pH. Usually it is not dangerous for human health, but it also harms infrastructure and statues.</string>
+    <string name="aqi_description">The AQI is an index for reporting daily air quality. It tells you how clean or polluted your air is, and what associated health effects might be a concern for you. The AQI focuses on health effects you may experience within a few hours or days after breathing polluted air.</string>
+    <string name="information">Information</string>
+    <string name="aqi_long_name">Air Quality Index</string>
+    <string name="scale">AQI scale:</string>
+    <string name="co_name">Carbon monoxide</string>
+    <string name="o3_name">Ozone</string>
+    <string name="no_name">Nitrogen oxides</string>
+    <string name="pm_name">Particulate matter</string>
+    <string name="aqi_good">good</string>
+    <string name="aqi_unhealthy_sensitive">unhealthy for sensitive</string>
+    <string name="aqi_moderate">moderate</string>
+    <string name="unhealthy_sensitive">un. for sensitive</string>
+    <string name="aqi_unhealthy">unhealthy</string>
+    <string name="very_unhealthy">very un.</string>
+    <string name="aqi_hazardous">hazardous</string>
+    <string name="aqi_val_good">50</string>
+    <string name="aqi_val_moderate">100</string>
+    <string name="aqi_val_unhealthy_sensitive">150</string>
+    <string name="aqi_val_unhealthy">200</string>
+    <string name="aqi_val_very_unhealthy">300</string>
 
     <item type="id" name="pollutant_tag"/>
     <item type="id" name="aqi_tag"/>

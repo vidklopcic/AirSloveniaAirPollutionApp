@@ -6,7 +6,8 @@
     android:gravity="bottom"
     android:background="#fff"
     sothree:umanoPanelHeight="90dp"
-    sothree:umanoShadowHeight="2dp">
+    sothree:umanoShadowHeight="2dp"
+    sothree:umanoInitialState="hidden">
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"
@@ -75,13 +76,12 @@
             android:onClick="startMaps"
             android:src="@drawable/maps"/>
         <ImageView
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:onClick="openSlidingMenu"
-            android:layout_margin="4dp"
-            android:src="@drawable/menu"/>
+            android:src="@drawable/ic_information"/>
         <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment"
             android:id="@+id/overview_fragment"
             android:layout_width="match_parent"

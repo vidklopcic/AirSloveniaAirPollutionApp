@@ -24,6 +24,7 @@ public abstract class UI {
         menu.setMode(com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.LEFT);
         menu.setTouchModeAbove(com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.TOUCHMODE_MARGIN);
         menu.setShadowWidthRes(R.dimen.shadow_width);
+        menu.setBehindWidth(size.x);
         menu.setShadowDrawable(R.drawable.shadow);
         menu.setFadeDegree(0.35f);
         menu.attachToActivity(context, com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.SLIDING_CONTENT);

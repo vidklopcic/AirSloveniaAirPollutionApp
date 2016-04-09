@@ -40,14 +40,13 @@ public class SavedState extends RealmObject{
 
     public static SavedState getSavedState(Realm r) {
         RealmResults<SavedState> iterator = r.allObjects(SavedState.class);;
-        if (iterator.size() != 0) {
-            return iterator.get(0);
-        } else {
+        if (iterator.size() == 0) {
             r.beginTransaction();
-            SavedState state = r.createObject(SavedState.class);
+            r.createObject(SavedState.class);
             r.commitTransaction();
-            return state;
         }
+        iterator = r.allObjects(SavedState.class);;
+        return iterator.get(0);
     }
 
     public LatLngBounds getLastViewport() {

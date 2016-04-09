@@ -31,6 +31,7 @@ public class OverviewGraph extends Fragment {
     private RelativeLayout mAqiChartContainer;
     private LinearLayout mAQIBarsContainer;
     private HashMap<String, ArrayList<LinearLayout>> mAQIBars;
+    private HashMap<String, Integer> mAQIBarsVals;
     private Context mContext;
     private LayoutInflater mInflater;
     private int mChartRange = Constants.AQI.BAR_OFFSET;
@@ -50,6 +51,7 @@ public class OverviewGraph extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAQIBars = new HashMap<>();
+        mAQIBarsVals = new HashMap<>();
     }
 
     @Override
@@ -102,6 +104,7 @@ public class OverviewGraph extends Fragment {
         bar_label.add(bar);
         bar_label.add(label);
         mAQIBars.put(label_text, bar_label);
+        mAQIBarsVals.put(label_text, aqi);
     }
 
     public void removeBar(String key) {
@@ -111,8 +114,11 @@ public class OverviewGraph extends Fragment {
     }
 
     public void setBarAqi(String key, Integer aqi) {
-        LinearLayout bar = mAQIBars.get(key).get(0);
+        if (mAQIBarsVals.get(key).equals(aqi))
+            return;
+        mAQIBarsVals.put(key, aqi);
         LinearLayout label = mAQIBars.get(key).get(1);
+        LinearLayout bar = mAQIBars.get(key).get(0);
         View bar_content = bar.findViewById(R.id.aqi_bar_content);
         bar.startAnimation(new AqiBarAnimation(this, label, bar_content, getAqiFromLabel(label), aqi));
     }
