@@ -22,13 +22,10 @@ import com.github.mikephil.charting.formatter.XAxisValueFormatter;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TimeZone;
 
 import io.realm.Realm;
 
@@ -82,12 +79,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         mChart.getXAxis().setValueFormatter(new XAxisValueFormatter() {
             @Override
             public String getXValue(String original, int index, ViewPortHandler viewPortHandler) {
-                Calendar cal = Calendar.getInstance();
-                if (mStartDate == null) return "";
-                cal.setTimeInMillis(mStartDate + TICK_INTERVAL_MILLIS * index);
-                cal.setTimeZone(TimeZone.getDefault());
-                return String.valueOf(Conversion.zfill(cal.get(Calendar.HOUR_OF_DAY), 2)) + ":"
-                        + String.valueOf(Conversion.zfill(cal.get(Calendar.MINUTE), 2));
+                return PollutantsChart.xAxisValueFormatter(index, mStartDate, TICK_INTERVAL_MILLIS);
             }
         });
         return view;
@@ -107,7 +99,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     }
 
     @Override
-    public void onDataRetrieved(Long limit) {
+    public void onDataRetrieved(List<String> station_ids, Long limit) {
         mLockUpdate = false;
         mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS, new CitiSenseStation.MeasurementsTransactionListener() {
             @Override
@@ -120,8 +112,8 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     private void setYData(HashMap<String, ArrayList<Entry>> ydata) {
         mChartData.clearValues();
         for (String pollutant : Constants.AQI.supported_pollutants) {
-            if (ydata.keySet().contains(pollutant)) {
-                Collections.sort(ydata.get(pollutant), new EntryComparator());
+            if (ydata.containsKey(pollutant)) {
+                Collections.sort(ydata.get(pollutant), new PollutantsChart.EntryComparator());
                 LineDataSet set = new LineDataSet(ydata.get(pollutant), pollutant);
                 set.setColor(Conversion.getPollutant(pollutant).getColor());
                 set.setCircleColor(Conversion.getPollutant(pollutant).getColor());
@@ -132,13 +124,5 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         }
         mChart.notifyDataSetChanged();
         mChart.invalidate();
-    }
-
-    private class EntryComparator implements Comparator<Entry> {
-
-        @Override
-        public int compare(Entry lhs, Entry rhs) {
-            return Integer.valueOf(lhs.getXIndex()).compareTo(rhs.getXIndex());
-        }
     }
 }

@@ -1,4 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.OverviewBarChart"
@@ -8,13 +8,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/aqi_overview_chart_bg">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:layout_margin="5dp"
-            android:text="@string/measurements_from_past_hour"/>
         <LinearLayout android:id="@+id/chart_background"
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -120,4 +113,12 @@
         </LinearLayout>
     </RelativeLayout>
 
-</FrameLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_margin="5dp"
+        android:text="@string/measurements_from_past_hour"/>
+</RelativeLayout>

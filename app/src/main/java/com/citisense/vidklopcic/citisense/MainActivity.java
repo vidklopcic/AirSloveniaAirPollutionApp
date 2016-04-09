@@ -49,7 +49,11 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        RealmConfiguration config = new RealmConfiguration.Builder(this).build();
+        RealmConfiguration config = new RealmConfiguration.Builder(this)
+                .name("citisense_cache")
+                .schemaVersion(1)
+                .deleteRealmIfMigrationNeeded()
+                .build();
         Realm.setDefaultConfiguration(config);
         mRealm = Realm.getDefaultInstance();
         setContentView(R.layout.activity_main);
@@ -57,7 +61,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
-        mDataAPI = new DataAPI();
+        mDataAPI = new DataAPI(this);
 
         mSubtitleContainer = (LinearLayout) findViewById(R.id.actionbar_aqi_subtitle_container);
         mCityText = (TextView) findViewById(R.id.actionbar_title_text);

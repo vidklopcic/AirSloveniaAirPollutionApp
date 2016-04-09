@@ -1,0 +1,52 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.MapCards">
+    <LinearLayout
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="@dimen/map_pollutants_pull_up_height">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/card_pollutants_title_temperature"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:layout_height="match_parent"
+                android:background="@color/opaque_red"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="15sp"/>
+            <TextView
+                android:id="@+id/card_polltants_title_aqi"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:textColor="@color/white"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="15sp"/>
+            <TextView
+                android:id="@+id/card_polltants_title_humidity"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:layout_height="match_parent"
+                android:background="@color/dark_blue"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="15sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@+id/pollutants_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:background="@color/light_gray_bg"
+            android:padding="3dp">
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

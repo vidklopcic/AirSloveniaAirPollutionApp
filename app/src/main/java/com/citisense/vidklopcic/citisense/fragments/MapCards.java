@@ -43,7 +43,7 @@ public class MapCards extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_pollutant_cards, container, false);
+        View view = inflater.inflate(R.layout.fragment_map_aqi_cards, container, false);
         mContext = view.getContext();
         mInflater = inflater;
         mTemperatureText = (TextView) view.findViewById(R.id.card_pollutants_title_temperature);
@@ -106,11 +106,11 @@ public class MapCards extends Fragment {
 
         HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
         HashMap<String, Integer> pollutants = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
-        if (other.keySet().contains(Constants.CitiSenseStation.TEMPERATURE_KEY))
+        if (other.containsKey(Constants.CitiSenseStation.TEMPERATURE_KEY))
             mTemperatureText.setText(other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT);
         else
             setNoTemperature();
-        if (other.keySet().contains(Constants.CitiSenseStation.HUMIDITY_KEY))
+        if (other.containsKey(Constants.CitiSenseStation.HUMIDITY_KEY))
             mHumidityText.setText(other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT);
         else
             setNoHumidity();
@@ -120,11 +120,11 @@ public class MapCards extends Fragment {
     }
 
     public void addPollutant(String name, Integer aqi) {
-        if (mPollutantCards.keySet().contains(name)) {
+        if (mPollutantCards.containsKey(name)) {
             setCard(mPollutantCards.get(name), aqi);
             return;
         }
-        LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(R.layout.fragment_aqi_cards_pollutant_layout, mPollutantsContainer, false);
+        LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(R.layout.fragment_map_aqi_cards_card_layout, mPollutantsContainer, false);
         ((TextView) pollutant_card.findViewById(R.id.pollutant_name)).setText(name);
         setCard(pollutant_card, aqi);
         mPollutantCards.put(name, pollutant_card);

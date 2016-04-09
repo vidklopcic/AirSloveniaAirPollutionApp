@@ -127,7 +127,7 @@ public class FABPollutants {
     }
 
     private void addPollutant(String pollutant, Integer aqi) {
-        if (mButtons.keySet().contains(pollutant)) return;
+        if (mButtons.containsKey(pollutant)) return;
         Integer icon = getDrawableForPollutant(pollutant);
         if (icon == null) return;
         FloatingActionButton fab = new FloatingActionButton(mContext);

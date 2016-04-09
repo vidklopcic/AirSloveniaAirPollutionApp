@@ -72,4 +72,5 @@
     <string name="location_disabled">Location is disabled</string>
     <string name="fetching_data">Fetching data</string>
     <string name="measurements_from_past_hour">measurements from past hour</string>
+    <string name="measurements_from_past_6_hours">measurements from past 6 hours</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.citisense.vidklopcic.citisense.data;
 
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -13,7 +14,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +28,7 @@ public class DataAPI {
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
     private UpdateTask mUpdateTask;
+    private Activity mContext;
     public interface DataUpdateListener {
         void onDataReady();
         void onDataUpdate();
@@ -35,10 +36,11 @@ public class DataAPI {
     }
 
     public interface DataRangeListener {
-        void onDataRetrieved(Long limit);
+        void onDataRetrieved(List<String> station_ids, Long limit);
     }
 
-    public DataAPI() {
+    public DataAPI(Activity context) {
+        mContext = context;
         getConfig();
         mUpdateTask = new UpdateTask();
     }
@@ -133,66 +135,83 @@ public class DataAPI {
 
         protected void onPostExecute(Void result) {
             Log.d(LOG_ID, "config loaded");
-            mUpdateTask.execute();
+            Thread t = new Thread(mUpdateTask);
+            t.setDaemon(true);
+            t.start();
         }
     }
 
-    class UpdateTask extends AsyncTask<Void, CitiSenseStation, Boolean> {
+    class UpdateTask implements Runnable {
         List<String> mActiveStationsIds;
-        public UpdateTask() {
-            mActiveStationsIds = new ArrayList<>();
-        }
 
         @Override
-        protected void onPreExecute() {
-            mActiveStationsIds = CitiSenseStation.stationsToIdList(mActiveStations);
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
+        public void run() {
             Realm realm = Realm.getDefaultInstance();
-            Boolean updated = false;
             try {
-                Thread.sleep(Constants.MILLIS);
-            } catch (InterruptedException ignored) {}
-            for (String station_id : mActiveStationsIds) {
-                CitiSenseStation station = CitiSenseStation.idToStation(realm, station_id);
-                if (new Date().getTime() - station.getLastUpdateTime()
-                        > Constants.CitiSenseStation.update_interval || mForceUpdate) {
-                    updated = true;
+                while (true) {
+                    updateStations();
+                    Boolean updated = false;
                     try {
-                        String last_measurement = Network.GET(Constants.CitiSenseStation.last_measurement_url
-                                + station.getStationId());
-                        station.setLastMeasurement(realm, last_measurement);
-                    } catch (IOException e) {
-                        Log.d(LOG_ID, "couldn't get last measurement for " + station.getStationId());
-                    } catch (JSONException e) {
-                        Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
+                        Thread.sleep(Constants.MILLIS);
+                    } catch (InterruptedException ignored) {}
+                    for (String station_id : mActiveStationsIds) {
+                        CitiSenseStation station = CitiSenseStation.idToStation(realm, station_id);
+                        if (new Date().getTime() - station.getLastUpdateTime()
+                                > Constants.CitiSenseStation.update_interval || mForceUpdate) {
+                            updated = true;
+                            try {
+                                String last_measurement = Network.GET(Constants.CitiSenseStation.last_measurement_url
+                                        + station.getStationId());
+                                station.setLastMeasurement(realm, last_measurement);
+                            } catch (IOException e) {
+                                Log.d(LOG_ID, "couldn't get last measurement for " + station.getStationId());
+                            } catch (JSONException e) {
+                                Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
+                            }
+                            notifyStationUpdated(station);
+                        }
                     }
-                    publishProgress(station);
+                    mForceUpdate = false;
+                    notifyCycleEnded(updated);
                 }
+            } finally {
+                realm.close();
             }
-            mForceUpdate = false;
-            realm.close();
-            return updated;
         }
 
-        @Override
-        protected void onProgressUpdate(CitiSenseStation... stations) {
-            if (mListener != null) mListener.onStationUpdate(stations[0]);
-            Log.d(LOG_ID, "station updated");
+        private void updateStations() {
+            mContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mActiveStationsIds = CitiSenseStation.stationsToIdList(mActiveStations);
+                }
+            });
         }
 
-        protected void onPostExecute(Boolean was_updated) {
-            if (mListener != null && was_updated) {
-                Log.d(LOG_ID, "data updated");
-                mListener.onDataUpdate();
-            }
-            new UpdateTask().execute();
-            if (mListener != null && mFirstRun) {
-                mListener.onDataReady();
-                mFirstRun = false;
-            }
+        private void notifyStationUpdated(final CitiSenseStation station) {
+            mContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mListener != null) mListener.onStationUpdate(station);
+                    Log.d(LOG_ID, "station updated");
+                }
+            });
+        }
+
+        private void notifyCycleEnded(final Boolean was_updated) {
+            mContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mListener != null && was_updated) {
+                        Log.d(LOG_ID, "data updated");
+                        mListener.onDataUpdate();
+                    }
+                    if (mListener != null && mFirstRun) {
+                        mListener.onDataReady();
+                        mFirstRun = false;
+                    }
+                }
+            });
         }
     }
 
@@ -223,9 +242,9 @@ public class DataAPI {
                 } else if (limit+Constants.CitiSenseStation.update_interval < station.getOldestStoredMeasurementTime()) {
                     start = limit;
                     end = station.getOldestStoredMeasurementTime();
-                } else if (limit-Constants.CitiSenseStation.update_interval > station.getLastRangeUpdateTime()) {
+                } else if (new Date().getTime()-Constants.CitiSenseStation.update_interval > station.getLastRangeUpdateTime()) {
                     start = station.getLastRangeUpdateTime();
-                    end = limit;
+                    end = new Date().getTime();
                 }
 
                 if (start != 0 && end != 0) {
@@ -240,6 +259,8 @@ public class DataAPI {
                     try {
                         JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
                         station.setMeasurements(realm, measurements);
+                        if (station.getLastRangeUpdateTime() == null || end > station.getLastRangeUpdateTime())
+                            station.setLastRangeUpdateTime(realm, end);
                     } catch (IOException | JSONException ignored) {
                     }
                 }
@@ -248,7 +269,7 @@ public class DataAPI {
         }
 
         protected void onPostExecute(Void params) {
-            mListener.onDataRetrieved(limit);
+            mListener.onDataRetrieved(mStationIds, limit);
         }
     }
 }

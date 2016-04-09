@@ -87,8 +87,10 @@ public class CitiSenseStation extends RealmObject {
         return last_range_update_time;
     }
 
-    public void setLastRangeUpdateTime(Long time) {
+    public void setLastRangeUpdateTime(Realm r, Long time) {
+        r.beginTransaction();
         last_range_update_time = time;
+        r.commitTransaction();
     }
 
     public void setOldestStoredMeasurement(Long time) {
@@ -353,7 +355,6 @@ public class CitiSenseStation extends RealmObject {
 
     public void setMeasurements(Realm r, JSONArray measurements) {
         r.beginTransaction();
-        setLastRangeUpdateTime(new Date().getTime());
         Long oldest_in_list = null;
         for (int i=0;i<measurements.length();i++) {
             try {

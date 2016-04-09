@@ -113,7 +113,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mRealm = Realm.getDefaultInstance();
         mStationsOnMap = new HashMap<>();
         mSavedState = SavedState.getSavedState(mRealm);
-        mDataApi = new DataAPI();
+        mDataApi = new DataAPI(this);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         mMenu = UI.getSlidingMenu(getWindowManager(), this);

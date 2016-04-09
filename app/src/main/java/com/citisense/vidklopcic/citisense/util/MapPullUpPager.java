@@ -62,7 +62,7 @@ public class MapPullUpPager {
         update();
     }
 
-    public void setCardsFragment() {
+    public void setPollutantsFragment() {
         if (mCurrentFragmentType == CurrentFragment.CARDS) return;
         mButtons.setButton(mButtons.mButtonCardsContainer);
         if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
@@ -167,7 +167,7 @@ public class MapPullUpPager {
                 @Override
                 public void onClick(View v) {
                     if (mAqiPollutantsFragment.isRemoving()) return;
-                    setCardsFragment();
+                    setPollutantsFragment();
                 }
             });
 

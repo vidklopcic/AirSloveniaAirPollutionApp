@@ -1,14 +1,13 @@
 package com.citisense.vidklopcic.citisense.fragments;
 
-import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -164,7 +163,7 @@ public class OverviewBarChart extends Fragment {
         if (mAQIBarsContainerHeight == null) return;
         Float height_increase = Constants.AQI.SUM / (max_aqi+Constants.AQI.BAR_OFFSET);    // max_axi+x.. x = margin
         Integer top_margin = (int) -(height_increase * mAQIBarsContainerHeight - mAQIBarsContainerHeight);
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mAqiChartContainer.getLayoutParams();
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mAqiChartContainer.getLayoutParams();
         params.setMargins(0, top_margin, 0, 0);
         mAqiChartContainer.setLayoutParams(params);
     }
@@ -189,10 +188,10 @@ public class OverviewBarChart extends Fragment {
         if (averages == null) return null;
         List<String> bar_pollutants = new ArrayList<>(mAQIBars.keySet());
         for (String parameter : bar_pollutants)
-            if (!averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).keySet().contains(parameter)) removeBar(parameter);
+            if (!averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).containsKey(parameter)) removeBar(parameter);
         HashMap<String, Integer> aqi_averages = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
         for (String pollutant_name : aqi_averages.keySet()) {
-            if (mAQIBars.keySet().contains(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
+            if (mAQIBars.containsKey(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
             else addBar(aqi_averages.get(pollutant_name), pollutant_name);
         }
         return averages;

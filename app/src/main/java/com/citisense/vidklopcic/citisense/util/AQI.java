@@ -1,19 +1,16 @@
 package com.citisense.vidklopcic.citisense.util;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.orm.dsl.NotNull;
 
 /**
  * Various methods for calculating aqis dependent on AQI scale
  */
 public abstract class AQI {
-    public static int getColor(int aqi, Activity context) {
+    public static int getColor(int aqi, Context context) {
         return ContextCompat.getColor(context, getColor(aqi));
     }
 
