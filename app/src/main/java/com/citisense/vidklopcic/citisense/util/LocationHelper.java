@@ -2,7 +2,10 @@ package com.citisense.vidklopcic.citisense.util;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -11,10 +14,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.citisense.vidklopcic.citisense.R;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
@@ -30,6 +35,8 @@ public class LocationHelper implements LocationListener {
     LocationManager mLocationManager;
     Location mBestLocation;
     LocationHelperListener mListener;
+    boolean mLocationIsEnabled = false;
+    boolean mDialogWasShown = false;
 
     public interface LocationHelperListener {
         void onLocationChanged(Location location);
@@ -40,10 +47,9 @@ public class LocationHelper implements LocationListener {
         void onResult(Address address);
     }
 
-    public LocationHelper(Activity context) {
+    public LocationHelper(final Activity context) {
         mContext = context;
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        startLocationReading();
     }
 
     public Location getLocation() {
@@ -68,15 +74,60 @@ public class LocationHelper implements LocationListener {
         }
         return true;
     }
+
+    public boolean isLocationEnabled() {
+        return mLocationIsEnabled;
+    }
+
+
+    public boolean locationIsTurnedOn() {
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+        try {
+            gps_enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {}
+        try {
+            network_enabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {}
+        return gps_enabled && network_enabled;
+    }
+
+    public void askToTurnOnLocation() {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
+        dialog.setMessage(mContext.getResources().getString(R.string.location_not_available_text));
+        dialog.setPositiveButton(mContext.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                mContext.startActivity(myIntent);
+            }
+        });
+        dialog.setNegativeButton(mContext.getString(R.string.Cancel), new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+            }
+        });
+        dialog.show();
+    }
+
     public void startLocationReading() {
-        if (!hasPermission()) return;
-        mBestLocation = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        ArrayList<String> providers = new ArrayList<>(mLocationManager.getProviders(true));
-        if (providers.contains(LocationManager.GPS_PROVIDER)) {
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 100, this);
-        }
-        if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 100, this);
+        if (!hasPermission() || isLocationEnabled()) return;
+        if (!locationIsTurnedOn()) {
+            if (!mDialogWasShown)
+                askToTurnOnLocation();
+            mDialogWasShown = true;
+        } else {
+            mLocationIsEnabled = true;
+            mBestLocation = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            ArrayList<String> providers = new ArrayList<>(mLocationManager.getProviders(true));
+            if (providers.contains(LocationManager.GPS_PROVIDER)) {
+                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 100, this);
+            }
+            if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+                mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 100, this);
+            }
         }
     }
 
@@ -184,7 +235,6 @@ public class LocationHelper implements LocationListener {
         }
 
         protected void onPostExecute(String city) {
-            if (city == null) return;
             if (mListener != null && !city.isEmpty() && !mCity.equals(city)) {
                 mCity = city;
                 mListener.onCityChange(mCity);

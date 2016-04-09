@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class OverviewGraph extends Fragment {
+public class OverviewBarChart extends Fragment {
     public interface OnFragmentLoadedListener {
         void onLoaded();
     }
@@ -39,7 +39,7 @@ public class OverviewGraph extends Fragment {
     private List<CitiSenseStation> mStations;
     private OnFragmentLoadedListener mOnLoadedListener;
 
-    public OverviewGraph() {
+    public OverviewBarChart() {
         // Required empty public constructor
     }
 

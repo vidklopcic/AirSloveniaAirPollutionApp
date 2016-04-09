@@ -153,7 +153,7 @@ public class DataAPI {
             Realm realm = Realm.getDefaultInstance();
             Boolean updated = false;
             try {
-                Thread.sleep(Constants.MILLI);
+                Thread.sleep(Constants.MILLIS);
             } catch (InterruptedException ignored) {}
             for (String station_id : mActiveStationsIds) {
                 CitiSenseStation station = CitiSenseStation.idToStation(realm, station_id);

@@ -3,7 +3,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="@dimen/pollutant_overview_graph_card_height"
     android:layout_margin="5dp"
-    android:backgroundTint="@color/aqi_good"
     android:background="@drawable/card">
     <LinearLayout
         android:id="@+id/pollutant_graph_card_text_container"

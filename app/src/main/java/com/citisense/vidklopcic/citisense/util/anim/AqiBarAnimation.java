@@ -5,18 +5,18 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.LinearLayout;
-import com.citisense.vidklopcic.citisense.fragments.OverviewGraph;
+import com.citisense.vidklopcic.citisense.fragments.OverviewBarChart;
 
 public class AqiBarAnimation extends Animation {
     private static final long DURATION = 1000;
-    OverviewGraph mFragment;
+    OverviewBarChart mFragment;
     LinearLayout mLabel;
     View mBarContent;
     Integer start_aqi;
     Integer repeat_count;
     Integer add;
 
-    public AqiBarAnimation(OverviewGraph fragment, LinearLayout label, View bar_content, Integer aqi_start, Integer aqi_end) {
+    public AqiBarAnimation(OverviewBarChart fragment, LinearLayout label, View bar_content, Integer aqi_start, Integer aqi_end) {
         mFragment = fragment;
         mLabel = label;
         mBarContent = bar_content;

@@ -36,7 +36,7 @@ import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.FavoritePlace;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
-import com.citisense.vidklopcic.citisense.fragments.PollutantsAqiCardsFragment;
+import com.citisense.vidklopcic.citisense.fragments.MapCards;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.FABPollutants;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
@@ -92,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private DataAPI mDataApi;
     private Float mCurrentZoom;
     private SlidingUpPanelLayout mSlidingPane;
-    private PollutantsAqiCardsFragment mPollutantCardsFragment;
+    private MapCards mMapCardsFragment;
     private FABPollutants mFABPollutants;
     private String mPollutantFilter;
     private LinearLayout mActionBarContainer;
@@ -130,7 +130,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 }
         );
         mSlidingPane = (SlidingUpPanelLayout) findViewById(R.id.map_sliding_pane);
-        mPollutantCardsFragment = (PollutantsAqiCardsFragment)
+        mMapCardsFragment = (MapCards)
                 getFragmentManager().findFragmentById(R.id.map_pollutant_cards_fragment);
 
         mFABPollutants = new FABPollutants(this, (FloatingActionMenu) findViewById(R.id.fab_pollutants), this);
@@ -143,14 +143,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             @Override
             public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
                 if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
-                    mPollutantCardsFragment.hide();
+                    mMapCardsFragment.hide();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
                             ContextCompat.getColor(getContext(), R.color.maps_pullup_actionbar)));
                     mPullUpPager.setOverviewFragment();
                     mSlidingPane.setEnabled(false);
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
-                    mPollutantCardsFragment.show();
+                    mMapCardsFragment.show();
                     mPullUpPager.close();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
@@ -214,6 +214,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onSaveInstanceState(Bundle bundle) {
         // todo save instance state on activity destroy
+        removePointOfInterest();
+
         super.onSaveInstanceState(bundle);
     }
 
@@ -367,6 +369,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mDataApi.setDataUpdateListener(this);
         mLocation = new LocationHelper(this);
+        mLocation.startLocationReading();
         if (mLocation.hasPermission()) mMap.setMyLocationEnabled(true);
         mLocation.setLocationHelperListener(this);
     }
@@ -505,7 +508,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         if (mPointOfInterest == clusterStation.getPosition()) return false;
         setActionBar(clusterStation.getPosition());
         setPointOfInterest(clusterStation.getPosition());
-        mPollutantCardsFragment.setSourceStations(clusterStation.station);
+        mMapCardsFragment.setSourceStations(clusterStation.station);
         ArrayList<CitiSenseStation> list = new ArrayList<>();
         list.add(clusterStation.station);
         mPullUpPager.setDataSource(list);

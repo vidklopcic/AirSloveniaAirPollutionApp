@@ -403,12 +403,16 @@ public class CitiSenseStation extends RealmObject {
     }
 
     public static List<String> stationsToIdList(List<CitiSenseStation> stations) {
-        if (stations == null) return new ArrayList<>();
-        List<String> result = new ArrayList<>();
-        for (CitiSenseStation station : stations) {
-            result.add(station.getStationId());
+        try {
+            if (stations == null) return new ArrayList<>();
+            List<String> result = new ArrayList<>();
+            for (CitiSenseStation station : stations) {
+                result.add(station.getStationId());
+            }
+            return result;
+        } catch (IllegalStateException realm_instance_already_closed) {
+            return new ArrayList<>();
         }
-        return result;
     }
 
     public static List<CitiSenseStation> idListToStations(Realm realm, List<String> id_list) {
@@ -423,7 +427,6 @@ public class CitiSenseStation extends RealmObject {
     }
 
     public static CitiSenseStation idToStation(Realm realm, String id) {
-        CitiSenseStation station = realm.where(CitiSenseStation.class).equalTo("id", id).findFirst();
-        return station;
+        return realm.where(CitiSenseStation.class).equalTo("id", id).findFirst();
     }
 }

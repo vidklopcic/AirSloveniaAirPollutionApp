@@ -82,7 +82,7 @@
             android:layout_alignParentTop="true"
             android:onClick="openSlidingMenu"
             android:src="@drawable/ic_information"/>
-        <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment"
+        <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverview"
             android:id="@+id/overview_fragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -12,37 +12,37 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
-import com.citisense.vidklopcic.citisense.fragments.AqiCardsFragment;
-import com.citisense.vidklopcic.citisense.fragments.AqiGraphFragment;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
-import com.citisense.vidklopcic.citisense.fragments.MeasuringStationDataFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiPollutants;
+import com.citisense.vidklopcic.citisense.fragments.AqiGraph;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverview;
+import com.citisense.vidklopcic.citisense.fragments.PullUpBase;
 
 import java.util.ArrayList;
 
 public class MapPullUpPager {
     enum CurrentFragment { OVERVIEW, GRAPH, CARDS}
     CurrentFragment mCurrentFragmentType;
-    MeasuringStationDataFragment mCurrentFragment;
+    PullUpBase mCurrentFragment;
     FragmentActivity mContext;
-    AqiOverviewFragment mAqiOverviewFragment;
-    AqiCardsFragment mAqiCardsFragment;
-    AqiGraphFragment mAqiGraphFragment;
+    AqiOverview mAqiOverviewFragment;
+    AqiPollutants mAqiPollutantsFragment;
+    AqiGraph mAqiGraphFragment;
     android.support.v4.app.FragmentManager mFragmentManager;
     ArrayList<CitiSenseStation> mDataSource;
     Buttons mButtons;
 
     public MapPullUpPager(FragmentActivity context) {
         mContext = context;
-        mAqiOverviewFragment = new AqiOverviewFragment();
-        mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
+        mAqiOverviewFragment = new AqiOverview();
+        mAqiOverviewFragment.setOnLoadedListener(new AqiOverview.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 update();
             }
         });
 
-        mAqiCardsFragment = new AqiCardsFragment();
-        mAqiGraphFragment = new AqiGraphFragment();
+        mAqiPollutantsFragment = new AqiPollutants();
+        mAqiGraphFragment = new AqiGraph();
         mFragmentManager = mContext.getSupportFragmentManager();
         mButtons = new Buttons();
     }
@@ -51,7 +51,7 @@ public class MapPullUpPager {
         if (mCurrentFragmentType == CurrentFragment.OVERVIEW) return;
         mButtons.setButton(mButtons.mButtonOverviewContainer);
         if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
-            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
+            showFragment((PullUpBase) mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment, CurrentFragment.OVERVIEW.toString());
@@ -66,14 +66,14 @@ public class MapPullUpPager {
         if (mCurrentFragmentType == CurrentFragment.CARDS) return;
         mButtons.setButton(mButtons.mButtonCardsContainer);
         if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
-            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
+            showFragment((PullUpBase) mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
         else {
             FragmentTransaction transaction = hide();
-            transaction.add(R.id.maps_pullup_fragment_container, mAqiCardsFragment, CurrentFragment.CARDS.toString());
+            transaction.add(R.id.maps_pullup_fragment_container, mAqiPollutantsFragment, CurrentFragment.CARDS.toString());
             transaction.commit();
         }
         mCurrentFragmentType = CurrentFragment.CARDS;
-        mCurrentFragment = mAqiCardsFragment;
+        mCurrentFragment = mAqiPollutantsFragment;
         update();
     }
 
@@ -81,7 +81,7 @@ public class MapPullUpPager {
         if (mCurrentFragmentType == CurrentFragment.GRAPH) return;
         mButtons.setButton(mButtons.mButtonGraphContainer);
         if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
-            showFragment((MeasuringStationDataFragment) mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
+            showFragment((PullUpBase) mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment, CurrentFragment.GRAPH.toString());
@@ -92,7 +92,7 @@ public class MapPullUpPager {
         update();
     }
 
-    public void showFragment(MeasuringStationDataFragment fragment) {
+    public void showFragment(PullUpBase fragment) {
         FragmentTransaction transaction = hide();
         transaction.show((Fragment) fragment);
         transaction.commit();
@@ -166,7 +166,7 @@ public class MapPullUpPager {
             mButtonCardsContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mAqiCardsFragment.isRemoving()) return;
+                    if (mAqiPollutantsFragment.isRemoving()) return;
                     setCardsFragment();
                 }
             });

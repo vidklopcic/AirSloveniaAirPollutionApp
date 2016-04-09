@@ -13,9 +13,9 @@ import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import java.util.ArrayList;
 
 
-public class AqiCardsFragment extends Fragment implements MeasuringStationDataFragment {
-    private static final int DATA_LEN_MILLIS = 6 * Constants.MINUTES * Constants.SECONDS * Constants.MILLI;
-    public AqiCardsFragment() {
+public class AqiPollutants extends Fragment implements PullUpBase {
+    private static final int DATA_LEN_MILLIS = 6 * Constants.MINUTES * Constants.SECONDS * Constants.MILLIS;
+    public AqiPollutants() {
         // Required empty public constructor
     }
 

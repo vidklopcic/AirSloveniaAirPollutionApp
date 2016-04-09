@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class Constants {
-    public static final int MILLI = 1000;
+    public static final int MILLIS = 1000;
     public static final Integer SECONDS = 60;
     public static final Integer MINUTES = 60;
     public static final Integer HOURS = 24;
@@ -47,7 +47,7 @@ public abstract class Constants {
         public static final String measurement_range_url_start = "{start}";
         public static final String measurement_range_url_end = "{end}";
         public static final String measurement_range_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/observationfinishtime/between?sensorid={id}&from={start}&to={end}";
-        public static final int update_interval = 900 * MILLI;
+        public static final int update_interval = 900 * MILLIS;
         public static final String CO_KEY = "CO";
         public static final String NO2_KEY = "NO2";
         public static final String PM2_5_KEY = "PM2.5";

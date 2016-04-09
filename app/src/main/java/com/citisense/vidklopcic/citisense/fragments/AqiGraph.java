@@ -12,7 +12,9 @@ import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.StationMeasurement;
 import com.citisense.vidklopcic.citisense.util.Conversion;
+import com.citisense.vidklopcic.citisense.util.PollutantsChart;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -30,15 +32,11 @@ import java.util.TimeZone;
 
 import io.realm.Realm;
 
-public class AqiGraphFragment extends Fragment implements MeasuringStationDataFragment, DataAPI.DataRangeListener {
-    static final Integer MILLIS = 1000;
-    static final Integer SECONDS = 60;
-    static final Integer MINUTES = 60;
-    static final Integer HOURS = 24;
-    static final Integer TICK_INTERVAL_MINS = 15; // min
-    static final Integer TICK_INTERVAL_MILLIS = TICK_INTERVAL_MINS * SECONDS * MILLIS;
-    static final Integer DATA_SET_LEN_MINS = HOURS * 3 * MINUTES; // min
-    static final Integer DATA_SET_LEN_MILLIS = DATA_SET_LEN_MINS * SECONDS * MILLIS;
+public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeListener {
+    static final Integer TICK_INTERVAL_MINS = 15;
+    static final Integer TICK_INTERVAL_MILLIS = TICK_INTERVAL_MINS * Constants.SECONDS * Constants.MILLIS;
+    static final Integer DATA_SET_LEN_MINS = Constants.HOURS * 3 * Constants.MINUTES; // min
+    static final Integer DATA_SET_LEN_MILLIS = DATA_SET_LEN_MINS * Constants.SECONDS * Constants.MILLIS;
 
     boolean mLockUpdate = false;
     LineChart mChart;
@@ -48,7 +46,7 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
     ArrayList<CitiSenseStation> mStations;
     Realm mRealm;
 
-    public AqiGraphFragment() {
+    public AqiGraph() {
     }
 
     @Override
@@ -78,16 +76,18 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
 
         mChart = (LineChart) view.findViewById(R.id.aqi_line_comparison_chart);
         mChart.setData(mChartData);
+        mChart.moveViewTo(mXdata.size() - 1, 0, YAxis.AxisDependency.LEFT);
         mChart.setScaleMinima(3f, 1f);
+        mChart.getAxisRight().setEnabled(false);
         mChart.getXAxis().setValueFormatter(new XAxisValueFormatter() {
             @Override
             public String getXValue(String original, int index, ViewPortHandler viewPortHandler) {
                 Calendar cal = Calendar.getInstance();
                 if (mStartDate == null) return "";
-                cal.setTimeInMillis(mStartDate + TICK_INTERVAL_MINS * SECONDS * MILLIS * index);
+                cal.setTimeInMillis(mStartDate + TICK_INTERVAL_MILLIS * index);
                 cal.setTimeZone(TimeZone.getDefault());
-                return String.valueOf(cal.get(Calendar.HOUR_OF_DAY)) + ":"
-                        + String.valueOf(cal.get(Calendar.MINUTE));
+                return String.valueOf(Conversion.zfill(cal.get(Calendar.HOUR_OF_DAY), 2)) + ":"
+                        + String.valueOf(Conversion.zfill(cal.get(Calendar.MINUTE), 2));
             }
         });
         return view;
@@ -112,41 +112,26 @@ public class AqiGraphFragment extends Fragment implements MeasuringStationDataFr
         mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS, new CitiSenseStation.MeasurementsTransactionListener() {
             @Override
             public void onTransactionFinished(List<StationMeasurement> measurements) {
-                HashMap<String, ArrayList<Entry>> ydata = new HashMap<>();
-                for (StationMeasurement measurement : measurements) {
-                    if (!ydata.keySet().contains(measurement.getProperty()))
-                        ydata.put(measurement.getProperty(), new ArrayList<Entry>());
-
-                    if (Constants.AQI.supported_pollutants.contains(measurement.getProperty())) {
-                        Integer aqi_val = CitiSenseStation.getAqi(measurement.getProperty(), measurement.getValue());
-                        if (aqi_val != null) {
-                            ydata.get(measurement.getProperty()).add(new Entry(
-                                    aqi_val,
-                                    (int) (measurement.getMeasurementTime() - mStartDate) / TICK_INTERVAL_MILLIS));
-                        }
-                    } else {
-                        ydata.get(measurement.getProperty()).add(new Entry(
-                                measurement.getValue().floatValue(),
-                                (int) (measurement.getMeasurementTime() - mStartDate) / TICK_INTERVAL_MILLIS));
-                    }
-                }
-
-                mChartData.clearValues();
-                for (String pollutant : Constants.AQI.supported_pollutants) {
-                    if (ydata.keySet().contains(pollutant)) {
-                        Collections.sort(ydata.get(pollutant), new EntryComparator());
-                        LineDataSet set = new LineDataSet(ydata.get(pollutant), pollutant);
-                        set.setColor(Conversion.getPollutant(pollutant).getColor());
-                        set.setCircleColor(Conversion.getPollutant(pollutant).getColor());
-                        set.setDrawCubic(true);
-                        set.setLineWidth(2);
-                        mChartData.addDataSet(set);
-                    }
-                }
-                mChart.notifyDataSetChanged();
-                mChart.invalidate();
+                setYData(PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements));
             }
         });
+    }
+
+    private void setYData(HashMap<String, ArrayList<Entry>> ydata) {
+        mChartData.clearValues();
+        for (String pollutant : Constants.AQI.supported_pollutants) {
+            if (ydata.keySet().contains(pollutant)) {
+                Collections.sort(ydata.get(pollutant), new EntryComparator());
+                LineDataSet set = new LineDataSet(ydata.get(pollutant), pollutant);
+                set.setColor(Conversion.getPollutant(pollutant).getColor());
+                set.setCircleColor(Conversion.getPollutant(pollutant).getColor());
+                set.setDrawCubic(true);
+                set.setLineWidth(2);
+                mChartData.addDataSet(set);
+            }
+        }
+        mChart.notifyDataSetChanged();
+        mChart.invalidate();
     }
 
     private class EntryComparator implements Comparator<Entry> {

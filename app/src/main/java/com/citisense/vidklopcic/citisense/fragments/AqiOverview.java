@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class AqiOverviewFragment extends Fragment implements MeasuringStationDataFragment {
+public class AqiOverview extends Fragment implements PullUpBase {
     public interface OnFragmentLoadedListener {
         void onLoaded();
     }
@@ -27,10 +27,10 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
     OnFragmentLoadedListener mOnLoadedListener;
     Context mContext;
     UI.AQISummary mAQISummary;
-    OverviewGraph mGraphFragment;
+    OverviewBarChart mGraphFragment;
     FragmentManager mFragmentManager;
 
-    public AqiOverviewFragment() {
+    public AqiOverview() {
         // Required empty public constructor
     }
 
@@ -46,8 +46,8 @@ public class AqiOverviewFragment extends Fragment implements MeasuringStationDat
         View view = inflater.inflate(R.layout.fragment_overview, container, false);
 
         android.support.v4.app.FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        mGraphFragment = new OverviewGraph();
-        mGraphFragment.setOnLoadedListener(new OverviewGraph.OnFragmentLoadedListener() {
+        mGraphFragment = new OverviewBarChart();
+        mGraphFragment.setOnLoadedListener(new OverviewBarChart.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 if (mOnLoadedListener != null)

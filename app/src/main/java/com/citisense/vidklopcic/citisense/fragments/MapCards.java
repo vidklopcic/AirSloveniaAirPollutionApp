@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 
-public class PollutantsAqiCardsFragment extends Fragment {
+public class MapCards extends Fragment {
     HashMap<String, LinearLayout> mPollutantCards;
     ArrayList<CitiSenseStation> mStations;
     Context mContext;
@@ -29,7 +29,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
     LinearLayout mPollutantsContainer;
     View mLayout;
     String mNoData;
-    public PollutantsAqiCardsFragment() {
+    public MapCards() {
         mPollutantCards = new HashMap<>();
         mStations = new ArrayList<>();
     }

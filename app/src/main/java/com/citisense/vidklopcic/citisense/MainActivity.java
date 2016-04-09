@@ -15,7 +15,7 @@ import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
 import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
-import com.citisense.vidklopcic.citisense.fragments.AqiOverviewFragment;
+import com.citisense.vidklopcic.citisense.fragments.AqiOverview;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
@@ -30,7 +30,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
-    AqiOverviewFragment mAqiOverviewFragment;
+    AqiOverview mAqiOverviewFragment;
     private SlidingMenu mMenu;
     private LocationHelper mLocation;
     private List<CitiSenseStation> mStations;
@@ -53,7 +53,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         Realm.setDefaultConfiguration(config);
         mRealm = Realm.getDefaultInstance();
         setContentView(R.layout.activity_main);
-        mAqiOverviewFragment = (AqiOverviewFragment) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
+        mAqiOverviewFragment = (AqiOverview) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
         mLocation = new LocationHelper(this);
         mLocation.setLocationHelperListener(this);
@@ -72,25 +72,31 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             }
         });
 
-        mAqiOverviewFragment.setOnLoadedListener(new AqiOverviewFragment.OnFragmentLoadedListener() {
+        mAqiOverviewFragment.setOnLoadedListener(new AqiOverview.OnFragmentLoadedListener() {
             @Override
             public void onLoaded() {
                 mSavedState = SavedState.getSavedState(mRealm);
-                if (mSavedState.getCity() != null) {
+                if (mLocation.isLocationEnabled() && mSavedState.getCity() != null && mCity == null) {
                     onCityChange(mSavedState.getCity());
                 }
             }
         });
         mSwipeRefresh.post(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 mSwipeRefresh.setRefreshing(true);
             }
         });
     }
 
+    private void restoreSavedState() {
+        mSavedState = SavedState.getSavedState(mRealm);
+        if (mSavedState.getCity() != null) {
+            onCityChange(mSavedState.getCity());
+        }
+    }
     @Override
     public void onDestroy() {
-        mRealm.close();
         super.onDestroy();
     }
 
@@ -103,7 +109,25 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onResume() {
         super.onResume();
+        mLocation.startLocationReading();
+        if (!mLocation.isLocationEnabled()) {
+            setLocationDisabled();
+        } else if (mCity == null) {
+            restoreSavedState();
+            if (mCity == null) {
+                setWaitingForLocation();
+            }
+        }
         mDataAPI.setObservedStations(mStations);
+    }
+
+    private void setLocationDisabled() {
+        mCityText.setText(getString(R.string.location_disabled));
+        mSwipeRefresh.setRefreshing(false);
+    }
+
+    private void setWaitingForLocation() {
+        mCityText.setText(getString(R.string.waiting_for_location));
     }
 
     public void openSlidingMenu(View view) {
@@ -138,33 +162,40 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCityChange(String city) {
+        if (city == null)
+            return;
         mCity = city;
         if ((mSavedState.getCity() != null && !mSavedState.getCity().equals(city)) || mSavedState.getCity() == null) {
             mSavedState.setCity(mRealm, city);
         }
         mStations = mRealm.where(CitiSenseStation.class).equalTo("city", mCity).findAll();
+        if (mStations.size() == 0) {
+            setNoData();
+            return;
+        }
+        mDataAPI.setObservedStations(mStations);
         mDataAPI.setDataUpdateListener(this);
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
-        if (averages == null) return;
         updateDashboard(averages);
     }
 
 
     @Override
     public void onDataReady() {
-        mStations = mRealm.where(CitiSenseStation.class)
-                .equalTo("city", mCity).findAll();
+        mStations = mRealm.where(CitiSenseStation.class).equalTo("city", mCity).findAll();
         mDataAPI.setObservedStations(mStations);
+        if (mStations.size() == 0) {
+            setNoData();
+            return;
+        }
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
-        if (averages == null) return;
-        mSwipeRefresh.setRefreshing(false);
+        setFetchingData();
         updateDashboard(averages);
     }
 
     @Override
     public void onDataUpdate() {
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
-        if (averages == null) return;
         mSwipeRefresh.setRefreshing(false);
         updateDashboard(averages);
     }
@@ -174,19 +205,26 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
-        try {
-            HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
-            String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
-            String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
-            mSubtitleContainer.setVisibility(View.VISIBLE);
-            mCityText.setText(mCity);
-            mTemperatureText.setText(temp);
-            mHumidityText.setText(hum);
-            int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
-            mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values())));
-            mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
-        } catch (Exception ignored) {
-            mCityText.setText("No data for current location");
-        }
+        if (averages == null) return;
+        mSwipeRefresh.setRefreshing(false);
+        HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
+        String temp = other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
+        String hum = other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
+        mSubtitleContainer.setVisibility(View.VISIBLE);
+        mCityText.setText(mCity);
+        mTemperatureText.setText(temp);
+        mHumidityText.setText(hum);
+        int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
+        mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values())));
+        mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
+    }
+
+    private void setNoData() {
+        mCityText.setText(getString(R.string.no_data_available));
+        mSwipeRefresh.setRefreshing(false);
+    }
+
+    private void setFetchingData() {
+        mCityText.setText(getString(R.string.fetching_data));
     }
 }
