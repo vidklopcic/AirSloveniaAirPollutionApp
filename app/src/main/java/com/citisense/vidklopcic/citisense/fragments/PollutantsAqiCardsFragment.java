@@ -43,7 +43,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.pollutants_aqi_cards_overview_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_pollutant_cards, container, false);
         mContext = view.getContext();
         mInflater = inflater;
         mTemperatureText = (TextView) view.findViewById(R.id.card_pollutants_title_temperature);
@@ -124,7 +124,7 @@ public class PollutantsAqiCardsFragment extends Fragment {
             setCard(mPollutantCards.get(name), aqi);
             return;
         }
-        LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(R.layout.pollutant_aqi_card, mPollutantsContainer, false);
+        LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(R.layout.fragment_aqi_cards_pollutant_layout, mPollutantsContainer, false);
         ((TextView) pollutant_card.findViewById(R.id.pollutant_name)).setText(name);
         setCard(pollutant_card, aqi);
         mPollutantCards.put(name, pollutant_card);

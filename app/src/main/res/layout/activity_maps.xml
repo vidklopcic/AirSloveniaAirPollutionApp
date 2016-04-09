@@ -62,7 +62,7 @@
         android:id="@+id/map_pollutant_cards_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout="@layout/pollutants_aqi_cards_overview_fragment" />
+        tools:layout="@layout/fragment_pollutant_cards" />
     <RelativeLayout
         android:id="@+id/maps_pullup_fragment_container"
         android:layout_width="match_parent"

@@ -19,7 +19,6 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:text="PM2.5"
             android:minWidth="60dp"
             android:textStyle="bold"
             android:textColor="@color/white"/>
@@ -30,7 +29,6 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:gravity="center"
-            android:text="UNHEALTHY FOR SENSITIVE"
             android:minWidth="90dp"
             android:singleLine="true"
             android:textColor="@color/white" />
@@ -44,8 +42,7 @@
             android:textColor="@color/white"
             android:gravity="right"
             android:singleLine="true"
-            android:minWidth="60dp"
-            android:text="400"/>
+            android:minWidth="60dp"/>
     </LinearLayout>
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/pollutant_graph_card_chart"

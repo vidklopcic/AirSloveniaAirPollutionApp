@@ -58,7 +58,7 @@ public class OverviewGraph extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.aqi_overview_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_aqi_bar_chart, container, false);
         mAqiChartContainer = (RelativeLayout) view.findViewById(R.id.aqi_overview_chart_container);
         mAQIBarsContainer = (LinearLayout) view.findViewById(R.id.aqi_chart_bars_layout);
         mAQILabelsContainer = (LinearLayout) view.findViewById(R.id.aqi_overview_x_labels_container);
@@ -124,7 +124,7 @@ public class OverviewGraph extends Fragment {
     }
 
     private LinearLayout createXLabel(String name, Integer aqi) {
-        LinearLayout label = (LinearLayout) mInflater.inflate(R.layout.aqi_overview_fragment_label, mAQILabelsContainer, false);
+        LinearLayout label = (LinearLayout) mInflater.inflate(R.layout.fragment_aqi_bar_chart_label_layout, mAQILabelsContainer, false);
         TextView label_text = (TextView) label.findViewById(R.id.aqi_text);
         label_text.setText(name);
         TextView label_subtitle = (TextView) label.findViewById(R.id.aqi_subtitle);
@@ -133,7 +133,7 @@ public class OverviewGraph extends Fragment {
     }
 
     private LinearLayout createBar(int aqi) {
-        LinearLayout bar = (LinearLayout) mInflater.inflate(R.layout.aqi_overview_fragment_bar, mAQIBarsContainer, false);
+        LinearLayout bar = (LinearLayout) mInflater.inflate(R.layout.fragment_aqi_bar_chart_bar_layout, mAQIBarsContainer, false);
         View bar_content = bar.findViewById(R.id.aqi_bar_content);
         setBarAqi(bar_content, (float) aqi);
         return bar;
