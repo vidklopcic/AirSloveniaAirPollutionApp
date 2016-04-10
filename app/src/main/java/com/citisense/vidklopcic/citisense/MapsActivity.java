@@ -212,11 +212,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle bundle) {
-        // todo save instance state on activity destroy
-        removePointOfInterest();
-
-        super.onSaveInstanceState(bundle);
+    protected void onRestoreInstanceState(Bundle bundle) {
+        super.onRestoreInstanceState(bundle);
     }
 
     private void removePointOfInterest() {
@@ -525,6 +522,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mClusterManager.clearItems();
         mClusterManager.cluster();
         mStationsOnMap.clear();
+        mPullUpPager.update();
         onCameraChange(mMap.getCameraPosition());
     }
 

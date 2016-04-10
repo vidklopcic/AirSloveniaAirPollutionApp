@@ -20,6 +20,7 @@ import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.LocationHelper;
 import com.citisense.vidklopcic.citisense.util.UI;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private TextView mAqiNameSubtitle;
     private SwipeRefreshLayout mSwipeRefresh;
     private Realm mRealm;
+    private SlidingUpPanelLayout mFavoritesSlidingMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                 mSwipeRefresh.setRefreshing(true);
             }
         });
+        mFavoritesSlidingMenu = (SlidingUpPanelLayout) findViewById(R.id.favorites_sliding_layout);
     }
 
     private void restoreSavedState() {
@@ -230,5 +233,12 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
     private void setFetchingData() {
         mCityText.setText(getString(R.string.fetching_data));
+    }
+
+    public void openFavorites(View view) {
+        if (mFavoritesSlidingMenu.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED)
+            mFavoritesSlidingMenu.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        if (mFavoritesSlidingMenu.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED)
+            mFavoritesSlidingMenu.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
     }
 }

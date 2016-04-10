@@ -8,6 +8,7 @@ import android.support.v4.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -49,6 +50,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private HashMap<String, LinearLayout> mPollutantCards;
     private HashMap<String, ArrayList<Entry>> mYData;
     private ArrayList<String> mXData;
+
     public AqiPollutants() {
         mXData = new ArrayList<>();
         for (int i=0;i<DATA_LEN_MINS;i+=TICK_INTERVAL_MINS) mXData.add("");
@@ -60,6 +62,11 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -107,6 +114,13 @@ public class AqiPollutants extends Fragment implements PullUpBase {
                                                     updatePollutant(pollutant, (int) m.get(m.size() - 1).getVal());
                                             }
                                         }
+                                        mContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                            @Override
+                                            public void onGlobalLayout() {
+                                                mContainer.forceLayout();
+                                                mContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                                            }
+                                        });
                                     }
                                 });
             }
