@@ -21,10 +21,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
 public class CitiSenseStation extends RealmObject {
@@ -45,11 +42,6 @@ public class CitiSenseStation extends RealmObject {
     Long last_update_time;
     String last_measurement;
     Long oldest_stored_measurement;
-
-    @Ignore
-    MeasurementsTransactionListener mMeasurementTransactionListener;
-    @Ignore
-    RealmResults<StationMeasurement> mMeasurementTransactionResults;
 
     public CitiSenseStation() {}
 
@@ -339,18 +331,11 @@ public class CitiSenseStation extends RealmObject {
                 new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
     }
 
-    public void getMeasurementsInRange(Realm realm, Long start, Long end, MeasurementsTransactionListener listener) {
-        mMeasurementTransactionListener = listener;
-        mMeasurementTransactionResults = realm.where(StationMeasurement.class)
+    public List<StationMeasurement> getMeasurementsInRange(Realm realm, Long start, Long end) {
+        return realm.where(StationMeasurement.class)
                 .equalTo("measuring_station.id", id)
                 .greaterThan("measurement_time", start)
-                .lessThan("measurement_time", end).findAllAsync();
-        mMeasurementTransactionResults.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                mMeasurementTransactionListener.onTransactionFinished(mMeasurementTransactionResults);
-            }
-        });
+                .lessThan("measurement_time", end).findAll();
     }
 
     public void setMeasurements(Realm r, JSONArray measurements) {

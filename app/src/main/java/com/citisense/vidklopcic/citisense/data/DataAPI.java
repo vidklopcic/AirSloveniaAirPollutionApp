@@ -257,10 +257,12 @@ public class DataAPI {
 
                     String id = station.getStationId();
                     try {
+                        Log.d("napaka", "downloading range; " + mUrl);
                         JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
                         station.setMeasurements(realm, measurements);
                         if (station.getLastRangeUpdateTime() == null || end > station.getLastRangeUpdateTime())
                             station.setLastRangeUpdateTime(realm, end);
+                        Log.d("napaka", "downloaded range");
                     } catch (IOException | JSONException ignored) {
                     }
                 }

@@ -5,10 +5,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -82,6 +82,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         mContext = view.getContext();
         mInflater = inflater;
         mContainer = (LinearLayout) view.findViewById(R.id.pollutant_cards_container);
+        Log.d("napaka", "1");
         return view;
     }
 
@@ -92,37 +93,29 @@ public class AqiPollutants extends Fragment implements PullUpBase {
 
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
+        Log.d("napaka", "2");
         if (stations == null || stations.size() != 1) return;
         mStartDate = new Date().getTime() - DATA_LEN_MILLIS;
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
             @Override
             public void onDataRetrieved(List<String> station_ids, Long limit) {
-                CitiSenseStation.idListToStations(mRealm, station_ids)
+                Log.d("napaka", station_ids.toString());
+                List<StationMeasurement> measurements = CitiSenseStation.idListToStations(mRealm, station_ids)
                         .get(0)
-                        .getMeasurementsInRange(
-                                mRealm, mStartDate,
-                                mStartDate + DATA_LEN_MILLIS,
-                                new CitiSenseStation.MeasurementsTransactionListener() {
-                                    @Override
-                                    public void onTransactionFinished(List<StationMeasurement> measurements) {
-                                        mYData = PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements);
-                                        for (String pollutant : Constants.AQI.supported_pollutants) {
-                                            if (mYData.containsKey(pollutant)) {
-                                                ArrayList<Entry> m = mYData.get(pollutant);
-                                                Collections.sort(m, new PollutantsChart.EntryComparator());
-                                                if (m.size() != 0)
-                                                    updatePollutant(pollutant, (int) m.get(m.size() - 1).getVal());
-                                            }
-                                        }
-                                        mContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                            @Override
-                                            public void onGlobalLayout() {
-                                                mContainer.forceLayout();
-                                                mContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                                            }
-                                        });
-                                    }
-                                });
+                        .getMeasurementsInRange(mRealm, mStartDate, mStartDate + DATA_LEN_MILLIS);
+
+                Log.d("napaka", "4");
+                mYData = PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements);
+                for (String pollutant : Constants.AQI.supported_pollutants) {
+                    if (mYData.containsKey(pollutant)) {
+                        ArrayList<Entry> m = mYData.get(pollutant);
+                        Log.d("napaka", pollutant);
+                        Collections.sort(m, new PollutantsChart.EntryComparator());
+                        if (m.size() != 0)
+                            updatePollutant(pollutant, (int) m.get(m.size() - 1).getVal());
+                    }
+                }
+                mContainer.forceLayout();
             }
         });
     }
@@ -141,6 +134,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         if (!ViewCompat.isAttachedToWindow(pollutant_card)) {
             ((LinearLayout)pollutant_card.getParent()).removeView(pollutant_card);
             mContainer.addView(pollutant_card);
+            Log.d("napaka", "re-add");
         }
         setPollutantTopBar(name, aqi);
         setPollutantGraph(name);

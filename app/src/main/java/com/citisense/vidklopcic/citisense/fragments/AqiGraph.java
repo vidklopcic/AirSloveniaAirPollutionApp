@@ -101,12 +101,8 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     @Override
     public void onDataRetrieved(List<String> station_ids, Long limit) {
         mLockUpdate = false;
-        mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS, new CitiSenseStation.MeasurementsTransactionListener() {
-            @Override
-            public void onTransactionFinished(List<StationMeasurement> measurements) {
-                setYData(PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements));
-            }
-        });
+        List<StationMeasurement> measurements = mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS);
+        setYData(PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements));
     }
 
     private void setYData(HashMap<String, ArrayList<Entry>> ydata) {
