@@ -137,6 +137,8 @@ public class MapPullUpPager {
     }
 
     public void update() {
+        if (mDataSource == null)
+            close();
         if (mCurrentFragment != null)
             mCurrentFragment.update(mDataSource);
     }

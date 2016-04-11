@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
-import android.util.Log;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +50,8 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private HashMap<String, LinearLayout> mPollutantCards;
     private HashMap<String, ArrayList<Entry>> mYData;
     private ArrayList<String> mXData;
+    private SwipeRefreshLayout mRefreshLayout;
+    private ArrayList<CitiSenseStation> mStations;
 
     public AqiPollutants() {
         mXData = new ArrayList<>();
@@ -79,10 +81,23 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_pollutant_cards, container, false);
+        mRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.pollutants_refresh_layout);
         mContext = view.getContext();
         mInflater = inflater;
         mContainer = (LinearLayout) view.findViewById(R.id.pollutant_cards_container);
-        Log.d("napaka", "1");
+        mRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mStations != null)
+                    update(mStations);
+            }
+        });
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                update(mStations);
+            }
+        });
         return view;
     }
 
@@ -93,29 +108,27 @@ public class AqiPollutants extends Fragment implements PullUpBase {
 
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
-        Log.d("napaka", "2");
-        if (stations == null || stations.size() != 1) return;
+        mStations = stations;
+        if (stations == null || stations.size() != 1 || mRefreshLayout == null) return;
+        mRefreshLayout.setRefreshing(true);
         mStartDate = new Date().getTime() - DATA_LEN_MILLIS;
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
             @Override
             public void onDataRetrieved(List<String> station_ids, Long limit) {
-                Log.d("napaka", station_ids.toString());
                 List<StationMeasurement> measurements = CitiSenseStation.idListToStations(mRealm, station_ids)
                         .get(0)
                         .getMeasurementsInRange(mRealm, mStartDate, mStartDate + DATA_LEN_MILLIS);
-
-                Log.d("napaka", "4");
                 mYData = PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements);
                 for (String pollutant : Constants.AQI.supported_pollutants) {
                     if (mYData.containsKey(pollutant)) {
                         ArrayList<Entry> m = mYData.get(pollutant);
-                        Log.d("napaka", pollutant);
                         Collections.sort(m, new PollutantsChart.EntryComparator());
                         if (m.size() != 0)
                             updatePollutant(pollutant, (int) m.get(m.size() - 1).getVal());
                     }
                 }
                 mContainer.forceLayout();
+                mRefreshLayout.setRefreshing(false);
             }
         });
     }
@@ -134,7 +147,6 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         if (!ViewCompat.isAttachedToWindow(pollutant_card)) {
             ((LinearLayout)pollutant_card.getParent()).removeView(pollutant_card);
             mContainer.addView(pollutant_card);
-            Log.d("napaka", "re-add");
         }
         setPollutantTopBar(name, aqi);
         setPollutantGraph(name);

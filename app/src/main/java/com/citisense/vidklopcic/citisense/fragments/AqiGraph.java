@@ -2,6 +2,7 @@ package com.citisense.vidklopcic.citisense.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     Long mStartDate;
     ArrayList<CitiSenseStation> mStations;
     Realm mRealm;
+    SwipeRefreshLayout mRefreshLayout;
 
     public AqiGraph() {
     }
@@ -82,6 +84,16 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
                 return PollutantsChart.xAxisValueFormatter(index, mStartDate, TICK_INTERVAL_MILLIS);
             }
         });
+        mRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
+        mRefreshLayout.setEnabled(false);
+        mRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mLockUpdate) {
+                    mRefreshLayout.setRefreshing(true);
+                }
+            }
+        });
         return view;
     }
 
@@ -96,6 +108,8 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         if (!mLockUpdate)
             DataAPI.getMeasurementsInRange(mStations, mStartDate, this);
         mLockUpdate = true;
+        if (mRefreshLayout != null)
+            mRefreshLayout.setRefreshing(true);
     }
 
     @Override
@@ -119,5 +133,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         }
         mChart.notifyDataSetChanged();
         mChart.invalidate();
+        if (mRefreshLayout != null)
+            mRefreshLayout.setRefreshing(false);
     }
 }

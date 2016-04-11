@@ -110,6 +110,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DataAPI.setDefaultRealmConfig(this);
         mRealm = Realm.getDefaultInstance();
         mStationsOnMap = new HashMap<>();
         mSavedState = SavedState.getSavedState(mRealm);

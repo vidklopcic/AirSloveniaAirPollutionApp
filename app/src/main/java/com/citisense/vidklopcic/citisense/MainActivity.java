@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 public class MainActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, DataAPI.DataUpdateListener {
     AqiOverview mAqiOverviewFragment;
@@ -51,12 +50,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        RealmConfiguration config = new RealmConfiguration.Builder(this)
-                .name("citisense_cache")
-                .schemaVersion(1)
-                .deleteRealmIfMigrationNeeded()
-                .build();
-        Realm.setDefaultConfiguration(config);
+        DataAPI.setDefaultRealmConfig(this);
         mRealm = Realm.getDefaultInstance();
         setContentView(R.layout.activity_main);
         mAqiOverviewFragment = (AqiOverview) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);

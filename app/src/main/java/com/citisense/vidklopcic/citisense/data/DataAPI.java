@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 
 public class DataAPI {
@@ -43,6 +44,15 @@ public class DataAPI {
         mContext = context;
         getConfig();
         mUpdateTask = new UpdateTask();
+    }
+
+    public static void setDefaultRealmConfig(Activity activity) {
+        RealmConfiguration config = new RealmConfiguration.Builder(activity)
+                .name("citisense_cache")
+                .schemaVersion(1)
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        Realm.setDefaultConfiguration(config);
     }
 
     public void setObservedStations(List<CitiSenseStation> stations) {
@@ -257,12 +267,10 @@ public class DataAPI {
 
                     String id = station.getStationId();
                     try {
-                        Log.d("napaka", "downloading range; " + mUrl);
                         JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.CitiSenseStation.measurement_range_url_id, id)));
                         station.setMeasurements(realm, measurements);
                         if (station.getLastRangeUpdateTime() == null || end > station.getLastRangeUpdateTime())
                             station.setLastRangeUpdateTime(realm, end);
-                        Log.d("napaka", "downloaded range");
                     } catch (IOException | JSONException ignored) {
                     }
                 }
