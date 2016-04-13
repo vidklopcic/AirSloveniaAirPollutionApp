@@ -89,7 +89,7 @@ public class LocationHelper implements LocationListener {
         try {
             network_enabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         } catch(Exception ex) {}
-        return gps_enabled && network_enabled;
+        return gps_enabled || network_enabled;
     }
 
     public void askToTurnOnLocation() {

@@ -46,13 +46,18 @@ public class DataAPI {
         mUpdateTask = new UpdateTask();
     }
 
-    public static void setDefaultRealmConfig(Activity activity) {
-        RealmConfiguration config = new RealmConfiguration.Builder(activity)
-                .name("citisense_cache")
-                .schemaVersion(1)
-                .deleteRealmIfMigrationNeeded()
-                .build();
-        Realm.setDefaultConfiguration(config);
+    public static Realm getRealmOrCreateInstance(Activity activity) {
+        try {
+            return Realm.getDefaultInstance();
+        } catch (NullPointerException e) {
+            RealmConfiguration config = new RealmConfiguration.Builder(activity)
+                    .name("citisense_cache")
+                    .schemaVersion(1)
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
+            Realm.setDefaultConfiguration(config);
+        }
+        return Realm.getDefaultInstance();
     }
 
     public void setObservedStations(List<CitiSenseStation> stations) {

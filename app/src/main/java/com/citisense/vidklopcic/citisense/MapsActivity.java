@@ -110,8 +110,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DataAPI.setDefaultRealmConfig(this);
-        mRealm = Realm.getDefaultInstance();
+        mRealm = DataAPI.getRealmOrCreateInstance(this);
         mStationsOnMap = new HashMap<>();
         mSavedState = SavedState.getSavedState(mRealm);
         mDataApi = new DataAPI(this);
@@ -174,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mActionBarTitle.clearFocus();
 
                 if (!hasFocus && mActionBarTitle.isEnabled()) {
-                    RealmResults<FavoritePlace> places = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
+                    RealmResults<FavoritePlace> places = mRealm.where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
                     if (places.size() != 0) {
                         places.get(0).setNickname(mRealm, mActionBarTitle.getText().toString());
                     }
@@ -250,7 +249,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 mActionBarTitle.setText(mPOIAddress);
                 mActionBarHasAddress = true;
                 mActionBarTitle.setEnabled(true);
-                RealmResults<FavoritePlace> places = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
+                RealmResults<FavoritePlace> places = mRealm.where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
                 if (places.size() != 0) {
                     setFavorite(true);
                     mActionBarTitle.setText(places.get(0).getNickname());
@@ -300,17 +299,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             FavoritePlace.create(
                     mRealm, mPointOfInterest, mPOIAddress, mActionBarTitle.getText().toString());
         } else {
-            RealmResults<FavoritePlace> matches = Realm.getDefaultInstance().where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
+            RealmResults<FavoritePlace> matches = mRealm.where(FavoritePlace.class).equalTo("address", mPOIAddress).findAll();
             mActionBarTitle.setText(mPOIAddress);
             if (matches.size() != 0) {
+                mRealm.beginTransaction();
                 while (matches.iterator().hasNext()) {
                     FavoritePlace match = matches.iterator().next();
-                    Realm r = Realm.getDefaultInstance();
-                    r.beginTransaction();
                     match.removeFromRealm();
-                    r.commitTransaction();
-                    r.close();
                 }
+                mRealm.commitTransaction();
             }
         }
     }

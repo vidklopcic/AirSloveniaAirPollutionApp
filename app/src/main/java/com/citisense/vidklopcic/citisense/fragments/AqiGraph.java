@@ -1,5 +1,6 @@
 package com.citisense.vidklopcic.citisense.fragments;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -54,7 +55,12 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         mXdata = new ArrayList<>();
         for (int i=0;i<DATA_SET_LEN_MINS;i+=TICK_INTERVAL_MINS) mXdata.add("");
         mChartData = new LineData(mXdata);
-        mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        mRealm = DataAPI.getRealmOrCreateInstance(activity);
+        super.onAttach(activity);
     }
 
     @Override
@@ -63,6 +69,8 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         super.onSaveInstanceState(bundle);
     }
 
+
+    @Override
     public void onDetach() {
         mStartDate = null;
         super.onDetach();

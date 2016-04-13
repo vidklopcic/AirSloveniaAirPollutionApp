@@ -1,5 +1,6 @@
 package com.citisense.vidklopcic.citisense.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -56,14 +57,18 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     public AqiPollutants() {
         mXData = new ArrayList<>();
         for (int i=0;i<DATA_LEN_MINS;i+=TICK_INTERVAL_MINS) mXData.add("");
-        mRealm = Realm.getDefaultInstance();
         mPollutantCards = new HashMap<>();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        mRealm = DataAPI.getRealmOrCreateInstance(getActivity());
+        super.onAttach(activity);
     }
 
     @Override
@@ -109,7 +114,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
         mStations = stations;
-        if (stations == null || stations.size() != 1 || mRefreshLayout == null) return;
+        if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null) return;
         mRefreshLayout.setRefreshing(true);
         mStartDate = new Date().getTime() - DATA_LEN_MILLIS;
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {

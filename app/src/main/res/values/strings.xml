@@ -64,9 +64,9 @@
     <string name="pollutants">Pollutants</string>
     <string name="graph">Graph</string>
     <string name="open_location_settings">Open location settings</string>
-    <string name="location_not_available_text">With disabled location, some functionality will be disabled.</string>
+    <string name="location_not_available_text">With disabled location, some of the functionality will be unavailable.</string>
     <string name="Cancel">Cancel</string>
-    <string name="no_data_available">No data</string>
+    <string name="no_data_available">No data for current location</string>
     <string name="location_disabled">Location is disabled</string>
     <string name="fetching_data">Fetching data</string>
     <string name="measurements_from_past_hour">measurements from past hour</string>

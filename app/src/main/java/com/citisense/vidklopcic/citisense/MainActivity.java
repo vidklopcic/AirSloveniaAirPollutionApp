@@ -50,8 +50,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DataAPI.setDefaultRealmConfig(this);
-        mRealm = Realm.getDefaultInstance();
+        mRealm = DataAPI.getRealmOrCreateInstance(this);
         setContentView(R.layout.activity_main);
         mAqiOverviewFragment = (AqiOverview) getSupportFragmentManager().findFragmentById(R.id.overview_fragment);
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
