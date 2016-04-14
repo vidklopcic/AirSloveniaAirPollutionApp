@@ -231,14 +231,14 @@ public class LocationHelper implements LocationListener {
             } catch (IOException e) {
                 return "Ljubljana";
             }
-            return "";
+            return null;
         }
 
         protected void onPostExecute(String city) {
-            if (mListener != null && !city.isEmpty() && !mCity.equals(city)) {
+            if (city != null && !mCity.equals(city))
                 mCity = city;
+            if (mListener != null)
                 mListener.onCityChange(mCity);
-            }
         }
     }
 
