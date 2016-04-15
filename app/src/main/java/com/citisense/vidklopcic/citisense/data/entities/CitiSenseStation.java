@@ -42,6 +42,7 @@ public class CitiSenseStation extends RealmObject {
     Long last_update_time;
     String last_measurement;
     Long oldest_stored_measurement;
+    Long oldest_range_request;
 
     public CitiSenseStation() {}
 
@@ -348,8 +349,8 @@ public class CitiSenseStation extends RealmObject {
                     JSONObject measurement = measurements.getJSONObject(i);
                     String pollutant = measurement.getString(Constants.CitiSenseStation.pollutant_name_key);
 
-                    if (getOldestStoredMeasurementTime() == null
-                            || date.getTime() < getOldestStoredMeasurementTime()
+                    if (getOldestRangeRequest() == null
+                            || date.getTime() < getOldestRangeRequest()
                             || date.getTime() > getLastRangeUpdateTime()) {
                         if (oldest_in_list == null || oldest_in_list > date.getTime())
                             oldest_in_list = date.getTime();
@@ -416,5 +417,15 @@ public class CitiSenseStation extends RealmObject {
 
     public static CitiSenseStation idToStation(Realm realm, String id) {
         return realm.where(CitiSenseStation.class).equalTo("id", id).findFirst();
+    }
+
+    public Long getOldestRangeRequest() {
+        return oldest_range_request;
+    }
+
+    public void setOldestRangeRequest(Realm r, Long time) {
+        if (r != null) r.beginTransaction();
+        oldest_range_request = time;
+        if (r != null) r.commitTransaction();
     }
 }

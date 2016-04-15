@@ -53,6 +53,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private ArrayList<String> mXData;
     private SwipeRefreshLayout mRefreshLayout;
     private ArrayList<CitiSenseStation> mStations;
+    private boolean mShouldUpdate = false;
 
     public AqiPollutants() {
         mXData = new ArrayList<>();
@@ -93,7 +94,15 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         mRefreshLayout.post(new Runnable() {
             @Override
             public void run() {
-                if (mStations != null)
+                if (mShouldUpdate && mStations != null)
+                    update(mStations);
+            }
+        });
+
+        mContainer.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mShouldUpdate && mStations != null)
                     update(mStations);
             }
         });
@@ -114,7 +123,13 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     @Override
     public void update(ArrayList<CitiSenseStation> stations) {
         mStations = stations;
-        if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null) return;
+        mShouldUpdate = true;
+        if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null || mContainer == null)
+            return;
+        if (!ViewCompat.isAttachedToWindow(mContainer))
+            return;
+        mShouldUpdate = false;
+
         mRefreshLayout.setRefreshing(true);
         mStartDate = new Date().getTime() - DATA_LEN_MILLIS;
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
@@ -204,5 +219,6 @@ public class AqiPollutants extends Fragment implements PullUpBase {
                 return PollutantsChart.xAxisValueFormatter(index, mStartDate, TICK_INTERVAL_MILLIS);
             }
         });
+        chart.invalidate();
     }
 }

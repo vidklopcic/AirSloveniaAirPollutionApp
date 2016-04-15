@@ -254,9 +254,9 @@ public class DataAPI {
                         start = limit;
                         end = new Date().getTime();
                     }
-                } else if (limit+Constants.CitiSenseStation.update_interval < station.getOldestStoredMeasurementTime()) {
+                } else if (station.getLastRangeUpdateTime() == null || limit+Constants.CitiSenseStation.update_interval < station.getOldestRangeRequest()) {
                     start = limit;
-                    end = station.getOldestStoredMeasurementTime();
+                    end = station.getOldestRangeRequest();
                 } else if (new Date().getTime()-Constants.CitiSenseStation.update_interval > station.getLastRangeUpdateTime()) {
                     start = station.getLastRangeUpdateTime();
                     end = new Date().getTime();
@@ -276,6 +276,9 @@ public class DataAPI {
                         station.setMeasurements(realm, measurements);
                         if (station.getLastRangeUpdateTime() == null || end > station.getLastRangeUpdateTime())
                             station.setLastRangeUpdateTime(realm, end);
+                        if (station.getOldestRangeRequest() == null || start < station.getOldestRangeRequest())
+                            station.setOldestRangeRequest(realm, start);
+
                     } catch (IOException | JSONException ignored) {
                     }
                 }
