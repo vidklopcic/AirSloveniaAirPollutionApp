@@ -331,11 +331,11 @@ public class CitiSenseStation extends RealmObject {
                 new LatLng(northeast_lat+offset.latitude, northeast_lng+offset.longitude));
     }
 
-    public List<StationMeasurement> getMeasurementsInRange(Realm realm, Long start, Long end) {
+    public List<StationMeasurement> getMeasurementsInRange(Realm realm, Long start_utc, Long end_utc) {
         return realm.where(StationMeasurement.class)
                 .equalTo("measuring_station.id", id)
-                .greaterThan("measurement_time", start)
-                .lessThan("measurement_time", end).findAll();
+                .greaterThan("measurement_time", start_utc)
+                .lessThan("measurement_time", end_utc).findAll();
     }
 
     public void setMeasurements(Realm r, JSONArray measurements) {
@@ -348,13 +348,15 @@ public class CitiSenseStation extends RealmObject {
                     JSONObject measurement = measurements.getJSONObject(i);
                     String pollutant = measurement.getString(Constants.CitiSenseStation.pollutant_name_key);
 
-                    if (getOldestStoredMeasurementTime() == null || date.getTime() < getOldestStoredMeasurementTime()) {
+                    if (getOldestStoredMeasurementTime() == null
+                            || date.getTime() < getOldestStoredMeasurementTime()
+                            || date.getTime() > getLastRangeUpdateTime()) {
                         if (oldest_in_list == null || oldest_in_list > date.getTime())
                             oldest_in_list = date.getTime();
                         StationMeasurement.createForNested(
                                 r,
                                 this,
-                                date.getTime(),
+                                date.getTime() + 2*Constants.MINUTES*Constants.SECONDS*Constants.MILLIS, // add 2 hours - tmp fix because of CitiSense server issue (UTC is off)
                                 pollutant,
                                 measurement.getDouble(Constants.CitiSenseStation.value_key));
                     }
