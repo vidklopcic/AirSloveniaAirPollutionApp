@@ -10,7 +10,7 @@ import android.view.animation.OvershootInterpolator;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -27,7 +27,7 @@ public class FABPollutants {
     private FloatingActionMenu mFABPollutants;
     private HashMap<String, FloatingActionButton> mButtons;
     private String mSelectedPollutant;
-    private List<CitiSenseStation> mObservedStations;
+    private List<MeasuringStation> mObservedStations;
     private FABPollutantsListener mListener;
     private FloatingActionButton mSumFab;
     private boolean mFABPollutantsIsOpened = false;
@@ -80,26 +80,26 @@ public class FABPollutants {
     }
 
     private Integer getDrawableForPollutant(String pollutant) {
-        if (pollutant.equals(Constants.CitiSenseStation.CO_KEY))
+        if (pollutant.equals(Constants.ARSOStation.CO_KEY))
             return R.drawable.ic_co;
-        else if (pollutant.equals(Constants.CitiSenseStation.PM2_5_KEY))
+        else if (pollutant.equals(Constants.ARSOStation.SO2_KEY))
             return R.drawable.ic_pm2;
-        else if (pollutant.equals(Constants.CitiSenseStation.PM10_KEY))
+        else if (pollutant.equals(Constants.ARSOStation.PM10_KEY))
             return R.drawable.ic_pm10;
-        else if (pollutant.equals(Constants.CitiSenseStation.NO2_KEY))
+        else if (pollutant.equals(Constants.ARSOStation.NO2_KEY))
             return R.drawable.ic_no;
-        else if (pollutant.equals(Constants.CitiSenseStation.O3_KEY))
+        else if (pollutant.equals(Constants.ARSOStation.O3_KEY))
             return R.drawable.ic_o3;
         else
             return null;
     }
 
-    public void update(List<CitiSenseStation> stations) {
+    public void update(List<MeasuringStation> stations) {
         clear();
         mObservedStations = stations;
-        ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
+        ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(stations);
         if (averages != null) {
-            HashMap<String, Integer> pollutants = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
+            HashMap<String, Integer> pollutants = averages.get(MeasuringStation.AVERAGES_POLLUTANTS);
             for (String pollutant : pollutants.keySet()) {
                 if (mSelectedPollutant != null && pollutant.equals(mSelectedPollutant))
                     setSelectedPollutant(pollutant, pollutants.get(pollutant));

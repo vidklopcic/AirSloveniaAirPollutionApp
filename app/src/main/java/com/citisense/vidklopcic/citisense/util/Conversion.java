@@ -27,13 +27,35 @@ public abstract class Conversion {
         }
     }
 
+    public static Integer getAqi(String pollutant_name, Double value) {
+        Integer aqi_val = null;
+        switch (pollutant_name) {
+            case Constants.ARSOStation.CO_KEY:
+                aqi_val = AQI.CO.getAqi(value);
+                break;
+            case Constants.ARSOStation.NO2_KEY:
+                aqi_val = AQI.NO2.getAqi(value);
+                break;
+            case Constants.ARSOStation.O3_KEY:
+                aqi_val = AQI.O3.getAqi(value);
+                break;
+            case Constants.ARSOStation.PM10_KEY:
+                aqi_val = AQI.PM10.getAqi(value);
+                break;
+            case Constants.ARSOStation.SO2_KEY:
+                aqi_val = AQI.PM25.getAqi(value);
+                break;
+        }
+        return aqi_val;
+    }
+
     public enum AQI {
-        NO2(53,100,360,649,1249,1649,2049, "ppb", 0xffe91e63),    // ppb
-        O3(54,70,85,105,200,504,604, "ppb", 0xff03a9f4),    // ppb
-        PM10(54,154,254,354,424,504,604, "ug/m3", 0xffff5722),  // ug/m3
-        PM25(12,35.4f,55.4f,150.4f,250.4f,350.4f,500.4f, "ug/m3", 0xffffc107),  // ug/m3
-        CO(4400f,9400f,12400f,15400f,30400f,40400f,50400f, "ppm", 0xff259b24),    // ppm
-        SO2(35,75,185,304,604,804,1004, "ppb", 0xffffc107);    // ppb
+        NO2(53, 100, 360, 649, 1249, 1649, 2049, "ppb", 0xffe91e63),    // ppb
+        O3(54, 70, 85, 105, 200, 504, 604, "ppb", 0xff03a9f4),    // ppb
+        PM10(54, 154, 254, 354, 424, 504, 604, "ug/m3", 0xffff5722),  // ug/m3
+        PM25(12, 35.4f, 55.4f, 150.4f, 250.4f, 350.4f, 500.4f, "ug/m3", 0xffffc107),  // ug/m3
+        CO(4400f, 9400f, 12400f, 15400f, 30400f, 40400f, 50400f, "ppm", 0xff259b24),    // ppm
+        SO2(35, 75, 185, 304, 604, 804, 1004, "ppb", 0xffffc107);    // ppb
         public static final int GOOD_RANGE = 50;
         public static final int MODERATE_RANGE = 50;
         public static final int UNH_FOR_SENS_RANGE = 50;
@@ -45,6 +67,7 @@ public abstract class Conversion {
         private int color;
 
         public String UNIT;
+
         AQI(float good, float moderate, float unh_for_sens, float unh, float very_unh, float haz, float very_haz, String unit, int color) {
             this.good = good;
             this.moderate = moderate;
@@ -62,7 +85,7 @@ public abstract class Conversion {
         }
 
         public Integer getAqi(Double C) {
-            if (C<0) return null;
+            if (C==null || C < 0) return null;
             float Chigh, Clow, Ilow;
             int range;
             if (C < good) {
@@ -101,14 +124,12 @@ public abstract class Conversion {
                 range = VERY_HAZ_RANGE;
                 Ilow = Constants.AQI.HAZARDOUS + range;
             }
-            int aqi = (int) ((range / (Chigh - Clow)) *  (C - Clow) + Ilow);
+            int aqi = (int) ((range / (Chigh - Clow)) * (C - Clow) + Ilow);
             return aqi < 501 ? aqi : 500;
         }
     }
 
     public static AQI getPollutant(String pollutant) {
-        if (pollutant.equals(Constants.CitiSenseStation.PM2_5_KEY))
-            return AQI.PM25;
         return AQI.valueOf(pollutant);
     }
 
@@ -121,7 +142,7 @@ public abstract class Conversion {
     }
 
     private static float interpolate(float a, float b, float proportion) {
-        Float shortest_angle=((((b - a) % 360) + 540) % 360) - 180;
+        Float shortest_angle = ((((b - a) % 360) + 540) % 360) - 180;
         return (a + (shortest_angle * proportion));
     }
 
@@ -131,13 +152,13 @@ public abstract class Conversion {
         Color.colorToHSV(a, hsva);
         Color.colorToHSV(b, hsvb);
         for (int i = 0; i < 3; i++) {
-            hsvb[i] = Conversion.interpolate(hsva[i], hsvb[i], proportion);
+            hsvb[i] = interpolate(hsva[i], hsvb[i], proportion);
         }
         return Color.HSVToColor(hsvb);
     }
 
     public static String zfill(Integer num, int size) {
-        String s = num+"";
+        String s = num + "";
         while (s.length() < size) s = "0" + s;
         return s;
     }

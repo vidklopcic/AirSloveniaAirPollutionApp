@@ -83,14 +83,13 @@
             android:src="@drawable/maps"/>
         <ImageView
             android:id="@+id/info_img"
-            android:layout_width="43dp"
+            android:layout_width="54dp"
             android:layout_height="@dimen/dashboard_action_bar_height"
-            android:paddingLeft="3dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:onClick="openSlidingMenu"
             android:background="@color/dashboard_top_bg"
-            android:src="@drawable/ic_2c_info"/>
+            android:src="@drawable/ic_info"/>
         <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverview"
             android:id="@+id/overview_fragment"
             android:layout_width="match_parent"

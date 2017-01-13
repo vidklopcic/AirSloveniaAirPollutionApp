@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.fragments.AqiPollutants;
 import com.citisense.vidklopcic.citisense.fragments.AqiGraph;
 import com.citisense.vidklopcic.citisense.fragments.AqiOverview;
@@ -28,7 +28,7 @@ public class MapPullUpPager {
     AqiPollutants mAqiPollutantsFragment;
     AqiGraph mAqiGraphFragment;
     android.support.v4.app.FragmentManager mFragmentManager;
-    ArrayList<CitiSenseStation> mDataSource;
+    ArrayList<MeasuringStation> mDataSource;
     Buttons mButtons;
 
     public MapPullUpPager(FragmentActivity context) {
@@ -55,7 +55,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment, CurrentFragment.OVERVIEW.toString());
-            transaction.commit();
+            transaction.commitAllowingStateLoss();
         }
         mCurrentFragmentType = CurrentFragment.OVERVIEW;
         mCurrentFragment = mAqiOverviewFragment;
@@ -70,7 +70,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiPollutantsFragment, CurrentFragment.CARDS.toString());
-            transaction.commit();
+            transaction.commitAllowingStateLoss();
         }
         mCurrentFragmentType = CurrentFragment.CARDS;
         mCurrentFragment = mAqiPollutantsFragment;
@@ -85,7 +85,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment, CurrentFragment.GRAPH.toString());
-            transaction.commit();
+            transaction.commitAllowingStateLoss();
         }
         mCurrentFragmentType = CurrentFragment.GRAPH;
         mCurrentFragment = mAqiGraphFragment;
@@ -95,7 +95,7 @@ public class MapPullUpPager {
     public void showFragment(PullUpBase fragment) {
         FragmentTransaction transaction = hide();
         transaction.show((Fragment) fragment);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     public FragmentTransaction hide() {
@@ -120,14 +120,14 @@ public class MapPullUpPager {
         if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
         mCurrentFragment = null;
         mCurrentFragmentType = null;
     }
 
 
 
-    public void setDataSource(ArrayList<CitiSenseStation> stations) {
+    public void setDataSource(ArrayList<MeasuringStation> stations) {
         mDataSource = stations;
         if (mDataSource != null && mDataSource.size() == 1)
             mButtons.setVisibility(View.VISIBLE);

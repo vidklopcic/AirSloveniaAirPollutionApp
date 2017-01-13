@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class MapCards extends Fragment {
     HashMap<String, LinearLayout> mPollutantCards;
-    ArrayList<CitiSenseStation> mStations;
+    ArrayList<MeasuringStation> mStations;
     Context mContext;
     LayoutInflater mInflater;
     TextView mTemperatureText;
@@ -64,14 +64,14 @@ public class MapCards extends Fragment {
         mLayout.animate().alpha(1f).setDuration(200);
     }
 
-    public void setSourceStations(ArrayList<CitiSenseStation> stations) {
+    public void setSourceStations(ArrayList<MeasuringStation> stations) {
         clearPollutants();
         if (stations == null) return;
         mStations = stations;
         refresh();
     }
 
-    public void setSourceStations(CitiSenseStation station) {
+    public void setSourceStations(MeasuringStation station) {
         clearPollutants();
         if (station == null) return;
         mStations.clear();
@@ -95,23 +95,23 @@ public class MapCards extends Fragment {
     }
 
     public void refresh() {
-        ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(mStations);
+        ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(mStations);
         if (averages == null) {
             setNoData();
             return;
         }
-        int max_aqi = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
+        int max_aqi = Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values());
         mAqiText.setText(AQI.toText(max_aqi));
         mAqiText.setBackgroundColor(ContextCompat.getColor(mContext, AQI.getColor(max_aqi)));
 
-        HashMap<String, Integer> other = averages.get(CitiSenseStation.AVERAGES_OTHER);
-        HashMap<String, Integer> pollutants = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
-        if (other.containsKey(Constants.CitiSenseStation.TEMPERATURE_KEY))
-            mTemperatureText.setText(other.get(Constants.CitiSenseStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT);
+        HashMap<String, Integer> other = averages.get(MeasuringStation.AVERAGES_OTHER);
+        HashMap<String, Integer> pollutants = averages.get(MeasuringStation.AVERAGES_POLLUTANTS);
+        if (other.containsKey(Constants.ARSOStation.TEMPERATURE_KEY))
+            mTemperatureText.setText(other.get(Constants.ARSOStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT);
         else
             setNoTemperature();
-        if (other.containsKey(Constants.CitiSenseStation.HUMIDITY_KEY))
-            mHumidityText.setText(other.get(Constants.CitiSenseStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT);
+        if (other.containsKey(Constants.ARSOStation.HUMIDITY_KEY))
+            mHumidityText.setText(other.get(Constants.ARSOStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT);
         else
             setNoHumidity();
         for (String pollutant : pollutants.keySet()) {

@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.anim.AqiBarAnimation;
 
@@ -35,7 +35,7 @@ public class OverviewBarChart extends Fragment {
     private LayoutInflater mInflater;
     private int mChartRange = Constants.AQI.BAR_OFFSET;
     private Integer mAQIBarsContainerHeight;
-    private List<CitiSenseStation> mStations;
+    private List<MeasuringStation> mStations;
     private OnFragmentLoadedListener mOnLoadedListener;
 
     public OverviewBarChart() {
@@ -181,15 +181,15 @@ public class OverviewBarChart extends Fragment {
         return max_aqi;
     }
 
-    public ArrayList<HashMap<String, Integer>> updateGraph(List<CitiSenseStation> stations) {
+    public ArrayList<HashMap<String, Integer>> updateGraph(List<MeasuringStation> stations) {
         if (mAQIBars == null) return null;
-        ArrayList<HashMap<String, Integer>> averages = CitiSenseStation.getAverages(stations);
+        ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(stations);
         mStations = stations;
         if (averages == null) return null;
         List<String> bar_pollutants = new ArrayList<>(mAQIBars.keySet());
         for (String parameter : bar_pollutants)
-            if (!averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).containsKey(parameter)) removeBar(parameter);
-        HashMap<String, Integer> aqi_averages = averages.get(CitiSenseStation.AVERAGES_POLLUTANTS);
+            if (!averages.get(MeasuringStation.AVERAGES_POLLUTANTS).containsKey(parameter)) removeBar(parameter);
+        HashMap<String, Integer> aqi_averages = averages.get(MeasuringStation.AVERAGES_POLLUTANTS);
         for (String pollutant_name : aqi_averages.keySet()) {
             if (mAQIBars.containsKey(pollutant_name)) setBarAqi(pollutant_name, aqi_averages.get(pollutant_name));
             else addBar(aqi_averages.get(pollutant_name), pollutant_name);

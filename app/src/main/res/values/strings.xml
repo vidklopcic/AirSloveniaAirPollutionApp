@@ -28,7 +28,7 @@
     <string name="no_data">NO DATA</string>
     <string name="overview">Overview</string>
     <string name="CO">Carbon monoxide</string>
-    <string name="PM2.5">Particulate matter 2.5um</string>
+    <string name="SO2">Sulphur dioxides</string>
     <string name="PM10">Particulate matter 10um</string>
     <string name="O3">Ozone</string>
     <string name="NO2">Nitrogen oxides</string>

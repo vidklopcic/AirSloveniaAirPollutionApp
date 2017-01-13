@@ -8,11 +8,11 @@ public class StationMeasurement extends RealmObject {
     String property;
     Double value;
 
-    CitiSenseStation measuring_station;
+    MeasuringStation measuring_station;
 
     public StationMeasurement() {}
 
-    public static StationMeasurement create(Realm r, CitiSenseStation measuring_station, Long measurement_time, String property, Double value) {
+    public static StationMeasurement create(Realm r, MeasuringStation measuring_station, Long measurement_time, String property, Double value) {
         r.beginTransaction();
         StationMeasurement measurement = r.createObject(StationMeasurement.class);
         measurement.measuring_station = measuring_station;
@@ -23,7 +23,7 @@ public class StationMeasurement extends RealmObject {
         return measurement;
     }
 
-    public static StationMeasurement createForNested(Realm r, CitiSenseStation measuring_station, Long measurement_time, String property, Double value) {
+    public static StationMeasurement createForNested(Realm r, MeasuringStation measuring_station, Long measurement_time, String property, Double value) {
         StationMeasurement measurement =  r.createObject(StationMeasurement.class);
         measurement.measuring_station = measuring_station;
         measurement.measurement_time = measurement_time;

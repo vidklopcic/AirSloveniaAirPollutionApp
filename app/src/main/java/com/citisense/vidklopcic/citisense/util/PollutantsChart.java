@@ -1,7 +1,7 @@
 package com.citisense.vidklopcic.citisense.util;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.data.entities.StationMeasurement;
 import com.github.mikephil.charting.data.Entry;
 
@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import static com.citisense.vidklopcic.citisense.util.Conversion.getAqi;
+
 public abstract class PollutantsChart {
     public static HashMap<String, ArrayList<Entry>> measurementsToYData(Long start_date, Integer tick_interval_millis, List<StationMeasurement> measurements) {
         HashMap<String, ArrayList<Entry>> ydata = new HashMap<>();
@@ -20,7 +22,7 @@ public abstract class PollutantsChart {
                 ydata.put(measurement.getProperty(), new ArrayList<Entry>());
 
             if (Constants.AQI.supported_pollutants.contains(measurement.getProperty())) {
-                Integer aqi_val = CitiSenseStation.getAqi(measurement.getProperty(), measurement.getValue());
+                Integer aqi_val = getAqi(measurement.getProperty(), measurement.getValue());
                 if (aqi_val != null && start_date != null && measurement.getMeasurementTime() != null) {
                     ydata.get(measurement.getProperty()).add(new Entry(
                             aqi_val,

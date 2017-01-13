@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.data.entities.StationMeasurement;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.PollutantsChart;
@@ -52,7 +52,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private HashMap<String, ArrayList<Entry>> mYData;
     private ArrayList<String> mXData;
     private SwipeRefreshLayout mRefreshLayout;
-    private ArrayList<CitiSenseStation> mStations;
+    private ArrayList<MeasuringStation> mStations;
     private boolean mShouldUpdate = false;
 
     public AqiPollutants() {
@@ -121,7 +121,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     }
 
     @Override
-    public void update(ArrayList<CitiSenseStation> stations) {
+    public void update(ArrayList<MeasuringStation> stations) {
         mStations = stations;
         mShouldUpdate = true;
         if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null || mContainer == null)
@@ -135,7 +135,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
             @Override
             public void onDataRetrieved(List<String> station_ids, Long limit) {
-                List<StationMeasurement> measurements = CitiSenseStation.idListToStations(mRealm, station_ids)
+                List<StationMeasurement> measurements = MeasuringStation.idListToStations(mRealm, station_ids)
                         .get(0)
                         .getMeasurementsInRange(mRealm, mStartDate, mStartDate + DATA_LEN_MILLIS);
                 mYData = PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements);

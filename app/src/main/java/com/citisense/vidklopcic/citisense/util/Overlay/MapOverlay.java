@@ -6,7 +6,7 @@ import android.graphics.Point;
 import android.util.Log;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.util.AQI;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.google.android.gms.maps.GoogleMap;
@@ -33,7 +33,7 @@ public class MapOverlay {
     GroundOverlay mCurrentOverlay;
     DrawImageTask task;
     private String mPollutant;
-    private List<CitiSenseStation> mCurrentStations;
+    private List<MeasuringStation> mCurrentStations;
     private Projection mCurrentProjection;
 
     public MapOverlay(Activity context, GoogleMap map) {
@@ -42,7 +42,7 @@ public class MapOverlay {
         mDefaultProjection = mMap.getProjection();
     }
 
-    public void draw(List<CitiSenseStation> stations, Projection projection) {
+    public void draw(List<MeasuringStation> stations, Projection projection) {
         mCurrentProjection = projection;
         mCurrentStations = stations;
         if (task != null) task.stop();
@@ -63,7 +63,7 @@ public class MapOverlay {
     class DrawImageTask {
         int THREAD_LIMIT = 5;
         public List<String> mStationIds;
-        public List<CitiSenseStation> mStations;
+        public List<MeasuringStation> mStations;
         public Projection mProjection;
         public LatLng mPixelSize;
         public List<String> candidate_ids;
@@ -75,8 +75,8 @@ public class MapOverlay {
         Thread worker;
         int[] pixels;
 
-        public DrawImageTask(List<CitiSenseStation> stations, Projection projection) {
-            mStationIds = CitiSenseStation.stationsToIdList(stations);
+        public DrawImageTask(List<MeasuringStation> stations, Projection projection) {
+            mStationIds = MeasuringStation.stationsToIdList(stations);
             mProjection = projection;
             tasks = new ArrayList<>();
         }
@@ -90,8 +90,8 @@ public class MapOverlay {
                 @Override
                 public void run() {
                     Realm realm = Realm.getDefaultInstance();
-                    mStations = CitiSenseStation.idListToStations(realm, mStationIds);
-                    bounds = CitiSenseStation.getBounds(mStations);
+                    mStations = MeasuringStation.idListToStations(realm, mStationIds);
+                    bounds = MeasuringStation.getBounds(mStations);
                     if (bounds == null) {
                         realm.close();
                         return;
@@ -118,7 +118,7 @@ public class MapOverlay {
                         realm.close();
                         return;
                     }
-                    candidate_ids = CitiSenseStation.stationsToIdList(CitiSenseStation.getStationsInArea(realm, bounds));
+                    candidate_ids = MeasuringStation.stationsToIdList(MeasuringStation.getStationsInArea(realm, bounds));
 
                     int chunk = y_img_size / THREAD_LIMIT;
 
@@ -208,7 +208,7 @@ public class MapOverlay {
             public void run() {
                 Realm realm = Realm.getDefaultInstance();
                 LatLng center;
-                List<CitiSenseStation> affecting_stations;
+                List<MeasuringStation> affecting_stations;
                 List<Double> importance  = new ArrayList<>();
                 Double importance_sum;
                 Double weight;
@@ -224,8 +224,8 @@ public class MapOverlay {
                         center = new LatLng(
                                 bounds.southwest.latitude+(y+1)*mPixelSize.latitude,
                                 bounds.southwest.longitude+(x+1)*mPixelSize.longitude);
-                        affecting_stations =  CitiSenseStation.getStationsInRadius(
-                                center, Constants.Map.station_radius_meters, CitiSenseStation.idListToStations(realm, candidate_ids));
+                        affecting_stations =  MeasuringStation.getStationsInRadius(
+                                center, Constants.Map.station_radius_meters, MeasuringStation.idListToStations(realm, candidate_ids));
 
                         for (int i=0;i<affecting_stations.size();i++) {
                             if (!affecting_stations.get(i).hasData() ||
@@ -237,7 +237,7 @@ public class MapOverlay {
 
                         if (affecting_stations.size() > 0) {
                             importance.clear();
-                            for (CitiSenseStation station : affecting_stations) {
+                            for (MeasuringStation station : affecting_stations) {
                                 if (station.hasData())
                                     importance.add(SphericalUtil.computeDistanceBetween(center, station.getLocation()));
                             }
@@ -256,9 +256,9 @@ public class MapOverlay {
 
                             pixel_intensity = 0d;
                             for (int i = 0; i < importance.size(); i++) {
-                                CitiSenseStation station = affecting_stations.get(i);
+                                MeasuringStation station = affecting_stations.get(i);
                                 if (mPollutant != null) {
-                                    Integer pollutant_aqi = station.getPollutantAqi(mPollutant, station.getLastMeasurement());
+                                    Integer pollutant_aqi = station.getAqi(mPollutant);
                                     if (pollutant_aqi != null)
                                         current_aqi =  pollutant_aqi * importance.get(i) * weight;
                                     else

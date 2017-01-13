@@ -33,7 +33,7 @@ import android.widget.TextView;
 
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.data.entities.FavoritePlace;
 import com.citisense.vidklopcic.citisense.data.entities.SavedState;
 import com.citisense.vidklopcic.citisense.fragments.MapCards;
@@ -88,7 +88,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private Place mCurrentPlace;
     private ClusterManager<ClusterStation> mClusterManager;
     private SavedState mSavedState;
-    private HashMap<CitiSenseStation, ClusterStation> mStationsOnMap;
+    private HashMap<MeasuringStation, ClusterStation> mStationsOnMap;
     private DataAPI mDataApi;
     private Float mCurrentZoom;
     private SlidingUpPanelLayout mSlidingPane;
@@ -438,8 +438,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
 
-    public void addStationToMap(CitiSenseStation station) {
-        if (station.getLastMeasurement() != null && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
+    public void addStationToMap(MeasuringStation station) {
+        if (station.hasData() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
@@ -460,7 +460,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onMapLongClick(LatLng latLng) {
 //        if (latLng == mPointOfInterest) return;
-//        ArrayList<CitiSenseStation> affecting_stations = (ArrayList<CitiSenseStation>) CitiSenseStation.getStationsAroundPoint(mRealm, latLng, Constants.Map.station_radius_meters);
+//        ArrayList<MeasuringStation> affecting_stations = (ArrayList<MeasuringStation>) MeasuringStation.getStationsAroundPoint(mRealm, latLng, Constants.Map.station_radius_meters);
 //        mPullUpPager.setDataSource(affecting_stations);
 //        mPollutantCardsFragment.setSourceStations(affecting_stations);
 //        setActionBar(latLng);
@@ -469,18 +469,18 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        List<CitiSenseStation> viewport_stations = CitiSenseStation.getStationsInArea(
+        List<MeasuringStation> viewport_stations = MeasuringStation.getStationsInArea(
                  mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
         if (cameraPosition.zoom >= Constants.Map.max_overlay_zoom)
             mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations(viewport_stations);
-        List<String> stations_on_map = CitiSenseStation.stationsToIdList(new ArrayList<>(mStationsOnMap.keySet()));
-        List<String> viewport_stations_ids = CitiSenseStation.stationsToIdList(viewport_stations);
+        List<String> stations_on_map = MeasuringStation.stationsToIdList(new ArrayList<>(mStationsOnMap.keySet()));
+        List<String> viewport_stations_ids = MeasuringStation.stationsToIdList(viewport_stations);
         viewport_stations_ids.removeAll(stations_on_map);
 
-        for (CitiSenseStation station : CitiSenseStation.idListToStations(mRealm, viewport_stations_ids)) {
+        for (MeasuringStation station : MeasuringStation.idListToStations(mRealm, viewport_stations_ids)) {
             addStationToMap(station);
         }
 
@@ -504,7 +504,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         setActionBar(clusterStation.getPosition());
         setPointOfInterest(clusterStation.getPosition());
         mMapCardsFragment.setSourceStations(clusterStation.station);
-        ArrayList<CitiSenseStation> list = new ArrayList<>();
+        ArrayList<MeasuringStation> list = new ArrayList<>();
         list.add(clusterStation.station);
         mPullUpPager.setDataSource(list);
         setFavorite(false);
@@ -525,7 +525,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     @Override
-    public void onStationUpdate(CitiSenseStation station) {
+    public void onStationUpdate(MeasuringStation station) {
     }
 
     @Override
@@ -537,8 +537,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     public class ClusterStation implements ClusterItem {
         private final LatLng mPosition;
-        CitiSenseStation station;
-        public ClusterStation(LatLng position, CitiSenseStation station) {
+        MeasuringStation station;
+        public ClusterStation(LatLng position, MeasuringStation station) {
             mPosition = position;
             this.station = station;
         }
@@ -557,7 +557,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             assert shapeDrawable != null;
             Integer aqi;
             if (mPollutantFilter != null)
-                aqi = station.getPollutantAqi(mPollutantFilter, station.getLastMeasurement());
+                aqi = station.getAqi(mPollutantFilter);
             else
                 aqi = station.getMaxAqi();
             shapeDrawable.setColorFilter(AQI.getLinearColor(aqi, getContext()), PorterDuff.Mode.MULTIPLY);
@@ -607,7 +607,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             for (ClusterStation station : stations) {
                 Integer aqi;
                 if (mPollutantFilter != null)
-                    aqi = station.station.getPollutantAqi(mPollutantFilter, station.station.getLastMeasurement());
+                    aqi = station.station.getAqi(mPollutantFilter);
                 else
                     aqi = station.station.getMaxAqi();
                 if (average_aqi == null) average_aqi = aqi;
@@ -655,7 +655,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
         @Override
         protected boolean shouldRenderAsCluster(Cluster<ClusterStation> cluster) {
-            return mCurrentZoom < 10;
+            return false;
         }
     }
 }

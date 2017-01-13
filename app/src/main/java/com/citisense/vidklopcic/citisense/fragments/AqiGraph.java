@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import com.citisense.vidklopcic.citisense.R;
 import com.citisense.vidklopcic.citisense.data.Constants;
 import com.citisense.vidklopcic.citisense.data.DataAPI;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.data.entities.StationMeasurement;
 import com.citisense.vidklopcic.citisense.util.Conversion;
 import com.citisense.vidklopcic.citisense.util.PollutantsChart;
@@ -42,7 +42,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     LineData mChartData;
     ArrayList<String> mXdata;
     Long mStartDate;
-    ArrayList<CitiSenseStation> mStations;
+    ArrayList<MeasuringStation> mStations;
     Realm mRealm;
     SwipeRefreshLayout mRefreshLayout;
 
@@ -106,7 +106,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     }
 
     @Override
-    public void update(ArrayList<CitiSenseStation> stations) {
+    public void update(ArrayList<MeasuringStation> stations) {
         if (mStartDate != null &&
                 new Date().getTime() - DATA_SET_LEN_MILLIS < mStartDate+DATA_SET_LEN_MILLIS) return;
         mStartDate = new Date().getTime() - DATA_SET_LEN_MILLIS;

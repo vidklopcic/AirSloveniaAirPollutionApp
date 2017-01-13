@@ -32,17 +32,17 @@ public abstract class Constants {
                 "CO",
                 "NO2",
                 "O3",
-                "PM2.5",
+                "SO2",
                 "PM10"
         );
     }
 
-    public static class CitiSenseStation {
-        public static final String date_format = "yyyy-MM-dd'T'HH:mm:ss.000";
+    public static class ARSOStation {
+        public static final String date_format = "yyyy-MM-dd HH:mm";
         public static final String time_key = "start_time";
         public static final String pollutant_name_key = "observedproperty";
         public static String value_key = "value";
-        public static final String last_measurement_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/lastobservation?sensorid=";
+        public static final String last_measurement_url = "http://www.arso.gov.si/xml/zrak/ones_zrak_urni_podatki_zadnji.xml";
         public static final String measurement_range_url_id = "{id}";
         public static final String measurement_range_url_start = "{start}";
         public static final String measurement_range_url_end = "{end}";
@@ -50,7 +50,7 @@ public abstract class Constants {
         public static final int update_interval = 900 * MILLIS;
         public static final String CO_KEY = "CO";
         public static final String NO2_KEY = "NO2";
-        public static final String PM2_5_KEY = "PM2.5";
+        public static final String SO2_KEY = "SO2";
         public static final String PM10_KEY = "PM10";
         public static final String O3_KEY = "O3";
         public static final String HUMIDITY_KEY = "Relative Humidity";

@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.citisense.vidklopcic.citisense.R;
-import com.citisense.vidklopcic.citisense.data.entities.CitiSenseStation;
+import com.citisense.vidklopcic.citisense.data.entities.MeasuringStation;
 import com.citisense.vidklopcic.citisense.util.UI;
 
 import java.lang.reflect.Field;
@@ -66,18 +66,18 @@ public class AqiOverview extends Fragment implements PullUpBase {
         mOnLoadedListener = listener;
     }
 
-    public ArrayList<HashMap<String, Integer>> updateGraph(List<CitiSenseStation> stations) {
+    public ArrayList<HashMap<String, Integer>> updateGraph(List<MeasuringStation> stations) {
         if (mGraphFragment == null) return null;
         ArrayList<HashMap<String, Integer>> averages = mGraphFragment.updateGraph(stations);
-        if (averages != null) {
-            int max_aqi_val = Collections.max(averages.get(CitiSenseStation.AVERAGES_POLLUTANTS).values());
+        if (averages != null && averages.get(MeasuringStation.AVERAGES_POLLUTANTS).size() > 0) {
+            int max_aqi_val = Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values());
             mAQISummary.setAqi(max_aqi_val);
         }
         return averages;
     }
 
     @Override
-    public void update(ArrayList<CitiSenseStation> stations) {
+    public void update(ArrayList<MeasuringStation> stations) {
         updateGraph(stations);
     }
 
