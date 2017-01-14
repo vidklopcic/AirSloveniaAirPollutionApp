@@ -90,7 +90,7 @@
             android:onClick="openSlidingMenu"
             android:background="@color/dashboard_top_bg"
             android:src="@drawable/ic_info"/>
-        <fragment android:name="com.citisense.vidklopcic.citisense.fragments.AqiOverview"
+        <fragment android:name="com.vidklopcic.airsense.fragments.AqiOverview"
             android:id="@+id/overview_fragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -23,7 +23,7 @@
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="match_parent" android:id="@+id/map"
-        tools:context="com.citisense.vidklopcic.citisense.MapsActivity"
+        tools:context="com.vidklopcic.airsense.MapsActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment" />
     <RelativeLayout
         android:id="@+id/maps_search_container"
@@ -58,7 +58,7 @@
     android:layout_marginTop="@dimen/action_bar_height"
     android:layout_height="match_parent"
     android:background="@color/light_gray_bg">
-    <fragment android:name="com.citisense.vidklopcic.citisense.fragments.MapCards"
+    <fragment android:name="com.vidklopcic.airsense.fragments.MapCards"
         android:id="@+id/map_pollutant_cards_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

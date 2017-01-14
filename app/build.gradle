@@ -6,7 +6,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.citisense.vidklopcic.citisense"
+        applicationId "com.vidklopcic.airmonitoring"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 11
@@ -44,4 +44,5 @@ dependencies {
         exclude group: 'stax', module: 'stax-api'
         exclude group: 'xpp3', module: 'xpp3'
     }
+    compile files('lib/GeocoderPlus.jar')
 }
