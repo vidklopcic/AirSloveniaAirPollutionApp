@@ -32,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;
@@ -109,12 +110,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private boolean mPOIIsFavorite = false;
     private Realm mRealm;
     private boolean mMapPositioned = false;
+    private ArrayList<Circle> mCircles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mRealm = DataAPI.getRealmOrCreateInstance(this);
         mStationsOnMap = new HashMap<>();
+        mCircles = new ArrayList<>();
         mSavedState = SavedState.getSavedState(mRealm);
         mDataApi = new DataAPI(this);
         setContentView(R.layout.activity_maps);
@@ -522,6 +525,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onDataUpdate() {
         mClusterManager.clearItems();
+        for (Circle circle : mCircles) {
+            circle.remove();
+        }
+        mCircles.clear();
         mClusterManager.cluster();
         mStationsOnMap.clear();
         mPullUpPager.update();
