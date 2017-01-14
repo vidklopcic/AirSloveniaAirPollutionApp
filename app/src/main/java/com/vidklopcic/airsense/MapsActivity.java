@@ -447,7 +447,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
                     .strokeWidth(5);
 
-            mMap.addCircle(circleOptions);
+            mCircles.add(mMap.addCircle(circleOptions);
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
             mClusterManager.addItem(new_c_station);
