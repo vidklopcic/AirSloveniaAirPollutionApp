@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -31,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.CircleOptions;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
@@ -38,6 +40,7 @@ import com.vidklopcic.airsense.data.entities.FavoritePlace;
 import com.vidklopcic.airsense.data.entities.SavedState;
 import com.vidklopcic.airsense.fragments.MapCards;
 import com.vidklopcic.airsense.util.AQI;
+import com.vidklopcic.airsense.util.Conversion;
 import com.vidklopcic.airsense.util.FABPollutants;
 import com.vidklopcic.airsense.util.LocationHelper;
 import com.vidklopcic.airsense.util.MapPullUpPager;
@@ -433,6 +436,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     public void addStationToMap(MeasuringStation station) {
         if (station.hasData() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
+            Integer linear_color = AQI.getLinearColor(station.getMaxAqi(), this);
+            CircleOptions circleOptions = new CircleOptions()
+                    .center(station.getLocation())   //set center
+                    .radius(1000)   //set radius in meters
+                    .fillColor(Conversion.adjustAlpha(linear_color, 0.3f))  //default
+                    .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
+                    .strokeWidth(5);
+
+            mMap.addCircle(circleOptions);
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
             mClusterManager.addItem(new_c_station);
@@ -465,8 +477,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                  mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
-        if (cameraPosition.zoom >= Constants.Map.max_overlay_zoom)
-            mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
+//        if (cameraPosition.zoom >= Constants.Map.max_overlay_zoom)
+//            mOverlay.draw(new ArrayList<>(viewport_stations), mMap.getProjection());
         mDataApi.setObservedStations(viewport_stations);
         List<String> stations_on_map = MeasuringStation.stationsToIdList(new ArrayList<>(mStationsOnMap.keySet()));
         List<String> viewport_stations_ids = MeasuringStation.stationsToIdList(viewport_stations);

@@ -67,6 +67,14 @@ public abstract class Conversion {
         }
     }
 
+    public static int adjustAlpha(int color, float factor) {
+        int alpha = Math.round(Color.alpha(color) * factor);
+        int red = Color.red(color);
+        int green = Color.green(color);
+        int blue = Color.blue(color);
+        return Color.argb(alpha, red, green, blue);
+    }
+
     public static AQI getAQIbyKey(String key) {
         switch (key) {
             case Constants.ARSOStation.CO_KEY:
