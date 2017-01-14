@@ -83,7 +83,7 @@ public class FABPollutants {
         if (pollutant.equals(Constants.ARSOStation.CO_KEY))
             return R.drawable.ic_co;
         else if (pollutant.equals(Constants.ARSOStation.SO2_KEY))
-            return R.drawable.ic_pm2;
+            return R.drawable.ic_so2;
         else if (pollutant.equals(Constants.ARSOStation.PM10_KEY))
             return R.drawable.ic_pm10;
         else if (pollutant.equals(Constants.ARSOStation.NO2_KEY))

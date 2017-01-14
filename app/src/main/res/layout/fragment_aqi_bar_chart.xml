@@ -33,7 +33,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.1"/>
+                android:layout_weight="0.2"/>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/aqi_overview_chart_separator_lines"
@@ -41,7 +41,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.1"/>
+                android:layout_weight="0.05"/>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/aqi_overview_chart_separator_lines"
@@ -49,7 +49,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.1"/>
+                android:layout_weight="0.05"/>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/aqi_overview_chart_separator_lines"
@@ -78,15 +78,15 @@
                 android:text="@string/very_unh"/>
             <TextView
                 style="@style/AqiChartTextSeparator"
-                android:layout_weight="0.1"
+                android:layout_weight="0.2"
                 android:text="@string/unhealthy"/>
             <TextView
                 style="@style/AqiChartTextSeparator"
-                android:layout_weight="0.1"
+                android:layout_weight="0.05"
                 android:text="@string/u_for_sens"/>
             <TextView
                 style="@style/AqiChartTextSeparator"
-                android:layout_weight="0.1"
+                android:layout_weight="0.05"
                 android:text="@string/moderate"/>
             <TextView
                 style="@style/AqiChartTextSeparator"

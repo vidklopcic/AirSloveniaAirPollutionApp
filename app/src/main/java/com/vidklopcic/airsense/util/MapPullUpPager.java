@@ -55,7 +55,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiOverviewFragment, CurrentFragment.OVERVIEW.toString());
-            transaction.commitAllowingStateLoss();
+            safeCommit(transaction);
         }
         mCurrentFragmentType = CurrentFragment.OVERVIEW;
         mCurrentFragment = mAqiOverviewFragment;
@@ -70,7 +70,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiPollutantsFragment, CurrentFragment.CARDS.toString());
-            transaction.commitAllowingStateLoss();
+            safeCommit(transaction);
         }
         mCurrentFragmentType = CurrentFragment.CARDS;
         mCurrentFragment = mAqiPollutantsFragment;
@@ -85,7 +85,7 @@ public class MapPullUpPager {
         else {
             FragmentTransaction transaction = hide();
             transaction.add(R.id.maps_pullup_fragment_container, mAqiGraphFragment, CurrentFragment.GRAPH.toString());
-            transaction.commitAllowingStateLoss();
+            safeCommit(transaction);
         }
         mCurrentFragmentType = CurrentFragment.GRAPH;
         mCurrentFragment = mAqiGraphFragment;
@@ -95,7 +95,7 @@ public class MapPullUpPager {
     public void showFragment(PullUpBase fragment) {
         FragmentTransaction transaction = hide();
         transaction.show((Fragment) fragment);
-        transaction.commitAllowingStateLoss();
+        safeCommit(transaction);
     }
 
     public FragmentTransaction hide() {
@@ -120,12 +120,18 @@ public class MapPullUpPager {
         if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        safeCommit(transaction);
         mCurrentFragment = null;
         mCurrentFragmentType = null;
     }
 
+    private void safeCommit(FragmentTransaction transaction) {
+        try {
+            transaction.commitAllowingStateLoss();
+        } catch (Exception ignored) {
 
+        }
+    }
 
     public void setDataSource(ArrayList<MeasuringStation> stations) {
         mDataSource = stations;

@@ -3,6 +3,7 @@ package com.vidklopcic.airsense.util;
 import android.graphics.Color;
 
 import com.vidklopcic.airsense.data.Constants;
+import com.vidklopcic.airsense.data.entities.MeasuringStation;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,6 +50,40 @@ public abstract class Conversion {
         return aqi_val;
     }
 
+    public static Double getValueByKey(String key, MeasuringStation station) {
+        switch (key) {
+            case Constants.ARSOStation.CO_KEY:
+                return station.CO;
+            case Constants.ARSOStation.NO2_KEY:
+                return station.NO2;
+            case Constants.ARSOStation.O3_KEY:
+                return station.O3;
+            case Constants.ARSOStation.PM10_KEY:
+                return station.PM10;
+            case Constants.ARSOStation.SO2_KEY:
+                return station.SO2;
+            default:
+                return null;
+        }
+    }
+
+    public static AQI getAQIbyKey(String key) {
+        switch (key) {
+            case Constants.ARSOStation.CO_KEY:
+                return Conversion.AQI.CO;
+            case Constants.ARSOStation.NO2_KEY:
+                return Conversion.AQI.NO2;
+            case Constants.ARSOStation.O3_KEY:
+                return Conversion.AQI.O3;
+            case Constants.ARSOStation.PM10_KEY:
+                return Conversion.AQI.PM10;
+            case Constants.ARSOStation.SO2_KEY:
+                return Conversion.AQI.SO2;
+            default:
+                return null;
+        }
+    }
+
     public enum AQI {
         NO2(50, 100, 200, 349, 400, 500, 600, "ug/m3", 0xffe91e63),    // ppb
         O3(60, 120, 180, 305, 400, 500, 600, "ug/m3", 0xff03a9f4),    // ppb
@@ -66,7 +101,7 @@ public abstract class Conversion {
         private float good, moderate, unh_for_sens, unh, very_unh, haz, very_haz;
         private int color;
 
-        public String UNIT;
+        public String unit;
 
         AQI(float good, float moderate, float unh_for_sens, float unh, float very_unh, float haz, float very_haz, String unit, int color) {
             this.good = good;
@@ -76,7 +111,7 @@ public abstract class Conversion {
             this.very_unh = very_unh;
             this.haz = haz;
             this.very_haz = very_haz;
-            this.UNIT = unit;
+            this.unit = unit;
             this.color = color;
         }
 

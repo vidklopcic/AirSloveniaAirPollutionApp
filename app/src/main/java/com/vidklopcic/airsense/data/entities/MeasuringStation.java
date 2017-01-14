@@ -33,6 +33,8 @@ public class MeasuringStation extends RealmObject {
 
     public static final int AVERAGES_POLLUTANTS = 0;
     public static final int AVERAGES_OTHER = 1;
+    public static final int RAW_VALUE = 0;
+    public static final int RAW_UNIT = 1;
     String city;
     String pollutants;
     Double lat;
@@ -45,11 +47,11 @@ public class MeasuringStation extends RealmObject {
     String last_measurement;
     Long oldest_stored_measurement;
     Long oldest_range_request;
-    Double PM10;
-    Double SO2;
-    Double O3;
-    Double CO;
-    Double NO2;
+    public Double PM10;
+    public Double SO2;
+    public Double O3;
+    public Double CO;
+    public Double NO2;
 
     public MeasuringStation() {
     }
@@ -99,12 +101,26 @@ public class MeasuringStation extends RealmObject {
         return last_update_time;
     }
 
-    public JSONArray getPollutants() {
-        try {
-            return new JSONArray(pollutants);
-        } catch (JSONException e) {
-            return null;
+    public HashMap<String, ArrayList<Object>> getPollutants() {
+        HashMap<String, ArrayList<Object>> raw = new HashMap<>();
+        for (String key : Constants.AQI.supported_pollutants) {
+            ArrayList<Object> value = new ArrayList<>();
+            Conversion.AQI aqi = Conversion.getAQIbyKey(key);
+            value.add(aqi.unit);
+            value.add(Conversion.getValueByKey(key, this));
         }
+        return raw;
+    }
+
+    public ArrayList<Object> getRaw(String pollutant) {
+        ArrayList<Object> result = new ArrayList<>();
+        result.add(Conversion.getValueByKey(pollutant, this));
+        Conversion.AQI a = Conversion.getAQIbyKey(pollutant);
+        if (a != null) {
+            result.add(a.unit);
+            return result;
+        }
+        return null;
     }
 
     public static Long getMeasurementTime(JSONArray measurement) {
@@ -219,25 +235,11 @@ public class MeasuringStation extends RealmObject {
     }
 
     public Integer getAqi(String pollutant_name) {
-        Integer aqi_val = null;
-        switch (pollutant_name) {
-            case Constants.ARSOStation.CO_KEY:
-                aqi_val = Conversion.AQI.CO.getAqi(CO);
-                break;
-            case Constants.ARSOStation.NO2_KEY:
-                aqi_val = Conversion.AQI.NO2.getAqi(NO2);
-                break;
-            case Constants.ARSOStation.O3_KEY:
-                aqi_val = Conversion.AQI.O3.getAqi(O3);
-                break;
-            case Constants.ARSOStation.PM10_KEY:
-                aqi_val = Conversion.AQI.PM10.getAqi(PM10);
-                break;
-            case Constants.ARSOStation.SO2_KEY:
-                aqi_val = Conversion.AQI.SO2.getAqi(SO2);
-                break;
+        Conversion.AQI a = Conversion.getAQIbyKey(pollutant_name);
+        if (a != null) {
+            return a.getAqi(Conversion.getValueByKey(pollutant_name, this));
         }
-        return aqi_val;
+        return null;
     }
 
     public Integer getConfigVersion() {
@@ -285,19 +287,7 @@ public class MeasuringStation extends RealmObject {
     }
 
     private Double getPollutant(String pollutant_name) {
-        switch (pollutant_name) {
-            case Constants.ARSOStation.CO_KEY:
-                return CO;
-            case Constants.ARSOStation.NO2_KEY:
-                return NO2;
-            case Constants.ARSOStation.O3_KEY:
-                return O3;
-            case Constants.ARSOStation.PM10_KEY:
-                return PM10;
-            case Constants.ARSOStation.SO2_KEY:
-                return SO2;
-        }
-        return null;
+        return Conversion.getValueByKey(pollutant_name, this);
     }
 
     public static LatLngBounds getBounds(List<MeasuringStation> stations) {

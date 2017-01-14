@@ -125,12 +125,12 @@ public class DataAPI {
                         Log.d(LOG_ID, "couldn't parse last measurements");
                     }
 
-                    mForceUpdate = false;
                     notifyCycleEnded(updated);
+                    mForceUpdate = false;
                     try {
                         Long s = new Date().getTime();
                         Long end = s + Constants.ARSOStation.update_interval;
-                        while (new Date().getTime() < end || mForceUpdate) {
+                        while (new Date().getTime() < end && !mForceUpdate) {
                             Thread.sleep(10);
                         }
                     } catch (InterruptedException ignored) {}

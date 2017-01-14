@@ -140,7 +140,7 @@ public class OverviewBarChart extends Fragment {
 
     public void setBarAqi(View bar, Float aqi) {
         Float percentage = aqi / Constants.AQI.SUM;
-        bar.setBackgroundColor(ContextCompat.getColor(mContext, AQI.getColor(aqi)));
+        bar.setBackgroundColor(AQI.getLinearColor(aqi.intValue(), mContext));
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) bar.getLayoutParams();
         params.weight = percentage;
         bar.setLayoutParams(params);

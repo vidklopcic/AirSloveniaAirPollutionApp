@@ -3,14 +3,14 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.vidklopcic.airmonitoring"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 11
-        versionName "1.1.9"
+        versionCode 12
+        versionName "1.2.0"
     }
     buildTypes {
         release {

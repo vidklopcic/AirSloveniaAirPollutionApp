@@ -9,10 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import com.vidklopcic.airsense.R;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.util.AQI;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ public class MapCards extends Fragment {
     LinearLayout mPollutantsContainer;
     View mLayout;
     String mNoData;
+
     public MapCards() {
         mPollutantCards = new HashMap<>();
         mStations = new ArrayList<>();
@@ -116,6 +119,11 @@ public class MapCards extends Fragment {
             setNoHumidity();
         for (String pollutant : pollutants.keySet()) {
             addPollutant(pollutant, pollutants.get(pollutant));
+            if (mStations.size() == 1) {
+                MeasuringStation station = mStations.get(0);
+                ArrayList<Object> raw = station.getRaw(pollutant);
+                setCard(mPollutantCards.get(pollutant), (Double) raw.get(MeasuringStation.RAW_VALUE), (String) raw.get(MeasuringStation.RAW_UNIT));
+            }
         }
     }
 
@@ -137,6 +145,7 @@ public class MapCards extends Fragment {
         }
         mPollutantCards.clear();
     }
+
     public void removePollutant(String name) {
         mPollutantsContainer.removeView(mPollutantCards.get(name));
     }
@@ -146,5 +155,9 @@ public class MapCards extends Fragment {
         ((TextView) card.findViewById(R.id.pollutant_name)).setTextColor(
                 AQI.getLinearColor(aqi, mContext)
         );
+    }
+
+    public void setCard(LinearLayout card, Double raw, String unit) {
+        ((TextView) card.findViewById(R.id.pollutant_aqi)).setText(raw.toString() + " " + unit);
     }
 }
