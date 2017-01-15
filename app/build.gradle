@@ -8,8 +8,8 @@ android {
     defaultConfig {
         applicationId "com.vidklopcic.airmonitoring"
         minSdkVersion 15
-        targetSdkVersion 24
-        versionCode 16
+        targetSdkVersion 23
+        versionCode 17
         versionName "1.2.2"
     }
     buildTypes {
