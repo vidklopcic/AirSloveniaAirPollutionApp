@@ -442,7 +442,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Integer linear_color;
             if (!station.hasData()) {
-                linear_color = ContextCompat.getColor(this, R.color.dark_gray);
+                linear_color = ContextCompat.getColor(this, R.color.gray);
             } else if (mPollutantFilter != null) {
                 linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), this);
             } else {
