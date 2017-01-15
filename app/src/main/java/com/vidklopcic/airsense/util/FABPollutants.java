@@ -98,7 +98,7 @@ public class FABPollutants {
         clear();
         mObservedStations = stations;
         ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(stations);
-        if (averages != null) {
+        if (averages != null && averages.get(MeasuringStation.AVERAGES_POLLUTANTS).size() != 0) {
             HashMap<String, Integer> pollutants = averages.get(MeasuringStation.AVERAGES_POLLUTANTS);
             for (String pollutant : pollutants.keySet()) {
                 if (mSelectedPollutant != null && pollutant.equals(mSelectedPollutant))

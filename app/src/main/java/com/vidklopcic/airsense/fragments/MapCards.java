@@ -99,7 +99,7 @@ public class MapCards extends Fragment {
 
     public void refresh() {
         ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(mStations);
-        if (averages == null) {
+        if (averages == null || averages.get(MeasuringStation.AVERAGES_POLLUTANTS).size() == 0) {
             setNoData();
             return;
         }

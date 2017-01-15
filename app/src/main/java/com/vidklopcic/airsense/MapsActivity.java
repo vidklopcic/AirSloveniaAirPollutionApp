@@ -82,7 +82,7 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 
 
-public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>,DataAPI.DataUpdateListener, FABPollutants.FABPollutantsListener {
+public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>, DataAPI.DataUpdateListener, FABPollutants.FABPollutantsListener {
     private MapOverlay mOverlay;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationHelper mLocation;
@@ -173,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus && !mPOIIsFavorite && mActionBarTitle.isEnabled()) {
-                        addToFavorites(null);
+                    addToFavorites(null);
                 }
                 if (!mActionBarTitle.isEnabled())
                     mActionBarTitle.clearFocus();
@@ -264,17 +264,17 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     public boolean dispatchTouchEvent(@NonNull MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             View v = getCurrentFocus();
-            if ( v instanceof EditText) {
+            if (v instanceof EditText) {
                 Rect outRect = new Rect();
                 v.getGlobalVisibleRect(outRect);
-                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
+                if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
                     v.clearFocus();
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
             }
         }
-        return super.dispatchTouchEvent( event );
+        return super.dispatchTouchEvent(event);
     }
 
     public void clearActionBarData() {
@@ -416,43 +416,48 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mOverlay = new MapOverlay(this, mMap);
         setUpMap();
         setUpClusterer();
-        try {
-            positionMap();
-            mMapPositioned = true;
-        } catch (IllegalStateException ignored) {}
+        positionMap();
     }
 
 
     private void positionMap() {
-        LatLngBounds lastviewport = mSavedState.getLastViewport();
-        if (lastviewport != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
-        } else {
-            Location location = mLocation.getLocation();
-            if (location != null)
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
+        try {
+            LatLngBounds lastviewport = mSavedState.getLastViewport();
+            if (lastviewport != null) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
+            } else {
+                Location location = mLocation.getLocation();
+                if (location != null)
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
+            }
+            mMapPositioned = true;
+        } catch (IllegalStateException ignored) {
         }
     }
 
 
     public void addStationToMap(MeasuringStation station) {
-        if (station.hasData() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
+        if (station.wasUpdated() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Integer linear_color;
-            if (mPollutantFilter != null) {
+            if (!station.hasData()) {
+                linear_color = ContextCompat.getColor(this, R.color.dark_gray);
+            } else if (mPollutantFilter != null) {
                 linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), this);
             } else {
                 linear_color = AQI.getLinearColor(station.getMaxAqi(), this);
             }
-            CircleOptions circleOptions = new CircleOptions()
-                    .center(station.getLocation())   //set center
-                    .radius(1000)   //set radius in meters
-                    .fillColor(Conversion.adjustAlpha(linear_color, 0.3f))  //default
-                    .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
-                    .strokeWidth(5);
+            if (station.hasData()) {
+                CircleOptions circleOptions = new CircleOptions()
+                        .center(station.getLocation())   //set center
+                        .radius(1000)   //set radius in meters
+                        .fillColor(Conversion.adjustAlpha(linear_color, 0.3f))  //default
+                        .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
+                        .strokeWidth(5);
 
-            mCircles.add(mMap.addCircle(circleOptions));
+                mCircles.add(mMap.addCircle(circleOptions));
+            }
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
             mClusterManager.addItem(new_c_station);
@@ -482,7 +487,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
         List<MeasuringStation> viewport_stations = MeasuringStation.getStationsInArea(
-                 mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
+                mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
         mFABPollutants.update(viewport_stations);
 //        if (cameraPosition.zoom >= Constants.Map.max_overlay_zoom)
@@ -554,6 +559,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     public class ClusterStation implements ClusterItem {
         private final LatLng mPosition;
         MeasuringStation station;
+
         public ClusterStation(LatLng position, MeasuringStation station) {
             mPosition = position;
             this.station = station;
@@ -571,12 +577,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
             Drawable shapeDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.station_marker, null);
             assert shapeDrawable != null;
-            Integer aqi;
-            if (mPollutantFilter != null)
-                aqi = station.getAqi(mPollutantFilter);
-            else
-                aqi = station.getMaxAqi();
-            shapeDrawable.setColorFilter(AQI.getLinearColor(aqi, getContext()), PorterDuff.Mode.MULTIPLY);
+            Integer linear_color;
+            if (!station.hasData()) {
+                linear_color = ContextCompat.getColor(getContext(), R.color.dark_gray);
+            } else if (mPollutantFilter != null) {
+                linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), getContext());
+            } else {
+                linear_color = AQI.getLinearColor(station.getMaxAqi(), getContext());
+            }
+            shapeDrawable.setColorFilter(linear_color, PorterDuff.Mode.MULTIPLY);
             iconGen.setBackground(shapeDrawable);
 
             View view = new View(getContext());
@@ -627,14 +636,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 else
                     aqi = station.station.getMaxAqi();
                 if (average_aqi == null) average_aqi = aqi;
-                average_aqi = (average_aqi + aqi)/2;
+                average_aqi = (average_aqi + aqi) / 2;
             }
-            if(average_aqi == null) average_aqi = 0;
+            if (average_aqi == null) average_aqi = 0;
             int clusterColor = AQI.getColor(average_aqi, mContext);
 
             int bucket = this.getBucket(cluster);
             BitmapDescriptor descriptor = this.mIcons.get(bucket);
-            if(descriptor == null) {
+            if (descriptor == null) {
                 this.mColoredCircleBackground.getPaint().setColor(clusterColor);
                 descriptor = BitmapDescriptorFactory.fromBitmap(
                         this.mIconGenerator.makeIcon(this.getClusterText(bucket)));
@@ -649,7 +658,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(-2, -2);
             squareTextView.setLayoutParams(layoutParams);
             squareTextView.setId(com.google.maps.android.R.id.text);
-            int twelveDpi = (int)(12.0F * this.mDensity);
+            int twelveDpi = (int) (12.0F * this.mDensity);
             squareTextView.setPadding(twelveDpi, twelveDpi, twelveDpi, twelveDpi);
             return squareTextView;
         }
@@ -663,7 +672,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             outline.getPaint().setColor(clusterOutlineColor);
             LayerDrawable background = new LayerDrawable(
                     new Drawable[]{outline, this.mColoredCircleBackground});
-            int strokeWidth = (int)(this.mDensity * 3.0F);
+            int strokeWidth = (int) (this.mDensity * 3.0F);
             background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
             return background;
         }

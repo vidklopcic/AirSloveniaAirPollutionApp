@@ -181,7 +181,11 @@ public class MeasuringStation extends RealmObject {
     }
 
     public boolean hasData() {
-        if (new Date().getTime() - getLastUpdateTime() < Constants.MINUTES * Constants.SECONDS * Constants.MILLIS) {
+        return wasUpdated() && getMaxAqi() > 0;
+    }
+
+    public boolean wasUpdated() {
+        if (new Date().getTime() - getLastUpdateTime() < Constants.ARSOStation.update_interval) {
             return true;
         } else {
             return false;
@@ -260,7 +264,6 @@ public class MeasuringStation extends RealmObject {
         for (MeasuringStation station : stations) {
             for (int i = 0; i < Constants.AQI.supported_pollutants.size(); i++) {
                 String pollutant_name = Constants.AQI.supported_pollutants.get(i);
-                Double value = station.getPollutant(pollutant_name);
                 Integer aqi_val = station.getAqi(pollutant_name);
                 if (aqi_val != null && 0 <= aqi_val && aqi_val <= Constants.AQI.SUM) {
                     if (aqi.containsKey(pollutant_name)) {

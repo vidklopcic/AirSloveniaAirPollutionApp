@@ -185,7 +185,7 @@ public class OverviewBarChart extends Fragment {
         if (mAQIBars == null) return null;
         ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(stations);
         mStations = stations;
-        if (averages == null) return null;
+        if (averages == null || averages.get(MeasuringStation.AVERAGES_POLLUTANTS).size() == 0) return null;
         List<String> bar_pollutants = new ArrayList<>(mAQIBars.keySet());
         for (String parameter : bar_pollutants)
             if (!averages.get(MeasuringStation.AVERAGES_POLLUTANTS).containsKey(parameter)) removeBar(parameter);
