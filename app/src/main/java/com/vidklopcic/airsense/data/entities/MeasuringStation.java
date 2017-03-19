@@ -3,6 +3,8 @@ package com.vidklopcic.airsense.data.entities;
 import android.util.Log;
 
 import com.vidklopcic.airsense.data.Constants;
+import com.vidklopcic.airsense.data.Gson.Measurement;
+import com.vidklopcic.airsense.data.Gson.PollutionMeasurement;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.util.AQI;
 import com.vidklopcic.airsense.util.Conversion;
@@ -330,16 +332,13 @@ public class MeasuringStation extends RealmObject {
                 .lessThan("measurement_time", end_utc).findAll();
     }
 
-    public void setMeasurements(Realm r, JSONArray measurements) {
+    public void setMeasurements(Realm r, List<Measurement> measurements) {
         r.beginTransaction();
         Long oldest_in_list = null;
-        for (int i = 0; i < measurements.length(); i++) {
-            try {
-                Date date = stringToDate(measurements.getJSONObject(i).getString(Constants.ARSOStation.time_key));
-                if (date != null) {
-                    JSONObject measurement = measurements.getJSONObject(i);
-                    String pollutant = measurement.getString(Constants.ARSOStation.pollutant_name_key);
-
+        for (int i = 0; i < measurements.size(); i++) {
+            Date date = measurements.get(i).getTime();
+            if (date != null) {
+                for (PollutionMeasurement measurement : measurements.get(i).getPollutants()) {
                     if (getOldestRangeRequest() == null
                             || date.getTime() < getOldestRangeRequest()
                             || date.getTime() > getLastRangeUpdateTime()) {
@@ -348,12 +347,11 @@ public class MeasuringStation extends RealmObject {
                         StationMeasurement.createForNested(
                                 r,
                                 this,
-                                date.getTime() + 2 * Constants.MINUTES * Constants.SECONDS * Constants.MILLIS, // add 2 hours - tmp fix because of CitiSense server issue (UTC is off)
-                                pollutant,
-                                measurement.getDouble(Constants.ARSOStation.value_key));
+                                date.getTime(),
+                                measurement.property,
+                                measurement.ug_m3);
                     }
                 }
-            } catch (JSONException ignored) {
             }
         }
         if (oldest_in_list != null) {

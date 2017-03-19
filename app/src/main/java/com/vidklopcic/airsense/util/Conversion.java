@@ -9,9 +9,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
+import java.util.TimeZone;
 
 public abstract class Conversion {
+    public static class Time {
+        public static String dateToString(Date date) {
+            SimpleDateFormat format = new SimpleDateFormat(Constants.API.time_format);
+            format.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return format.format(date);
+        }
+
+        public static Date stringToDate(String time) {
+            SimpleDateFormat format = new SimpleDateFormat(Constants.API.time_format);
+            format.setTimeZone(TimeZone.getTimeZone("UTC"));
+            try {
+                return format.parse(time);
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+    }
+
     public static class IO {
         public static String inputStreamToString(InputStream is) {
             BufferedReader r = new BufferedReader(new InputStreamReader(is));

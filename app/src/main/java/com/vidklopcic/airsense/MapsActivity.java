@@ -343,8 +343,17 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
             // Try to obtain the map from the SupportMapFragment.
-            ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMapAsync(this);
+            SupportMapFragment map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
+            map.getMapAsync(this);
+            View v = map.getView();
+            if (v != null) {
+                v.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        positionMap();
+                    }
+                });
+            }
         }
     }
 
@@ -416,7 +425,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mOverlay = new MapOverlay(this, mMap);
         setUpMap();
         setUpClusterer();
-        positionMap();
     }
 
 
@@ -432,7 +440,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                             new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
             }
             mMapPositioned = true;
-        } catch (IllegalStateException ignored) {
+        } catch (Exception ignored) {
         }
     }
 

@@ -14,6 +14,12 @@ public abstract class Constants {
     public static final String TEMPERATURE_UNIT = "°C";
     public static final String HUMIDITY_UNIT = "%";
 
+    // new api
+    public static class API {
+        public static final String base_url = "http://airsense.cu.cc/api/";
+        public static final String time_format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    }
+
     public static class DataSources {
         public static final String config_version_url = "http://pastebin.com/raw/RQnbq08t";
         public static final String config_url = "http://pastebin.com/raw/P1dnQb0L";

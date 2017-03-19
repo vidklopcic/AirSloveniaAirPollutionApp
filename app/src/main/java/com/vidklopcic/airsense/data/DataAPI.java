@@ -5,20 +5,31 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.vidklopcic.airsense.data.Gson.Measurement;
+import com.vidklopcic.airsense.data.Gson.MeasurementRangeParams;
 import com.vidklopcic.airsense.data.Serializers.ARSOMeasurements;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.util.Network;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DataAPI {
     private static final String LOG_ID = "DataAPI";
@@ -181,55 +192,60 @@ public class DataAPI {
         Long limit;
         List<String> mStationIds;
         DataRangeListener mListener;
+        API.AirSense mAirSenseApi;
+
 
         public GetDataRangeTask(List<MeasuringStation> stations, Long limit, DataRangeListener listener) {
             this.limit = limit;
             mListener = listener;
             mStationIds = MeasuringStation.stationsToIdList(stations);
+            mAirSenseApi = API.initApi();
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-//            Realm realm = Realm.getDefaultInstance();
-//            List<MeasuringStation> stations = MeasuringStation.idListToStations(realm, mStationIds);
-//            for (MeasuringStation station : stations) {
-//                long startUpdateTask = 0;
-//                long end = 0;
-//                if (station.getLastRangeUpdateTime() == null || station.getOldestStoredMeasurementTime() == null) {
-//                    if (limit < new Date().getTime()) {
-//                        startUpdateTask = limit;
-//                        end = new Date().getTime();
-//                    }
-//                } else if (station.getLastRangeUpdateTime() == null || limit+ Constants.ARSOStation.update_interval < station.getOldestRangeRequest()) {
-//                    startUpdateTask = limit;
-//                    end = station.getOldestRangeRequest();
-//                } else if (new Date().getTime()- Constants.ARSOStation.update_interval > station.getLastRangeUpdateTime()) {
-//                    startUpdateTask = station.getLastRangeUpdateTime();
-//                    end = new Date().getTime();
-//                }
-//
-//                if (startUpdateTask != 0 && end != 0) {
-//                    String start_date = MeasuringStation.dateToString(new Date(startUpdateTask));
-//                    String end_date = MeasuringStation.dateToString(new Date(end));
-//
-//                    mUrl = Constants.ARSOStation.measurement_range_url
-//                            .replace(Constants.ARSOStation.measurement_range_url_start, start_date)
-//                            .replace(Constants.ARSOStation.measurement_range_url_end, end_date);
-//
-//                    String id = station.getStationId();
-//                    try {
-//                        JSONArray measurements = new JSONArray(Network.GET(mUrl.replace(Constants.ARSOStation.measurement_range_url_id, id)));
-//                        station.setMeasurements(realm, measurements);
-//                        if (station.getLastRangeUpdateTime() == null || end > station.getLastRangeUpdateTime())
-//                            station.setLastRangeUpdateTime(realm, end);
-//                        if (station.getOldestRangeRequest() == null || startUpdateTask < station.getOldestRangeRequest())
-//                            station.setOldestRangeRequest(realm, startUpdateTask);
-//
-//                    } catch (IOException | JSONException ignored) {
-//                    }
-//                }
-//            }
-//            return null;
+            Realm realm = Realm.getDefaultInstance();
+            List<MeasuringStation> stations = MeasuringStation.idListToStations(realm, mStationIds);
+            for (final MeasuringStation station : stations) {
+                long startUpdateTask = 0;
+                long end = 0;
+                if (station.getLastRangeUpdateTime() == null || station.getOldestStoredMeasurementTime() == null) {
+                    if (limit < new Date().getTime()) {
+                        startUpdateTask = limit;
+                    }
+                } else if (station.getLastRangeUpdateTime() == null || limit+ Constants.ARSOStation.update_interval < station.getOldestRangeRequest()) {
+                    startUpdateTask = limit;
+                    end = station.getOldestRangeRequest();
+                } else if (new Date().getTime()- Constants.ARSOStation.update_interval > station.getLastRangeUpdateTime()) {
+                    startUpdateTask = station.getLastRangeUpdateTime();
+                }
+
+                if (startUpdateTask != 0) {
+                    if (startUpdateTask < (new Date().getTime() - 3*24*60*60*1000)) {
+                        startUpdateTask = new Date().getTime() - 3*24*60*60*1000;
+                    }
+
+                    String id = station.getStationId();
+
+                    if (end == 0) {
+                        end = new Date().getTime();
+                    }
+                    final long finalEnd = end;
+                    final long finalStartUpdateTask = startUpdateTask;
+                    Call<Measurement[]> result = mAirSenseApi.getMeasurementsRange(id, new MeasurementRangeParams(new Date(startUpdateTask), new Date(end)));
+                    try {
+                        Response<Measurement[]> c = result.execute();
+                        if (c.isSuccessful()) {
+                            List<Measurement> measurements = Arrays.asList(c.body());
+                            station.setMeasurements(realm, measurements);
+                            if (station.getLastRangeUpdateTime() == null || finalEnd > station.getLastRangeUpdateTime())
+                                station.setLastRangeUpdateTime(realm, finalEnd);
+                            if (station.getOldestRangeRequest() == null || finalStartUpdateTask < station.getOldestRangeRequest())
+                                station.setOldestRangeRequest(realm, finalStartUpdateTask);
+                        }
+                    } catch (IOException ignored) {}
+                }
+            }
             return null;
         }
 

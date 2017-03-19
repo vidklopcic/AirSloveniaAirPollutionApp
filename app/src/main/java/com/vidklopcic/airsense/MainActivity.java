@@ -47,6 +47,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private SwipeRefreshLayout mSwipeRefresh;
     private Realm mRealm;
     private SlidingUpPanelLayout mFavoritesSlidingMenu;
+    private boolean mNoData = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,9 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             @Override
             public void onRefresh() {
                 mDataAPI.updateData();
+                if (mNoData) {
+                    mSwipeRefresh.setRefreshing(false);
+                }
             }
         });
         mSwipeRefresh.post(new Runnable() {
@@ -174,13 +178,19 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
 
         mBounds = bounds;
         mCity = city;
-        if ((mSavedState.getCity() != null && !mSavedState.getCity().equals(bounds)) || mSavedState.getCity() == null) {
+        if ((mSavedState.getCity() != null && !mSavedState.getBounds().equals(bounds)) || mSavedState.getCity() == null) {
             mSavedState.setCity(mRealm, city, bounds);
         }
+
         mStations = MeasuringStation.getStationsInArea(mRealm, bounds);
         mDataAPI.setObservedStations(mStations);
         ArrayList<HashMap<String, Integer>> averages = mAqiOverviewFragment.updateGraph(mStations);
         updateDashboard(averages);
+        if (averages == null) {
+            setNoData();
+        } else {
+            mNoData = false;
+        }
     }
 
 
@@ -226,6 +236,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     private void setNoData() {
         mCityText.setText(getString(R.string.no_data_available));
         mSwipeRefresh.setRefreshing(false);
+        mNoData = true;
     }
 
     private void setFetchingData() {
