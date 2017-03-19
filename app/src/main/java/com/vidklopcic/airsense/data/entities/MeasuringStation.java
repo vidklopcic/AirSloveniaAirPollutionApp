@@ -14,7 +14,6 @@ import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,7 +43,7 @@ public class MeasuringStation extends RealmObject {
     @PrimaryKey
     String id;
     Integer config_version;
-    Long last_range_update_time;
+    Long last_measurement_time;
     Long last_update_time;
     String last_measurement;
     Long oldest_stored_measurement;
@@ -83,13 +82,13 @@ public class MeasuringStation extends RealmObject {
         return station;
     }
 
-    public Long getLastRangeUpdateTime() {
-        return last_range_update_time;
+    public Long getLastMeasurementTime() {
+        return last_measurement_time;
     }
 
-    public void setLastRangeUpdateTime(Realm r, Long time) {
+    public void setLastMeasurementTime(Realm r, Long time) {
         r.beginTransaction();
-        last_range_update_time = time;
+        last_measurement_time = time;
         r.commitTransaction();
     }
 
@@ -332,16 +331,21 @@ public class MeasuringStation extends RealmObject {
                 .lessThan("measurement_time", end_utc).findAll();
     }
 
-    public void setMeasurements(Realm r, List<Measurement> measurements) {
+    public long setMeasurements(Realm r, List<Measurement> measurements) {
+        Long lmt = getLastMeasurementTime();
+        if (lmt == null) {
+            lmt = 0L;
+        }
         r.beginTransaction();
-        Long oldest_in_list = null;
+        Long oldest_in_list = getOldestStoredMeasurementTime();
         for (int i = 0; i < measurements.size(); i++) {
             Date date = measurements.get(i).getTime();
             if (date != null) {
                 for (PollutionMeasurement measurement : measurements.get(i).getPollutants()) {
                     if (getOldestRangeRequest() == null
                             || date.getTime() < getOldestRangeRequest()
-                            || date.getTime() > getLastRangeUpdateTime()) {
+                            || date.getTime() > getLastMeasurementTime()) {
+                        lmt = date.getTime();
                         if (oldest_in_list == null || oldest_in_list > date.getTime())
                             oldest_in_list = date.getTime();
                         StationMeasurement.createForNested(
@@ -358,7 +362,7 @@ public class MeasuringStation extends RealmObject {
             setOldestStoredMeasurement(oldest_in_list);
         }
         r.commitTransaction();
-
+        return lmt;
     }
 
     public static Date stringToDate(String time) {

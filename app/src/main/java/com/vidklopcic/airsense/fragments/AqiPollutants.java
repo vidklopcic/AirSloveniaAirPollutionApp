@@ -47,7 +47,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private LayoutInflater mInflater;
     private LinearLayout mContainer;
     private Context mContext;
-    private long mStartDate;
+    private Long mStartDate;
     private HashMap<String, LinearLayout> mPollutantCards;
     private HashMap<String, ArrayList<Entry>> mYData;
     private ArrayList<String> mXData;
@@ -121,7 +121,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     }
 
     @Override
-    public void update(ArrayList<MeasuringStation> stations) {
+    public void update(final ArrayList<MeasuringStation> stations) {
         mStations = stations;
         mShouldUpdate = true;
         if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null || mContainer == null)
@@ -131,13 +131,18 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         mShouldUpdate = false;
 
         mRefreshLayout.setRefreshing(true);
-        mStartDate = new Date().getTime() - DATA_LEN_MILLIS;
+        mStartDate = new Date().getTime()-DATA_LEN_MILLIS;
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
             @Override
             public void onDataRetrieved(List<String> station_ids, Long limit) {
                 List<StationMeasurement> measurements = MeasuringStation.idListToStations(mRealm, station_ids)
                         .get(0)
                         .getMeasurementsInRange(mRealm, mStartDate, mStartDate + DATA_LEN_MILLIS);
+                mStartDate = stations.get(0).getLastMeasurementTime();
+                if (mStartDate == null) {
+                    mStartDate = new Date().getTime();
+                }
+                mStartDate -= DATA_LEN_MILLIS - TICK_INTERVAL_MILLIS*4;
                 mYData = PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements);
                 for (String pollutant : Constants.AQI.supported_pollutants) {
                     if (mYData.containsKey(pollutant)) {

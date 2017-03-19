@@ -124,6 +124,12 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     public void onDataRetrieved(List<String> station_ids, Long limit) {
         mLockUpdate = false;
         List<StationMeasurement> measurements = mStations.get(0).getMeasurementsInRange(mRealm, limit, limit + DATA_SET_LEN_MILLIS);
+        if (station_ids.size() == 1) {
+            MeasuringStation station = MeasuringStation.idListToStations(mRealm, station_ids).get(0);
+            if (station.getLastMeasurementTime() != null) {
+                mStartDate = station.getLastMeasurementTime() - DATA_SET_LEN_MILLIS + TICK_INTERVAL_MILLIS*4;
+            }
+        }
         setYData(PollutantsChart.measurementsToYData(mStartDate, TICK_INTERVAL_MILLIS, measurements));
     }
 

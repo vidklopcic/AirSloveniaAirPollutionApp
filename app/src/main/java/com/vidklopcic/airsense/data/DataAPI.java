@@ -12,23 +12,17 @@ import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.util.Network;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 public class DataAPI {
@@ -209,15 +203,15 @@ public class DataAPI {
             for (final MeasuringStation station : stations) {
                 long startUpdateTask = 0;
                 long end = 0;
-                if (station.getLastRangeUpdateTime() == null || station.getOldestStoredMeasurementTime() == null) {
+                if (station.getLastMeasurementTime() == null || station.getOldestStoredMeasurementTime() == null) {
                     if (limit < new Date().getTime()) {
                         startUpdateTask = limit;
                     }
-                } else if (station.getLastRangeUpdateTime() == null || limit+ Constants.ARSOStation.update_interval < station.getOldestRangeRequest()) {
+                } else if (station.getLastMeasurementTime() == null || limit+ Constants.ARSOStation.update_interval < station.getOldestRangeRequest()) {
                     startUpdateTask = limit;
                     end = station.getOldestRangeRequest();
-                } else if (new Date().getTime()- Constants.ARSOStation.update_interval > station.getLastRangeUpdateTime()) {
-                    startUpdateTask = station.getLastRangeUpdateTime();
+                } else if (new Date().getTime() - Constants.ARSOStation.update_interval > station.getLastMeasurementTime()) {
+                    startUpdateTask = station.getLastMeasurementTime();
                 }
 
                 if (startUpdateTask != 0) {
@@ -230,22 +224,20 @@ public class DataAPI {
                     if (end == 0) {
                         end = new Date().getTime();
                     }
-                    final long finalEnd = end;
-                    final long finalStartUpdateTask = startUpdateTask;
+
                     Call<Measurement[]> result = mAirSenseApi.getMeasurementsRange(id, new MeasurementRangeParams(new Date(startUpdateTask), new Date(end)));
                     try {
                         Response<Measurement[]> c = result.execute();
                         if (c.isSuccessful()) {
                             List<Measurement> measurements = Arrays.asList(c.body());
-                            station.setMeasurements(realm, measurements);
-                            if (station.getLastRangeUpdateTime() == null || finalEnd > station.getLastRangeUpdateTime())
-                                station.setLastRangeUpdateTime(realm, finalEnd);
-                            if (station.getOldestRangeRequest() == null || finalStartUpdateTask < station.getOldestRangeRequest())
-                                station.setOldestRangeRequest(realm, finalStartUpdateTask);
+                            station.setLastMeasurementTime(realm, station.setMeasurements(realm, measurements));
+                            if (station.getOldestRangeRequest() == null || startUpdateTask < station.getOldestRangeRequest())
+                                station.setOldestRangeRequest(realm, startUpdateTask);
                         }
                     } catch (IOException ignored) {}
                 }
             }
+            realm.close();
             return null;
         }
 

@@ -234,6 +234,9 @@ public class LocationHelper implements LocationListener {
                 addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
                 if (addresses.size() > 0) {
                     String city = addresses.get(0).getLocality();
+                    if (city == null) {
+                        return "";
+                    }
                     addresses_plus = gcdp.getFromLocationName(city);
                     if (addresses_plus.size() > 0) {
                         Area v = addresses_plus.get(0).getViewPort();
@@ -243,7 +246,7 @@ public class LocationHelper implements LocationListener {
                     }
                     return city;
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 return "Ljubljana";
             }
             return null;
