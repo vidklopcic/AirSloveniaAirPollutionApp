@@ -59,8 +59,8 @@ public abstract class Constants {
         public static final String SO2_KEY = "SO2";
         public static final String PM10_KEY = "PM10";
         public static final String O3_KEY = "O3";
-        public static final String HUMIDITY_KEY = "Relative Humidity";
-        public static final String TEMPERATURE_KEY = "Temperature";
+        public static final String HUMIDITY_KEY = "humidity";
+        public static final String TEMPERATURE_KEY = "temperature";
     }
 
     public static class Map {

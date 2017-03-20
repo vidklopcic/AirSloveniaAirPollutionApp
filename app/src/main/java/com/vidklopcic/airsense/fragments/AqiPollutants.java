@@ -8,12 +8,17 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.components.YAxis;
 import com.vidklopcic.airsense.R;
+import com.vidklopcic.airsense.anim.HeightResizeAnimation;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
@@ -39,13 +44,14 @@ import io.realm.Realm;
 
 
 public class AqiPollutants extends Fragment implements PullUpBase {
-    private static final int DATA_LEN_MINS = 12 * Constants.MINUTES;
+    private static final int DATA_LEN_MINS = 3 * 24 * Constants.MINUTES;
     private static final int DATA_LEN_MILLIS = DATA_LEN_MINS * Constants.SECONDS * Constants.MILLIS;
     private static final int TICK_INTERVAL_MINS = 15;
     private static final int TICK_INTERVAL_MILLIS = TICK_INTERVAL_MINS * Constants.SECONDS * Constants.MILLIS;
     private Realm mRealm;
     private LayoutInflater mInflater;
     private LinearLayout mContainer;
+    private ScrollView mScrollContainer;
     private Context mContext;
     private Long mStartDate;
     private HashMap<String, LinearLayout> mPollutantCards;
@@ -54,6 +60,9 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private SwipeRefreshLayout mRefreshLayout;
     private ArrayList<MeasuringStation> mStations;
     private boolean mShouldUpdate = false;
+    private Integer mOriginalCardHeight;
+    boolean mScrollIsLocked = false;
+    View mExpandedCard;
 
     public AqiPollutants() {
         mXData = new ArrayList<>();
@@ -91,6 +100,13 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         mContext = view.getContext();
         mInflater = inflater;
         mContainer = (LinearLayout) view.findViewById(R.id.pollutant_cards_container);
+        mScrollContainer = (ScrollView) view.findViewById(R.id.pollutant_cards_scroll_container);
+        mScrollContainer.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return mScrollIsLocked;
+            }
+        });
         mRefreshLayout.post(new Runnable() {
             @Override
             public void run() {
@@ -112,7 +128,18 @@ public class AqiPollutants extends Fragment implements PullUpBase {
                 update(mStations);
             }
         });
+        if (mExpandedCard != null) {
+            collapseCard(mExpandedCard);
+        }
         return view;
+    }
+
+    public boolean backPressed() {
+        if (mExpandedCard == null) {
+            return false;
+        }
+        collapseCard(mExpandedCard);
+        return true;
     }
 
     @Override
@@ -159,9 +186,75 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         });
     }
 
+
+    public void expandCard(View view) {
+        Integer target_height = (int) (mScrollContainer.getHeight()/1.3);
+        int[] view_location = new int[2];
+        view.getLocationOnScreen(view_location);
+        int[] scroll_location = new int[2];
+        mScrollContainer.getLocationOnScreen(scroll_location);
+        int target = mScrollContainer.getScrollY()+view_location[1]-scroll_location[1]-mScrollContainer.getHeight()/2+target_height/2;
+        HeightResizeAnimation resizeAnimation = new HeightResizeAnimation(
+                view,
+                target_height,
+                mScrollContainer,
+                target
+        );
+
+        resizeAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+        resizeAnimation.setDuration(200);
+        view.startAnimation(resizeAnimation);
+        LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
+        chart.setTouchEnabled(true);
+        chart.setScaleMinima(1f, 1f);
+        mScrollIsLocked = true;
+        mExpandedCard = view;
+    }
+
+    public void collapseCard(View view) {
+        LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
+        chart.setTouchEnabled(false);
+        chart.setScaleMinima(6f, 1f);
+        chart.setScaleX(6f);
+        chart.moveViewToX(mXData.size() - 1);
+        HeightResizeAnimation resizeAnimation = new HeightResizeAnimation(
+                view,
+                mOriginalCardHeight,
+                null,
+                null
+        );
+        resizeAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+        resizeAnimation.setDuration(200);
+        view.startAnimation(resizeAnimation);
+        mExpandedCard = null;
+        mScrollIsLocked = false;
+    }
+
     public void addPollutant(String name) {
-        LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(
+        final LinearLayout pollutant_card = (LinearLayout) mInflater.inflate(
                 R.layout.fragment_pollutant_cards_pollutant_layout, mContainer, false);
+        pollutant_card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (view.getHeight() == mOriginalCardHeight) {
+                    if (mExpandedCard != null) {
+                        collapseCard(mExpandedCard);
+                    } else {
+                        expandCard(view);
+                    }
+                } else {
+                    collapseCard(view);
+                }
+            }
+        });
+        pollutant_card.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOriginalCardHeight == null) {
+                    mOriginalCardHeight = pollutant_card.getHeight();
+                }
+            }
+        });
         mContainer.addView(pollutant_card);
         mPollutantCards.put(name, pollutant_card);
     }
@@ -187,7 +280,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         ((TextView) pollutant_card.findViewById(R.id.pollutant_aqi_value)).setText(aqi.toString());
     }
 
-    public void setPollutantGraph(String name) {
+    public LineChart setPollutantGraph(String name) {
         LineChart chart = (LineChart) mPollutantCards.get(name).findViewById(R.id.pollutant_graph_card_chart);
         LineDataSet ydata = new LineDataSet(mYData.get(name), "");
 
@@ -217,7 +310,11 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         chart.getXAxis().setTextColor(white);
         chart.getXAxis().setDrawGridLines(false);
         chart.setTouchEnabled(false);
+        chart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
+        chart.setScaleMinima(6f, 1f);
         chart.setData(data);
+        chart.setHighlightPerTapEnabled(false);
+        chart.setHighlightPerDragEnabled(false);
 
         chart.getXAxis().setValueFormatter(new XAxisValueFormatter() {
             @Override
@@ -226,5 +323,6 @@ public class AqiPollutants extends Fragment implements PullUpBase {
             }
         });
         chart.invalidate();
+        return chart;
     }
 }

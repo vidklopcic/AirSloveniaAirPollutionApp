@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.Gson.Measurement;
+import com.vidklopcic.airsense.data.Gson.OtherMeasurement;
 import com.vidklopcic.airsense.data.Gson.PollutionMeasurement;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.util.AQI;
@@ -53,6 +54,8 @@ public class MeasuringStation extends RealmObject {
     public Double O3;
     public Double CO;
     public Double NO2;
+    public Double temperature;
+    public Double humidity;
 
     public MeasuringStation() {
     }
@@ -274,16 +277,22 @@ public class MeasuringStation extends RealmObject {
                         aqi.put(pollutant_name, aqi_val);
                     }
                 }
+            }
 
-// vcasih za humidity itd..
-//                    } else {
-//                        if (other.containsKey(pollutant_name)) {
-//                            other.put(pollutant_name, (other.get(pollutant_name) + value.intValue())/2);
-//                        } else {
-//                            other.put(pollutant_name, value.intValue());
-//                        }
-//                    }
+            if (station.temperature != null) {
+                if (other.containsKey(Constants.ARSOStation.TEMPERATURE_KEY)) {
+                    other.put(Constants.ARSOStation.TEMPERATURE_KEY, (other.get(Constants.ARSOStation.TEMPERATURE_KEY) + station.temperature.intValue()) / 2);
+                } else {
+                    other.put(Constants.ARSOStation.TEMPERATURE_KEY, station.temperature.intValue());
+                }
+            }
 
+            if (station.humidity != null) {
+                if (other.containsKey(Constants.ARSOStation.HUMIDITY_KEY)) {
+                    other.put(Constants.ARSOStation.HUMIDITY_KEY, (other.get(Constants.ARSOStation.HUMIDITY_KEY) + station.humidity.intValue()) / 2);
+                } else {
+                    other.put(Constants.ARSOStation.HUMIDITY_KEY, station.humidity.intValue());
+                }
             }
         }
         result.add(aqi);
@@ -346,8 +355,9 @@ public class MeasuringStation extends RealmObject {
                     if (getOldestRangeRequest() == null
                             || date.getTime() < getOldestStoredMeasurementTime()
                             || date.getTime() > getLastMeasurementTime()) {
-
-                        lmt = date.getTime();
+                        if (lmt < date.getTime()) {
+                            lmt = date.getTime();
+                        }
                         if (oldest_in_list == null || oldest_in_list > date.getTime())
                             oldest_in_list = date.getTime();
                         StationMeasurement.createForNested(
@@ -358,8 +368,33 @@ public class MeasuringStation extends RealmObject {
                                 measurement.ug_m3);
                     }
                 }
+
+                for (OtherMeasurement measurement : measurements.get(i).getOthers()) {
+                    if (getOldestRangeRequest() == null
+                            || date.getTime() < getOldestStoredMeasurementTime()
+                            || date.getTime() > getLastMeasurementTime()) {
+
+                        if (lmt <= date.getTime()) {
+                            if (measurement.property.equals(Constants.ARSOStation.TEMPERATURE_KEY)) {
+                                temperature = measurement.value;
+                            } else if (measurement.property.equals(Constants.ARSOStation.HUMIDITY_KEY)) {
+                                humidity = measurement.value;
+                            }
+                            lmt = date.getTime();
+                        }
+                        if (oldest_in_list == null || oldest_in_list > date.getTime())
+                            oldest_in_list = date.getTime();
+                        StationMeasurement.createForNested(
+                                r,
+                                this,
+                                date.getTime(),
+                                measurement.property,
+                                measurement.value);
+                    }
+                }
             }
         }
+
         if (oldest_in_list != null) {
             setOldestStoredMeasurement(oldest_in_list);
         }

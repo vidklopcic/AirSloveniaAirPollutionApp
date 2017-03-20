@@ -142,6 +142,14 @@ public class MapPullUpPager {
         update();
     }
 
+    public boolean backPressed() {
+        if (mCurrentFragment == null) return false;
+        if (mCurrentFragmentType == CurrentFragment.CARDS) {
+            return mAqiPollutantsFragment.backPressed();
+        }
+        return false;
+    }
+
     public void update() {
         if (mDataSource == null)
             close();

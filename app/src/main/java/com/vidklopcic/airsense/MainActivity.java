@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.data.entities.SavedState;
@@ -222,12 +224,18 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
         if (averages == null) return;
         mSwipeRefresh.setRefreshing(false);
         HashMap<String, Integer> other = averages.get(MeasuringStation.AVERAGES_OTHER);
-//        String temp = other.get(Constants.ARSOStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
-//        String hum = other.get(Constants.ARSOStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
+        if (other.keySet().contains(Constants.ARSOStation.TEMPERATURE_KEY)) {
+            String temp = other.get(Constants.ARSOStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
+            mTemperatureText.setText(temp);
+        }
+
+        if (other.keySet().contains(Constants.ARSOStation.HUMIDITY_KEY)) {
+            String hum = other.get(Constants.ARSOStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
+            mHumidityText.setText(hum);
+        }
+
         mSubtitleContainer.setVisibility(View.VISIBLE);
         mCityText.setText(mCity);
-//        mTemperatureText.setText(temp);
-//        mHumidityText.setText(hum);
         int max_aqi_val = Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values());
         mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values())));
         mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));

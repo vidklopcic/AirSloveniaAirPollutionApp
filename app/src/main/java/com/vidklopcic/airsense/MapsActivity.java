@@ -111,6 +111,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private Realm mRealm;
     private boolean mMapPositioned = false;
     private ArrayList<Circle> mCircles;
+    private boolean mForwardBack = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -690,5 +691,16 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         protected boolean shouldRenderAsCluster(Cluster<ClusterStation> cluster) {
             return false;
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mPullUpPager.backPressed()) {
+                return true;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 }

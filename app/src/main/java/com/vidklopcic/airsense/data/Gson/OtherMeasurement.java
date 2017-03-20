@@ -9,10 +9,10 @@ import java.util.Date;
  */
 
 public class OtherMeasurement {
-    String property;
-    String time;
-    String text;
-    Double value;
+    public String property;
+    public String time;
+    public String text;
+    public Double value;
 
     public void setTime(Date t) {
         time = Conversion.Time.dateToString(t);

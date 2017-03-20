@@ -7,15 +7,18 @@ import android.util.Log;
 
 import com.vidklopcic.airsense.data.Gson.Measurement;
 import com.vidklopcic.airsense.data.Gson.MeasurementRangeParams;
+import com.vidklopcic.airsense.data.Gson.OtherMeasurement;
 import com.vidklopcic.airsense.data.Serializers.ARSOMeasurements;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
+import com.vidklopcic.airsense.util.Conversion;
 import com.vidklopcic.airsense.util.Network;
 
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +58,7 @@ public class DataAPI {
         } catch (NullPointerException e) {
             RealmConfiguration config = new RealmConfiguration.Builder(activity)
                     .name("citisense_cache")
-                    .schemaVersion(1)
+                    .schemaVersion(2)
                     .deleteRealmIfMigrationNeeded()
                     .build();
             Realm.setDefaultConfiguration(config);
@@ -88,6 +91,11 @@ public class DataAPI {
 
     class UpdateTask implements Runnable {
         List<String> mActiveStationsIds;
+        API.AirSense mAirSenseApi;
+
+        public UpdateTask() {
+            mAirSenseApi = API.initApi();
+        }
 
         @Override
         public void run() {
@@ -103,8 +111,21 @@ public class DataAPI {
                         Serializer serializer = new Persister();
                         ARSOMeasurements measurements = serializer.read(ARSOMeasurements.class, last_measurement);
                         for (ARSOStation station : measurements.stations) {
-                            MeasuringStation mstat = MeasuringStation.findById(realm, station.id);
-                            notifyStationUpdated(MeasuringStation.updateOrCreate(realm, station));
+                            MeasuringStation stat = MeasuringStation.updateOrCreate(realm, station);
+                            try {
+                                Response<Measurement> resp = mAirSenseApi.getLastMeasurement(station.id).execute();
+                                List<OtherMeasurement> other = resp.body().getOthers();
+                                realm.beginTransaction();
+                                for (OtherMeasurement measurement : other) {
+                                    if (measurement.property.equals(Constants.ARSOStation.HUMIDITY_KEY)) {
+                                        stat.humidity = measurement.value;
+                                    } else if (measurement.property.equals(Constants.ARSOStation.TEMPERATURE_KEY)) {
+                                        stat.temperature = measurement.value;
+                                    }
+                                }
+                                realm.commitTransaction();
+                            } catch (Exception ignored) {}
+                            notifyStationUpdated(stat);
                             updated = true;
                         }
 //                        for (com.vidklopcic.citisense.data.Serializers.ARSOStation arso : measurements.stations) {
@@ -228,7 +249,7 @@ public class DataAPI {
                         end = new Date().getTime();
                     }
 
-                    Call<Measurement[]> result = mAirSenseApi.getMeasurementsRange(id, new MeasurementRangeParams(new Date(startUpdateTask), new Date(end)));
+                    Call<Measurement[]> result = mAirSenseApi.getMeasurementsRange(id, Conversion.Time.dateToString(new Date(startUpdateTask)), Conversion.Time.dateToString(new Date(end)));
                     try {
                         Response<Measurement[]> c = result.execute();
                         if (c.isSuccessful()) {
