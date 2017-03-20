@@ -11,7 +11,7 @@
     <dimen name="dashboard_action_bar_height">75dp</dimen>
     <dimen name="action_bar_height">48dp</dimen>
     <dimen name="maps_pullup_buttons_height">60dp</dimen>
-    <dimen name="pollutant_overview_graph_card_height">120dp</dimen>
+    <dimen name="pollutant_overview_graph_card_height">140dp</dimen>
     <dimen name="pollutant_overview_graph_info_bar_height">25dp</dimen>
 
 </resources>

@@ -55,7 +55,7 @@
         <activity
             android:name="com.vidklopcic.airsense.MapsActivity"
             android:screenOrientation="portrait"
-            android:launchMode= "singleInstance"
+            android:launchMode= "singleTask"
             android:label="@string/title_activity_maps" >
         </activity>
     </application>

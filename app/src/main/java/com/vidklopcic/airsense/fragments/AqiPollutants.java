@@ -2,6 +2,7 @@ package com.vidklopcic.airsense.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.YAxis;
 import com.vidklopcic.airsense.R;
 import com.vidklopcic.airsense.anim.HeightResizeAnimation;
@@ -83,8 +85,10 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onPause() {
+        if (mExpandedCard != null)
+            collapseCard(mExpandedCard);
+        super.onPause();
     }
 
     @Override
@@ -207,6 +211,8 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         view.startAnimation(resizeAnimation);
         LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
         chart.setTouchEnabled(true);
+        chart.getAxisLeft().setLabelCount(6, true);
+        chart.getXAxis().resetLabelsToSkip();
         chart.setVisibleXRange(1, mXData.size());
         mScrollIsLocked = true;
         mExpandedCard = view;
@@ -232,6 +238,8 @@ public class AqiPollutants extends Fragment implements PullUpBase {
                 chart.setTouchEnabled(false);
                 chart.fitScreen();
                 chart.setVisibleXRange(mXData.size()/6, mXData.size()/6);
+                chart.getAxisLeft().setLabelCount(4, true);
+                chart.getXAxis().setLabelsToSkip(3);
                 chart.moveViewToX(mXData.size() - 1);
             }
         }, 100);
@@ -315,6 +323,20 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         LineData data = new LineData(mXData);
         data.addDataSet(ydata);
 
+        LimitLine ll1 = new LimitLine(2*mXData.size()/3+1);
+        ll1.setLineColor(Color.BLUE);
+        ll1.setLineWidth(1f);
+        ll1.setLabel("today");
+        ll1.setTextSize(13);
+        ll1.setTextColor(Color.BLUE);
+
+        LimitLine ll2 = new LimitLine(mXData.size()/3+1);
+        ll2.setLineColor(Color.BLUE);
+        ll2.setLineWidth(1f);
+        ll2.setLabel("yesterday");
+        ll2.setTextSize(13);
+        ll2.setTextColor(Color.BLUE);
+
         chart.setDescription(mContext.getString(R.string.measurements_from_past_12_hours));
         chart.setDescriptionColor(white);
         chart.getLegend().setEnabled(false);
@@ -324,11 +346,17 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         chart.getAxisLeft().setEnabled(true);
         chart.getAxisLeft().setAxisLineWidth(1);
         chart.getAxisLeft().setDrawGridLines(false);
+        chart.getAxisLeft().setLabelCount(4, true);
         chart.getAxisLeft().setAxisLineColor(white);
         chart.getAxisLeft().setTextColor(white);
+        chart.getAxisLeft().setTextSize(13);
         chart.getXAxis().setAxisLineColor(white);
         chart.getXAxis().setTextColor(white);
         chart.getXAxis().setDrawGridLines(false);
+        chart.getXAxis().setTextSize(13);
+        chart.getXAxis().setLabelsToSkip(3);
+        chart.getXAxis().addLimitLine(ll1);
+        chart.getXAxis().addLimitLine(ll2);
         chart.setTouchEnabled(false);
         chart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
         chart.setScaleMinima(6, 1);

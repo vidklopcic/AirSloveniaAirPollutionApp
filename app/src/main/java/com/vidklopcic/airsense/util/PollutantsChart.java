@@ -43,6 +43,9 @@ public abstract class PollutantsChart {
         if (start_date == null) return "";
         cal.setTimeInMillis(start_date + tick_interval_millis * index);
         cal.setTimeZone(TimeZone.getDefault());
+        if (cal.get(Calendar.MINUTE) == 0) {
+            return String.valueOf(Conversion.zfill(cal.get(Calendar.HOUR_OF_DAY), 2));
+        }
         return String.valueOf(Conversion.zfill(cal.get(Calendar.HOUR_OF_DAY), 2)) + ":"
                 + String.valueOf(Conversion.zfill(cal.get(Calendar.MINUTE), 2));
     }

@@ -9,8 +9,8 @@ android {
         applicationId "com.vidklopcic.airmonitoring"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 24
-        versionName "1.2.6"
+        versionCode 28
+        versionName "1.2.8"
     }
     buildTypes {
         release {

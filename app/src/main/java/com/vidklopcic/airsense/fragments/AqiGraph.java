@@ -1,6 +1,7 @@
 package com.vidklopcic.airsense.fragments;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -8,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.formatter.XAxisValueFormatter;
 import com.vidklopcic.airsense.R;
 import com.vidklopcic.airsense.data.Constants;
@@ -40,7 +42,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     boolean mLockUpdate = false;
     LineChart mChart;
     LineData mChartData;
-    ArrayList<String> mXdata;
+    ArrayList<String> mXData;
     Long mStartDate;
     ArrayList<MeasuringStation> mStations;
     Realm mRealm;
@@ -52,9 +54,9 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mXdata = new ArrayList<>();
-        for (int i=0;i<DATA_SET_LEN_MINS;i+=TICK_INTERVAL_MINS) mXdata.add("");
-        mChartData = new LineData(mXdata);
+        mXData = new ArrayList<>();
+        for (int i=0;i<DATA_SET_LEN_MINS;i+=TICK_INTERVAL_MINS) mXData.add("");
+        mChartData = new LineData(mXData);
     }
 
     @Override
@@ -83,9 +85,21 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
 
         mChart = (LineChart) view.findViewById(R.id.aqi_line_comparison_chart);
         mChart.setData(mChartData);
-        mChart.moveViewTo(mXdata.size() - 1, 0, YAxis.AxisDependency.LEFT);
+        mChart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
         mChart.setScaleMinima(3f, 1f);
         mChart.getAxisRight().setEnabled(false);
+        LimitLine ll1 = new LimitLine(2*mXData.size()/3);
+        ll1.setLineColor(Color.RED);
+        ll1.setLineWidth(1f);
+        ll1.setLabel("today");
+        ll1.setTextSize(13);
+        LimitLine ll2 = new LimitLine(mXData.size()/3);
+        ll2.setLineColor(Color.RED);
+        ll2.setLineWidth(1f);
+        ll2.setLabel("yesterday");
+        ll2.setTextSize(13);
+        mChart.getXAxis().addLimitLine(ll1);
+        mChart.getXAxis().addLimitLine(ll2);
         mChart.getXAxis().setValueFormatter(new XAxisValueFormatter() {
             @Override
             public String getXValue(String original, int index, ViewPortHandler viewPortHandler) {
