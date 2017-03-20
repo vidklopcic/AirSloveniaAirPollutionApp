@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.github.mikephil.charting.formatter.XAxisValueFormatter;
 import com.vidklopcic.airsense.R;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;

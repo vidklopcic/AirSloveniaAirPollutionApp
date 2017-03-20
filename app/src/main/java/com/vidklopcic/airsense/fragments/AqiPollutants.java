@@ -3,6 +3,7 @@ package com.vidklopcic.airsense.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
@@ -206,17 +207,36 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         view.startAnimation(resizeAnimation);
         LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
         chart.setTouchEnabled(true);
-        chart.setScaleMinima(1f, 1f);
+        chart.setVisibleXRange(1, mXData.size());
         mScrollIsLocked = true;
         mExpandedCard = view;
     }
 
-    public void collapseCard(View view) {
-        LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
-        chart.setTouchEnabled(false);
-        chart.setScaleMinima(6f, 1f);
-        chart.setScaleX(6f);
-        chart.moveViewToX(mXData.size() - 1);
+    public void collapseCard(final View view) {
+        final LineChart chart = (LineChart) view.findViewById(R.id.pollutant_graph_card_chart);
+
+        long downTime = SystemClock.uptimeMillis();
+        long eventTime = SystemClock.uptimeMillis() + 100;
+        MotionEvent motionEvent = MotionEvent.obtain(
+                downTime,
+                eventTime,
+                MotionEvent.ACTION_DOWN,
+                100,
+                100,
+                0
+        );
+        chart.dispatchTouchEvent(motionEvent);
+        chart.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                chart.setTouchEnabled(false);
+                chart.fitScreen();
+                chart.setVisibleXRange(mXData.size()/6, mXData.size()/6);
+                chart.moveViewToX(mXData.size() - 1);
+            }
+        }, 100);
+
+
         HeightResizeAnimation resizeAnimation = new HeightResizeAnimation(
                 view,
                 mOriginalCardHeight,
@@ -311,7 +331,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         chart.getXAxis().setDrawGridLines(false);
         chart.setTouchEnabled(false);
         chart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
-        chart.setScaleMinima(6f, 1f);
+        chart.setScaleMinima(6, 1);
         chart.setData(data);
         chart.setHighlightPerTapEnabled(false);
         chart.setHighlightPerDragEnabled(false);
