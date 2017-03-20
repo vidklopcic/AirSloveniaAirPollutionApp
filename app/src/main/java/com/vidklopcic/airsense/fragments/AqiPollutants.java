@@ -132,6 +132,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
 
         mRefreshLayout.setRefreshing(true);
         mStartDate = new Date().getTime()-DATA_LEN_MILLIS;
+        mStartDate += 3600000 - (mStartDate % 3600000);
         DataAPI.getMeasurementsInRange(stations, mStartDate, new DataAPI.DataRangeListener() {
             @Override
             public void onDataRetrieved(List<String> station_ids, Long limit) {

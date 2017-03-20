@@ -190,6 +190,9 @@ public class DataAPI {
 
 
         public GetDataRangeTask(List<MeasuringStation> stations, Long limit, DataRangeListener listener) {
+            if (limit>new Date().getTime()) {
+                limit = new Date().getTime();
+            }
             this.limit = limit;
             mListener = listener;
             mStationIds = MeasuringStation.stationsToIdList(stations);

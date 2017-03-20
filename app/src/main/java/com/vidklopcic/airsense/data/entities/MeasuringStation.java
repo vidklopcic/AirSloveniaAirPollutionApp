@@ -77,6 +77,7 @@ public class MeasuringStation extends RealmObject {
         station.SO2 = data.so2;
         station.O3 = data.o3;
         station.PM10 = data.pm10;
+        station.NO2 = data.no2;
         station.last_update_time = new Date().getTime();
         r.commitTransaction();
         return station;
@@ -343,8 +344,9 @@ public class MeasuringStation extends RealmObject {
             if (date != null) {
                 for (PollutionMeasurement measurement : measurements.get(i).getPollutants()) {
                     if (getOldestRangeRequest() == null
-                            || date.getTime() < getOldestRangeRequest()
+                            || date.getTime() < getOldestStoredMeasurementTime()
                             || date.getTime() > getLastMeasurementTime()) {
+
                         lmt = date.getTime();
                         if (oldest_in_list == null || oldest_in_list > date.getTime())
                             oldest_in_list = date.getTime();

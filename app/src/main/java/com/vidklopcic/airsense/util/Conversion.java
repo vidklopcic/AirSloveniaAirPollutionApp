@@ -98,6 +98,8 @@ public abstract class Conversion {
     }
 
     public static AQI getAQIbyKey(String key) {
+        if (key == null)
+            return null;
         switch (key) {
             case Constants.ARSOStation.CO_KEY:
                 return Conversion.AQI.CO;
