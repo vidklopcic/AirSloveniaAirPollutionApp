@@ -209,6 +209,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     @Override
     protected void onDestroy() {
         mRealm.close();
+        mDataApi.pauseUpdateTask();
         super.onDestroy();
     }
 
@@ -216,6 +217,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        mDataApi.resumeUpdateTask();
     }
 
     @Override

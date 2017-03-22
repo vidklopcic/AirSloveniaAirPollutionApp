@@ -34,8 +34,10 @@ public class DataAPI {
     private DataUpdateListener mListener;
     private boolean mForceUpdate = false;
     private boolean mFirstRun = true;
+    private boolean mShouldExitTask = false;
     private UpdateTask mUpdateTask;
     private Activity mContext;
+    private boolean mUpdateTaskIsRunning = false;
     public interface DataUpdateListener {
         void onDataReady();
         void onDataUpdate();
@@ -80,9 +82,20 @@ public class DataAPI {
     }
 
     private void startUpdateTask() {
+        if (mUpdateTaskIsRunning)
+            return;
         Thread t = new Thread(mUpdateTask);
         t.setDaemon(true);
         t.start();
+        mUpdateTaskIsRunning = true;
+    }
+
+    public void pauseUpdateTask() {
+        mShouldExitTask = true;
+    }
+
+    public void resumeUpdateTask() {
+        startUpdateTask();
     }
 
     public static void getMeasurementsInRange(List<MeasuringStation> stations, Long limit_millis, DataRangeListener listener) {
@@ -101,7 +114,7 @@ public class DataAPI {
         public void run() {
             Realm realm = Realm.getDefaultInstance();
             try {
-                while (true) {
+                while (!mShouldExitTask) {
                     updateStations();
                     Boolean updated = false;
                     try {
@@ -128,23 +141,6 @@ public class DataAPI {
                             notifyStationUpdated(stat);
                             updated = true;
                         }
-//                        for (com.vidklopcic.citisense.data.Serializers.ARSOStation arso : measurements.stations) {
-//                            MeasuringStation station = MeasuringStation.create(realm, arso);
-//
-//                            if (new Date().getTime() - station.getLastUpdateTime()
-//                                    > Constants.ARSOStation.update_interval || mForceUpdate) {
-//                                updated = true;
-//                                try {
-//                                    String last_measurement = Network.GET(Constants.ARSOStation.last_measurement_url);
-//                                    station.setLastMeasurement(realm, last_measurement);
-//                                } catch (IOException e) {
-//                                    Log.d(LOG_ID, "couldn't get last measurement for " + station.getStationId());
-//                                } catch (JSONException e) {
-//                                    Log.d(LOG_ID, "couldn't parse last measurement for " + station.getStationId());
-//                                }
-//                                notifyStationUpdated(station);
-//                            }
-//                        }
                     } catch (IOException e) {
                         Log.d(LOG_ID, "couldn't get last measurements");
                     } catch (Exception e) {
@@ -156,7 +152,7 @@ public class DataAPI {
                     try {
                         Long s = new Date().getTime();
                         Long end = s + Constants.ARSOStation.update_interval;
-                        while (new Date().getTime() < end && !mForceUpdate) {
+                        while (new Date().getTime() < end && !mForceUpdate && !mShouldExitTask) {
                             Thread.sleep(10);
                         }
                     } catch (InterruptedException ignored) {}
@@ -164,6 +160,9 @@ public class DataAPI {
             } finally {
                 realm.close();
             }
+            realm.close();
+            mShouldExitTask = false;
+            mUpdateTaskIsRunning = false;
         }
 
         private void updateStations() {
@@ -203,7 +202,6 @@ public class DataAPI {
     }
 
     static class GetDataRangeTask extends AsyncTask<Void, Void, Void> {
-        String mUrl;
         Long limit;
         List<String> mStationIds;
         DataRangeListener mListener;

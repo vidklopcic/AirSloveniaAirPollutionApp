@@ -78,6 +78,19 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         super.onDetach();
     }
 
+    public void updateLimitLines() {
+        if (mChart == null)
+            return;
+        mChart.getXAxis().removeAllLimitLines();
+        LimitLine[] ll = PollutantsChart.getLimitLines(mStartDate, mXData.size(), TICK_INTERVAL_MILLIS);
+        ll[0].setLineColor(Color.RED);
+        ll[1].setLineColor(Color.RED);
+        ll[2].setLineColor(Color.RED);
+        mChart.getXAxis().addLimitLine(ll[0]);
+        mChart.getXAxis().addLimitLine(ll[1]);
+        mChart.getXAxis().addLimitLine(ll[2]);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -88,18 +101,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         mChart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
         mChart.setScaleMinima(3f, 1f);
         mChart.getAxisRight().setEnabled(false);
-        LimitLine ll1 = new LimitLine(2*mXData.size()/3);
-        ll1.setLineColor(Color.RED);
-        ll1.setLineWidth(1f);
-        ll1.setLabel("today");
-        ll1.setTextSize(13);
-        LimitLine ll2 = new LimitLine(mXData.size()/3);
-        ll2.setLineColor(Color.RED);
-        ll2.setLineWidth(1f);
-        ll2.setLabel("yesterday");
-        ll2.setTextSize(13);
-        mChart.getXAxis().addLimitLine(ll1);
-        mChart.getXAxis().addLimitLine(ll2);
+        updateLimitLines();
         mChart.getXAxis().setValueFormatter(new XAxisValueFormatter() {
             @Override
             public String getXValue(String original, int index, ViewPortHandler viewPortHandler) {
@@ -125,6 +127,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
                 new Date().getTime() - DATA_SET_LEN_MILLIS < mStartDate+DATA_SET_LEN_MILLIS) return;
         mStartDate = new Date().getTime() - DATA_SET_LEN_MILLIS;
         mStartDate += 3600000 - (mStartDate % 3600000);
+        updateLimitLines();
         if (stations != null && stations.size() == 1) {
             mStations = stations;
         }

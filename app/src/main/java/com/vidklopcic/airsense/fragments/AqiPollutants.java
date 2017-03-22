@@ -316,26 +316,13 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         ydata.setCircleColor(white);
         ydata.setCircleRadius(3);
         ydata.setDrawCubic(true);
+        ydata.setCubicIntensity(0.1f);
         ydata.setLineWidth(2);
         ydata.setColor(white);
         ydata.setDrawValues(false);
 
         LineData data = new LineData(mXData);
         data.addDataSet(ydata);
-
-        LimitLine ll1 = new LimitLine(2*mXData.size()/3+1);
-        ll1.setLineColor(Color.BLUE);
-        ll1.setLineWidth(1f);
-        ll1.setLabel("today");
-        ll1.setTextSize(13);
-        ll1.setTextColor(Color.BLUE);
-
-        LimitLine ll2 = new LimitLine(mXData.size()/3+1);
-        ll2.setLineColor(Color.BLUE);
-        ll2.setLineWidth(1f);
-        ll2.setLabel("yesterday");
-        ll2.setTextSize(13);
-        ll2.setTextColor(Color.BLUE);
 
         chart.setDescription(mContext.getString(R.string.measurements_from_past_12_hours));
         chart.setDescriptionColor(white);
@@ -355,11 +342,14 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         chart.getXAxis().setDrawGridLines(false);
         chart.getXAxis().setTextSize(13);
         chart.getXAxis().setLabelsToSkip(3);
-        chart.getXAxis().addLimitLine(ll1);
-        chart.getXAxis().addLimitLine(ll2);
-        chart.setTouchEnabled(false);
-        chart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
-        chart.setScaleMinima(6, 1);
+        updateLimitLines(chart);
+
+        if (mExpandedCard != mPollutantCards.get(name)) {
+            chart.setTouchEnabled(false);
+            chart.moveViewTo(mXData.size() - 1, 0, YAxis.AxisDependency.LEFT);
+            chart.setScaleMinima(6, 1);
+        }
+
         chart.setData(data);
         chart.setHighlightPerTapEnabled(false);
         chart.setHighlightPerDragEnabled(false);
@@ -372,5 +362,19 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         });
         chart.invalidate();
         return chart;
+    }
+
+    public void updateLimitLines(LineChart chart) {
+        chart.getXAxis().removeAllLimitLines();
+        LimitLine[] ll = PollutantsChart.getLimitLines(mStartDate, mXData.size(), TICK_INTERVAL_MILLIS);
+        ll[0].setLineColor(Color.BLUE);
+        ll[1].setLineColor(Color.BLUE);
+        ll[2].setLineColor(Color.BLUE);
+        ll[0].setTextColor(Color.BLUE);
+        ll[1].setTextColor(Color.BLUE);
+        ll[2].setTextColor(Color.BLUE);
+        chart.getXAxis().addLimitLine(ll[0]);
+        chart.getXAxis().addLimitLine(ll[1]);
+        chart.getXAxis().addLimitLine(ll[2]);
     }
 }

@@ -113,6 +113,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
     public void onPause() {
         super.onPause();
         mDataAPI.setObservedStations(new ArrayList<MeasuringStation>());
+        mDataAPI.pauseUpdateTask();
     }
 
     @Override
@@ -128,6 +129,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
             }
         }
         mDataAPI.setObservedStations(mStations);
+        mDataAPI.resumeUpdateTask();
     }
 
     private void setLocationDisabled() {

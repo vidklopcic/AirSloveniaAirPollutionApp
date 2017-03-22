@@ -1,5 +1,6 @@
 package com.vidklopcic.airsense.util;
 
+import com.github.mikephil.charting.components.LimitLine;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.entities.StationMeasurement;
 import com.github.mikephil.charting.data.Entry;
@@ -56,5 +57,35 @@ public abstract class PollutantsChart {
         public int compare(Entry lhs, Entry rhs) {
             return Integer.valueOf(lhs.getXIndex()).compareTo(rhs.getXIndex());
         }
+    }
+
+    public static LimitLine[] getLimitLines(Long start_date, Integer xDataSize, Integer tick_interval_millis) {
+        if (start_date == null)
+            return null;
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(start_date+xDataSize*tick_interval_millis);
+        cal.setTimeZone(TimeZone.getDefault());
+        int hours_in_millis = cal.get(Calendar.HOUR_OF_DAY)*Constants.MINUTES*Constants.SECONDS*Constants.MILLIS;
+        LimitLine l1 = new LimitLine(xDataSize-hours_in_millis/tick_interval_millis);
+        LimitLine l2 = new LimitLine(
+                (xDataSize-hours_in_millis/tick_interval_millis)
+                - (Constants.HOURS*Constants.MINUTES*Constants.SECONDS*Constants.MILLIS)/tick_interval_millis);
+        LimitLine l3 = new LimitLine(
+                (xDataSize-hours_in_millis/tick_interval_millis)
+                        - 2*(Constants.HOURS*Constants.MINUTES*Constants.SECONDS*Constants.MILLIS)/tick_interval_millis);
+        LimitLine[] result = new LimitLine[3];
+        l1.setLabel("today");
+        l2.setLabel("yesterday");
+        l3.setLabel("the day before yesterday");
+        l1.setTextSize(13);
+        l2.setTextSize(13);
+        l3.setTextSize(13);
+        l1.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        l2.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        l3.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        result[0] = l1;
+        result[1] = l2;
+        result[2] = l3;
+        return result;
     }
 }
