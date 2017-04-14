@@ -68,7 +68,7 @@ public class AqiOverview extends Fragment implements PullUpBase {
 
     public ArrayList<HashMap<String, Integer>> updateGraph(List<MeasuringStation> stations) {
         if (mGraphFragment == null) return null;
-        ArrayList<HashMap<String, Integer>> averages = mGraphFragment.updateGraph(stations);
+        ArrayList<HashMap<String, Integer>> averages = mGraphFragment.update(stations);
         if (averages != null && averages.get(MeasuringStation.AVERAGES_POLLUTANTS).size() > 0) {
             int max_aqi_val = Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values());
             mAQISummary.setAqi(max_aqi_val);
@@ -77,8 +77,8 @@ public class AqiOverview extends Fragment implements PullUpBase {
     }
 
     @Override
-    public void update(ArrayList<MeasuringStation> stations) {
-        updateGraph(stations);
+    public ArrayList<HashMap<String, Integer>> update(List<MeasuringStation> stations) {
+        return updateGraph(stations);
     }
 
 

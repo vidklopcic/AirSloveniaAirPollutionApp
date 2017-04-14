@@ -34,7 +34,6 @@
                 android:layout_height="wrap_content" />
             <LinearLayout
                 android:id="@+id/actionbar_aqi_subtitle_container"
-                android:visibility="invisible"
                 android:layout_below="@id/actionbar_title_text"
                 android:orientation="horizontal"
                 android:gravity="center"

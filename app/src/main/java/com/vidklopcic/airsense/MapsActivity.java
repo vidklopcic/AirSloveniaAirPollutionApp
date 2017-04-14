@@ -3,23 +3,24 @@ package com.vidklopcic.airsense;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
-import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.transition.Fade;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,6 +40,7 @@ import com.vidklopcic.airsense.data.DataAPI;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.data.entities.FavoritePlace;
 import com.vidklopcic.airsense.data.entities.SavedState;
+import com.vidklopcic.airsense.fragments.AqiOverview;
 import com.vidklopcic.airsense.fragments.MapCards;
 import com.vidklopcic.airsense.util.AQI;
 import com.vidklopcic.airsense.util.Conversion;
@@ -75,6 +77,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -83,6 +86,7 @@ import io.realm.RealmResults;
 
 
 public class MapsActivity extends FragmentActivity implements LocationHelper.LocationHelperListener, PlaceSelectionListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, ClusterManager.OnClusterItemClickListener<MapsActivity.ClusterStation>, DataAPI.DataUpdateListener, FABPollutants.FABPollutantsListener {
+    public static final float DASHBOARD_HEIGHT = 0.4f;
     private MapOverlay mOverlay;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private LocationHelper mLocation;
@@ -101,6 +105,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private String mPollutantFilter;
     private LinearLayout mActionBarContainer;
     private Integer mActionBarHeight;
+    private Integer mDashboardBarHeight;
     private EditText mActionBarTitle;
     private String mPOIAddress;
     private boolean mActionBarHasAddress = false;
@@ -110,18 +115,44 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private boolean mPOIIsFavorite = false;
     private Realm mRealm;
     private boolean mMapPositioned = false;
+    private boolean mMapRestored = false;
     private ArrayList<Circle> mCircles;
-    private boolean mForwardBack = false;
+    private boolean mDashboardVisible = false;
+    private TextView mCityText;
+    private TextView mTemperatureText;
+    private TextView mHumidityText;
+    private TextView mAqiNameSubtitle;
+    private RelativeLayout mDashboardBarContainer;
+    private boolean mDashboardDismissed = false;
+    private int mAnchoredHeight = 0;
+    private List<MeasuringStation> mCityStations;
+    private boolean mIsDuringChange = false;
+    private LatLngBounds mPrevBounds;
+    private View mTouchBlockView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_maps);
+        mCityText = (TextView) findViewById(R.id.dashboard_title_text);
+        mTemperatureText = (TextView) findViewById(R.id.actionbar_temperature_text);
+        mHumidityText = (TextView) findViewById(R.id.actionbar_humidity_text);
+        mAqiNameSubtitle = (TextView)findViewById(R.id.actionbar_aqi_text);
+
+        mTouchBlockView = (View) findViewById(R.id.touch_block_view);
+        mTouchBlockView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
+        unblockTouch();
+
         mRealm = DataAPI.getRealmOrCreateInstance(this);
         mStationsOnMap = new HashMap<>();
         mCircles = new ArrayList<>();
         mSavedState = SavedState.getSavedState(mRealm);
         mDataApi = new DataAPI(this);
-        setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         mMenu = UI.getSlidingMenu(getWindowManager(), this);
         final PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
@@ -144,11 +175,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mSlidingPane.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View view, float v) {
-
+                mIsDuringChange = true;
+                blockTouch();
             }
 
             @Override
             public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState panelState, SlidingUpPanelLayout.PanelState panelState1) {
+                mIsDuringChange = false;
+                unblockTouch();
                 if (panelState1 == SlidingUpPanelLayout.PanelState.EXPANDED) {
                     mMapCardsFragment.hide();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
@@ -157,16 +191,27 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     mPullUpPager.setOverviewFragment();
                     mSlidingPane.setEnabled(false);
                 } else if (panelState1 == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+                    mSlidingPane.setAnchorPoint(1f);
                     mMapCardsFragment.show();
                     mPullUpPager.close();
                     mActionBarContainer.startAnimation(new BackgroundColorAnimation(
                             mActionBarContainer,
                             ContextCompat.getColor(getContext(), R.color.maps_blue)));
+                } else if (panelState1 == SlidingUpPanelLayout.PanelState.ANCHORED) {
+                    mSlidingPane.setEnabled(false);
+                } else if (panelState1 == SlidingUpPanelLayout.PanelState.HIDDEN) {
+                    mSlidingPane.setAnchorPoint(1f);
                 }
             }
         });
 
+        mSlidingPane.setCoveredFadeColor(ContextCompat.getColor(this, R.color.transparent));
+
         mActionBarContainer = (LinearLayout) findViewById(R.id.maps_action_bar);
+        mDashboardBarContainer = (RelativeLayout) findViewById(R.id.dashboard_bar_container);
+
+        mDashboardBarHeight = (int) getResources().getDimension(R.dimen.dashboard_action_bar_height);
+        mDashboardBarContainer.animate().translationY(-mDashboardBarHeight).setDuration(0).start();
         mActionBarHeight = (int) getResources().getDimension(R.dimen.action_bar_height);
         mActionBarContainer.animate().translationY(-mActionBarHeight).setDuration(0).start();
         mActionBarTitle = (EditText) findViewById(R.id.actionbar_title_text);
@@ -204,11 +249,22 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mPullUpPager = new MapPullUpPager(this);
         mFavoritesStar = (ImageView) findViewById(R.id.actionbar_favorites_button);
         mActionBarTitle.setEnabled(false);
+        mPullUpPager.setDashboardOverviewFragment();
+        getWindow().getDecorView().post(new Runnable() {
+            @Override
+            public void run() {
+                mAnchoredHeight = (int) (DASHBOARD_HEIGHT*(mSlidingPane.getMeasuredHeight()-mSlidingPane.getPanelHeight()-getResources().getDimension(R.dimen.action_bar_height))+mSlidingPane.getPanelHeight());
+                mPullUpPager.setDashboardBarHeight(mAnchoredHeight);
+                mSavedState = SavedState.getSavedState(mRealm);
+                if (mLocation.isLocationEnabled() && mSavedState.getCity() != null) {
+                    onCityChange(mSavedState.getCity(), mSavedState.getBounds());
+                }
+            }
+        });
     }
 
     @Override
     protected void onDestroy() {
-        mRealm.close();
         mDataApi.pauseUpdateTask();
         super.onDestroy();
     }
@@ -226,6 +282,13 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     private void removePointOfInterest() {
+        if (mIsDuringChange)
+            return;
+        if (mDashboardVisible) {
+            hideDashboard();
+            mDashboardDismissed = true;
+            return;
+        }
         if (mCurrentMarker != null)
             mCurrentMarker.remove();
         mActionBarTitle.setEnabled(false);
@@ -240,8 +303,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     private void setPointOfInterest(LatLng poi, Marker marker) {
-        if (mCurrentMarker != null)
+        if (mIsDuringChange)
+            return;
+        if (mDashboardVisible) {
+            hideDashboard();
+        }
+        if (mCurrentMarker != null) {
             mCurrentMarker.remove();
+        }
         mPointOfInterest = poi;
         mCurrentMarker = marker;
         mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
@@ -280,9 +349,67 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         return super.dispatchTouchEvent(event);
     }
 
+    private void blockTouch() {
+        mTouchBlockView.setVisibility(View.VISIBLE);
+    }
+
+    private void unblockTouch() {
+        mTouchBlockView.setVisibility(View.GONE);
+    }
+
     public void clearActionBarData() {
         mActionBarTitle.setText("...");
         mActionBarHasAddress = false;
+    }
+
+    public void showDashboard() {
+        if (mDashboardVisible || mDashboardDismissed || !mLocation.isLocationEnabled() || mIsDuringChange)
+            return;
+        mDashboardVisible = true;
+        mDashboardBarContainer.animate().translationY(0).setDuration(400).start();
+        mSearchContaienr.animate().alpha(0).setDuration(400).start();
+        mSlidingPane.setAnchorPoint(DASHBOARD_HEIGHT);
+        mPullUpPager.setDashboardOverviewFragment();
+        mSlidingPane.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCityStations != null && mCityStations.size() > 0) {
+                    mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+                    mPullUpPager.setDataSource(mCityStations);
+                }
+            }
+        });
+    }
+
+    public void hideDashboard() {
+        if (!mDashboardVisible || mIsDuringChange)
+            return;
+        if (mPrevBounds != null) {
+            blockTouch();
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mPrevBounds, 0), new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    unblockTouch();
+                }
+
+                @Override
+                public void onCancel() {
+                    unblockTouch();
+                }
+            });
+            mPrevBounds = null;
+        }
+        mDashboardVisible = false;
+        mDashboardBarContainer.animate().translationY(-mDashboardBarHeight).setDuration(200).start();
+        mSearchContaienr.animate().alpha(1).setDuration(400).start();
+        mSlidingPane.setEnabled(true);
+        mSlidingPane.post(new Runnable() {
+            @Override
+            public void run() {
+                mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+                mPullUpPager.close();
+            }
+        });
     }
 
     public void showActionBar() {
@@ -328,11 +455,33 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onBackPressed() {
+        if (mIsDuringChange)
+            return;
         if (mSlidingPane.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             removePointOfInterest();
         } else if (mSlidingPane.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
             mSlidingPane.setEnabled(true);
             mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else if (!mDashboardVisible) {
+            if (mLocation.isLocationEnabled()) {
+                mPrevBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+                mDashboardDismissed = false;
+                showDashboard();
+                mMapPositioned = false;
+                positionMap(true);
+            } else if (mLocation.locationIsTurnedOn()) {
+                mPrevBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+                mLocation.startLocationReading();
+                mDashboardDismissed = false;
+                showDashboard();
+                mMapPositioned = false;
+                positionMap(true);
+            } else {
+                    mDashboardVisible = true;
+                    mDashboardBarContainer.animate().translationY(0).setDuration(400).start();
+                    mSearchContaienr.animate().alpha(0).setDuration(400).start();
+                    mCityText.setText("Location is disabled");
+            }
         } else {
             super.onBackPressed();
         }
@@ -353,7 +502,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 v.post(new Runnable() {
                     @Override
                     public void run() {
-                        positionMap();
+                        positionMap(true);
                     }
                 });
             }
@@ -374,8 +523,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mDataApi.setDataUpdateListener(this);
         mLocation = new LocationHelper(this);
-        mLocation.startLocationReading();
-        if (mLocation.hasPermission()) mMap.setMyLocationEnabled(true);
+        if (mLocation.hasPermission()) {
+            mLocation.startLocationReading();
+            mMap.setMyLocationEnabled(true);
+        }
         mLocation.setLocationHelperListener(this);
     }
 
@@ -385,7 +536,51 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCityChange(String city, LatLngBounds bounds) {
+        if (bounds == null) {
+            hideDashboard();
+            return;
+        }
 
+        if ((mSavedState.getCity() != null && !mSavedState.getBounds().equals(bounds)) || mSavedState.getCity() == null) {
+            mSavedState.setCity(mRealm, city, bounds);
+        }
+
+        mCityStations = MeasuringStation.getStationsInArea(mRealm, bounds);
+        positionMap(false);
+        if (mDashboardDismissed) {
+            return;
+        }
+        mPullUpPager.setDashboardOverviewFragment();
+        mPullUpPager.setDataSource(mCityStations);
+        ArrayList<HashMap<String, Integer>> averages = mPullUpPager.update();
+        if (averages == null) {
+            hideDashboard();
+            mCityText.setText("No data for your location");
+        } else {
+            updateDashboard(averages, city);
+            mMapPositioned = false;
+            positionMap(true);
+            showDashboard();
+        }
+    }
+
+    private void updateDashboard(ArrayList<HashMap<String, Integer>> averages, String city) {
+        if (averages == null) return;
+        HashMap<String, Integer> other = averages.get(MeasuringStation.AVERAGES_OTHER);
+        if (other.keySet().contains(Constants.ARSOStation.TEMPERATURE_KEY)) {
+            String temp = other.get(Constants.ARSOStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
+            mTemperatureText.setText(temp);
+        }
+
+        if (other.keySet().contains(Constants.ARSOStation.HUMIDITY_KEY)) {
+            String hum = other.get(Constants.ARSOStation.HUMIDITY_KEY).toString() + Constants.HUMIDITY_UNIT;
+            mHumidityText.setText(hum);
+        }
+
+        mCityText.setText(city);
+        int max_aqi_val = Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values());
+        mAqiNameSubtitle.setText(AQI.toText(Collections.max(averages.get(MeasuringStation.AVERAGES_POLLUTANTS).values())));
+        mAqiNameSubtitle.setTextColor(getResources().getColor(AQI.getColor(max_aqi_val)));
     }
 
     public void onMenuClicked(View view) {
@@ -397,9 +592,31 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mCurrentPlace = place;
         LatLngBounds bounds = mCurrentPlace.getViewport();
         if (bounds != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mCurrentPlace.getViewport(), 0));
+            blockTouch();
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mCurrentPlace.getViewport(), 0), new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    unblockTouch();
+                }
+
+                @Override
+                public void onCancel() {
+                    unblockTouch();
+                }
+            });
         } else {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), Constants.Map.default_zoom));
+            blockTouch();
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), Constants.Map.default_zoom), new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    unblockTouch();
+                }
+
+                @Override
+                public void onCancel() {
+                    unblockTouch();
+                }
+            });
         }
     }
 
@@ -417,6 +634,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mMap.setMyLocationEnabled(true);
+                    mLocation.startLocationReading();
                 }
             }
         }
@@ -431,18 +649,51 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
 
-    private void positionMap() {
+    private void positionMap(boolean dashboard) {
+        if (mMapPositioned || mDashboardDismissed)
+            return;
         try {
             LatLngBounds lastviewport = mSavedState.getLastViewport();
-            if (lastviewport != null) {
+            if (mLocation.getRegionBounds() != null) {
+                if (dashboard)
+                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
+                blockTouch();
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getRegionBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
+                        unblockTouch();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        unblockTouch();
+                    }
+                });
+                mMapPositioned = true;
+                mMap.setPadding(0, 0, 0, 0);
+            } else if (mLocation.getCountryBounds() != null) {
+                if (dashboard)
+                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
+                blockTouch();
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getCountryBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        unblockTouch();
+                        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        unblockTouch();
+                    }
+                });
+                mMapPositioned = true;
+                mMap.setPadding(0, 0, 0, 0);
+            } else if (lastviewport != null && !mMapRestored) {
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
-            } else {
-                Location location = mLocation.getLocation();
-                if (location != null)
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(), location.getLongitude()), Constants.Map.default_zoom));
+                mMapRestored = true;
             }
-            mMapPositioned = true;
         } catch (Exception ignored) {
         }
     }
@@ -452,23 +703,23 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         if (station.wasUpdated() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Integer linear_color;
-            if (!station.hasData()) {
-                linear_color = ContextCompat.getColor(this, R.color.gray);
-            } else if (mPollutantFilter != null) {
-                linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), this);
-            } else {
-                linear_color = AQI.getLinearColor(station.getMaxAqi(), this);
-            }
-            if (station.hasData()) {
-                CircleOptions circleOptions = new CircleOptions()
-                        .center(station.getLocation())   //set center
-                        .radius(1000)   //set radius in meters
-                        .fillColor(Conversion.adjustAlpha(linear_color, 0.3f))  //default
-                        .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
-                        .strokeWidth(5);
-
-                mCircles.add(mMap.addCircle(circleOptions));
-            }
+//            if (!station.hasData()) {
+//                linear_color = ContextCompat.getColor(this, R.color.gray);
+//            } else if (mPollutantFilter != null) {
+//                linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), this);
+//            } else {
+//                linear_color = AQI.getLinearColor(station.getMaxAqi(), this);
+//            }
+//            if (station.hasData()) {
+//                CircleOptions circleOptions = new CircleOptions()
+//                        .center(station.getLocation())   //set center
+//                        .radius(1000)   //set radius in meters
+//                        .fillColor(Conversion.adjustAlpha(linear_color, 0.3f))  //default
+//                        .strokeColor(Conversion.adjustAlpha(linear_color, 0.6f))
+//                        .strokeWidth(5);
+//
+//                mCircles.add(mMap.addCircle(circleOptions));
+//            }
             Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
             mStationsOnMap.put(station, new_c_station);
             mClusterManager.addItem(new_c_station);
@@ -512,11 +763,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             addStationToMap(station);
         }
 
-        if (!mMapPositioned) {
-            positionMap();
-            mMapPositioned = true;
-        }
-        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
         mRealm.refresh();
         mClusterManager.onCameraChange(cameraPosition);
 

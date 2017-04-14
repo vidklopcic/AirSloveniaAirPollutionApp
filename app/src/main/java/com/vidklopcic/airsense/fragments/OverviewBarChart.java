@@ -3,7 +3,6 @@ package com.vidklopcic.airsense.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,13 +15,17 @@ import com.vidklopcic.airsense.R;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.util.AQI;
+import com.vidklopcic.airsense.util.Conversion;
 import com.vidklopcic.airsense.util.anim.AqiBarAnimation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class OverviewBarChart extends Fragment {
+public class OverviewBarChart extends Fragment implements PullUpBase {
+    public static final String LAYOUT_ARG = "layout_arg";
+    private Integer mHeight;
+
     public interface OnFragmentLoadedListener {
         void onLoaded();
     }
@@ -57,12 +60,22 @@ public class OverviewBarChart extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_aqi_bar_chart, container, false);
+        View view;
+        Bundle args = getArguments();
+        if (args != null && args.getInt(LAYOUT_ARG, -1) != -1) {
+            view = inflater.inflate(args.getInt(LAYOUT_ARG), container, false);
+        } else {
+            view = inflater.inflate(R.layout.fragment_aqi_bar_chart, container, false);
+        }
+        if (mHeight != null) {
+            mAQIBarsContainerHeight = null;
+        }
         mAqiChartContainer = (RelativeLayout) view.findViewById(R.id.aqi_overview_chart_container);
         mAQIBarsContainer = (LinearLayout) view.findViewById(R.id.aqi_chart_bars_layout);
         mAQILabelsContainer = (LinearLayout) view.findViewById(R.id.aqi_overview_x_labels_container);
         mContext = view.getContext();
         mInflater = inflater;
+
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -70,9 +83,14 @@ public class OverviewBarChart extends Fragment {
                     public void run() {
                         if (mAQIBarsContainerHeight == null) {
                             if (mStations != null) {
-                                updateGraph(mStations);
+                                update(mStations);
                             }
-                            mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
+                            if (mHeight == null) {
+                                mAQIBarsContainerHeight = mAQIBarsContainer.getHeight();
+                            } else {
+                                mAQIBarsContainerHeight = mHeight - (int)getResources().getDimension(R.dimen.pollutant_label_bar_height)*2;
+                                setHeight(mHeight);
+                            }
                             setChartRange((float) (mChartRange-Constants.AQI.BAR_OFFSET));
                         }
                     }
@@ -86,6 +104,14 @@ public class OverviewBarChart extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    public void setHeight(int height) {
+        mHeight = height;
+        View view = getView();
+        if (view != null) {
+            view.getLayoutParams().height = height;
+        }
     }
 
     public void addBar(Integer aqi, String label_text) {
@@ -156,6 +182,9 @@ public class OverviewBarChart extends Fragment {
         }
         TextView subtitle = (TextView)label.findViewById(R.id.aqi_subtitle);
         subtitle.setText(aqi.toString());
+        if (getContext() != null) {
+            label.setBackgroundColor((AQI.getLinearColor(aqi, getContext()) & 0x00FFFFFF) | 0xDD000000);
+        }
     }
 
     private void setChartRange(Float max_aqi) {
@@ -181,7 +210,7 @@ public class OverviewBarChart extends Fragment {
         return max_aqi;
     }
 
-    public ArrayList<HashMap<String, Integer>> updateGraph(List<MeasuringStation> stations) {
+    public ArrayList<HashMap<String, Integer>> update(List<MeasuringStation> stations) {
         if (mAQIBars == null) return null;
         ArrayList<HashMap<String, Integer>> averages = MeasuringStation.getAverages(stations);
         mStations = stations;

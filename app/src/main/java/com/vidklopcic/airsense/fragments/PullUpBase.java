@@ -3,7 +3,9 @@ package com.vidklopcic.airsense.fragments;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public interface PullUpBase {
-    void update(ArrayList<MeasuringStation> stations);
+    ArrayList<HashMap<String, Integer>> update(List<MeasuringStation> stations);
 }

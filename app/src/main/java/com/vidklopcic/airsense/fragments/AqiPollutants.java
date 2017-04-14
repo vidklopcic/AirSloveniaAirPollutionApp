@@ -61,7 +61,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     private HashMap<String, ArrayList<Entry>> mYData;
     private ArrayList<String> mXData;
     private SwipeRefreshLayout mRefreshLayout;
-    private ArrayList<MeasuringStation> mStations;
+    private List<MeasuringStation> mStations;
     private boolean mShouldUpdate = false;
     private Integer mOriginalCardHeight;
     boolean mScrollIsLocked = false;
@@ -153,13 +153,13 @@ public class AqiPollutants extends Fragment implements PullUpBase {
     }
 
     @Override
-    public void update(final ArrayList<MeasuringStation> stations) {
+    public ArrayList<HashMap<String, Integer>> update(final List<MeasuringStation> stations) {
         mStations = stations;
         mShouldUpdate = true;
         if (stations == null || stations.size() != 1 || mRefreshLayout == null || mRealm == null || mContainer == null)
-            return;
+            return null;
         if (!ViewCompat.isAttachedToWindow(mContainer))
-            return;
+            return null;
         mShouldUpdate = false;
 
         mRefreshLayout.setRefreshing(true);
@@ -189,6 +189,7 @@ public class AqiPollutants extends Fragment implements PullUpBase {
                 mRefreshLayout.setRefreshing(false);
             }
         });
+        return null;
     }
 
 
@@ -315,8 +316,6 @@ public class AqiPollutants extends Fragment implements PullUpBase {
         int white = ContextCompat.getColor(mContext, R.color.white);
         ydata.setCircleColor(white);
         ydata.setCircleRadius(3);
-        ydata.setDrawCubic(true);
-        ydata.setCubicIntensity(0.1f);
         ydata.setLineWidth(2);
         ydata.setColor(white);
         ydata.setDrawValues(false);

@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/AqiChartLabel.layout">
-    <TextView style="@style/AqiChartLabel"
-        android:id="@+id/aqi_text"/>
-    <TextView style="@style/AqiChartLabel.subtitle"
-        android:id="@+id/aqi_subtitle"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white">
+    </View>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+        <TextView style="@style/AqiChartLabel"
+            android:id="@+id/aqi_text"/>
+        <TextView style="@style/AqiChartLabel.subtitle"
+            android:textColor="@color/white"
+            android:id="@+id/aqi_subtitle"/>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/gray">
+    </View>
 </LinearLayout>

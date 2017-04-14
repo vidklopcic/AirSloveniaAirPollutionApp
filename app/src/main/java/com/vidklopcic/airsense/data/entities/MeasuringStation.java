@@ -262,7 +262,7 @@ public class MeasuringStation extends RealmObject {
     }
 
     public static ArrayList<HashMap<String, Integer>> getAverages(List<MeasuringStation> stations) {
-        if (stations.size() == 0) return null;
+        if (stations == null || stations.size() == 0) return null;
         ArrayList<HashMap<String, Integer>> result = new ArrayList<>();
         HashMap<String, Integer> aqi = new HashMap<>();
         HashMap<String, Integer> other = new HashMap<>();

@@ -44,7 +44,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     LineData mChartData;
     ArrayList<String> mXData;
     Long mStartDate;
-    ArrayList<MeasuringStation> mStations;
+    List<MeasuringStation> mStations;
     Realm mRealm;
     SwipeRefreshLayout mRefreshLayout;
 
@@ -124,9 +124,9 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
     }
 
     @Override
-    public void update(ArrayList<MeasuringStation> stations) {
+    public ArrayList<HashMap<String, Integer>> update(List<MeasuringStation> stations) {
         if (mStartDate != null &&
-                new Date().getTime() - DATA_SET_LEN_MILLIS < mStartDate+DATA_SET_LEN_MILLIS) return;
+                new Date().getTime() - DATA_SET_LEN_MILLIS < mStartDate+DATA_SET_LEN_MILLIS) return null;
         mStartDate = new Date().getTime() - DATA_SET_LEN_MILLIS;
         mStartDate += 3600000 - (mStartDate % 3600000);
         updateLimitLines();
@@ -138,6 +138,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
         mLockUpdate = true;
         if (mRefreshLayout != null)
             mRefreshLayout.setRefreshing(true);
+        return null;
     }
 
     @Override

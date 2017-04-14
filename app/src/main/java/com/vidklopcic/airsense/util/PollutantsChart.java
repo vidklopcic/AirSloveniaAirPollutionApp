@@ -80,9 +80,9 @@ public abstract class PollutantsChart {
         l1.setTextSize(13);
         l2.setTextSize(13);
         l3.setTextSize(13);
-        l1.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
-        l2.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
-        l3.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        l1.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+        l2.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+        l3.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
         result[0] = l1;
         result[1] = l2;
         result[2] = l3;

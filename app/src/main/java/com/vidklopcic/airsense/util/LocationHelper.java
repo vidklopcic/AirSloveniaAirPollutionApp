@@ -40,6 +40,11 @@ public class LocationHelper implements LocationListener {
     LocationHelperListener mListener;
     boolean mLocationIsEnabled = false;
     boolean mDialogWasShown = false;
+    LatLngBounds mCountryBounds;
+    String mCountry;
+    LatLngBounds mRegionBounds;
+    String mRegion;
+
 
     public interface LocationHelperListener {
         void onLocationChanged(Location location);
@@ -61,6 +66,22 @@ public class LocationHelper implements LocationListener {
 
     public String getCity() {
         return mCity;
+    }
+
+    public String getRegion() {
+        return mRegion;
+    }
+
+    public String getCountry() {
+        return mCountry;
+    }
+
+    public LatLngBounds getRegionBounds() {
+        return mRegionBounds;
+    }
+
+    public LatLngBounds getCountryBounds() {
+        return mCountryBounds;
     }
 
     public LatLng getLatLng() {
@@ -118,9 +139,9 @@ public class LocationHelper implements LocationListener {
     public void startLocationReading() {
         if (!hasPermission() || isLocationEnabled()) return;
         if (!locationIsTurnedOn()) {
-            if (!mDialogWasShown)
-                askToTurnOnLocation();
-            mDialogWasShown = true;
+//            if (!mDialogWasShown)
+//                askToTurnOnLocation();
+//            mDialogWasShown = true;
         } else {
             mLocationIsEnabled = true;
             mBestLocation = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
@@ -229,22 +250,46 @@ public class LocationHelper implements LocationListener {
             Geocoder gcd = new Geocoder(mContext, Locale.getDefault());
             com.bricolsoftconsulting.geocoderplus.Geocoder gcdp = new com.bricolsoftconsulting.geocoderplus.Geocoder();
             List<Address> addresses;
-            List<com.bricolsoftconsulting.geocoderplus.Address> addresses_plus;
+            List<com.bricolsoftconsulting.geocoderplus.Address> addresses_plus = new ArrayList<>();
+            List<com.bricolsoftconsulting.geocoderplus.Address> country_plus = new ArrayList<>();
+            List<com.bricolsoftconsulting.geocoderplus.Address> region_plus = new ArrayList<>();
             try {
                 addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
                 if (addresses.size() > 0) {
                     String city = addresses.get(0).getLocality();
-                    if (city == null) {
-                        return "";
+                    mCountry = addresses.get(0).getCountryName();
+                    mRegion = addresses.get(0).getAdminArea();
+
+                    if (city != null) {
+                        addresses_plus = gcdp.getFromLocationName(city);
                     }
-                    addresses_plus = gcdp.getFromLocationName(city);
+                    if (mCountry != null) {
+                        country_plus = gcdp.getFromLocationName(mCountry);
+                    }
+                    if (mRegion != null) {
+                        region_plus = gcdp.getFromLocationName(mRegion);
+                    }
+
                     if (addresses_plus.size() > 0) {
                         Area v = addresses_plus.get(0).getViewPort();
                         Position sw = v.getSouthWest();
                         Position ne = v.getNorthEast();
                         mBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
                     }
-                    return city;
+                    if (country_plus.size() > 0) {
+                        Area v = country_plus.get(0).getViewPort();
+                        Position sw = v.getSouthWest();
+                        Position ne = v.getNorthEast();
+                        mCountryBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
+                    }
+                    if (region_plus.size() > 0) {
+                        Area v = region_plus.get(0).getViewPort();
+                        Position sw = v.getSouthWest();
+                        Position ne = v.getNorthEast();
+                        mRegionBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
+                    }
+
+                    return city == null ? "" : city;
                 }
             } catch (Exception e) {
                 return "Ljubljana";

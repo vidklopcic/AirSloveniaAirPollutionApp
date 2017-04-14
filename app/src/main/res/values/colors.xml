@@ -13,9 +13,9 @@
     <color name="aqi_very_unhealthy_pressed">#ffa04f4e</color>
     <color name="aqi_hazardous">#bf12e5</color>
     <color name="aqi_hazardous_pressed">#ffffa5f0</color>
-    <color name="aqi_overview_chart_bg">#273238</color>
+    <color name="aqi_overview_chart_bg">#fff</color>
     <color name="aqi_overview_chart_separator_line">#fff</color>
-    <color name="aqi_overview_separator_text_color">#fff</color>
+    <color name="aqi_overview_separator_text_color">#000000</color>
     <color name="aqi_overview_bar">#fff</color>
     <color name="aqi_overview_x_labels_bg">#fff</color>
     <color name="neutral_bg">#f5f5f5</color>
@@ -29,6 +29,7 @@
     <color name="dark_blue">#2979c1</color>
     <color name="maps_blue">#3d87f7</color>
     <color name="light_gray_bg">#f3f3f3</color>
+    <color name="semilight_gray_bg">#dedede</color>
     <color name="dark_gray">#484848</color>
     <color name="black_semi_transparent">#aa000000</color>
     <color name="gray">#666666</color>
@@ -36,4 +37,6 @@
     <color name="button_selected_blue_ripple">#614285f4</color>
     <color name="button_gray">#757575</color>
     <color name="maps_pullup_actionbar">#009688</color>
+    <color name="darker_gray">#171d25</color>
+    <color name="blue_gray">#364251</color>
 </resources>

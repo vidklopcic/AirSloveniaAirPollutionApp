@@ -7,7 +7,7 @@
         android:id="@+id/aqi_overview_chart_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/aqi_overview_chart_bg">
+        android:background="@color/light_gray_bg">
         <LinearLayout android:id="@+id/chart_background"
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -116,9 +116,12 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="25dp"
         android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold"
         android:layout_alignParentTop="true"
-        android:background="@color/semilight_gray_bg"
+        android:background="@color/blue_gray"
         android:text="@string/measurements_from_past_hour"/>
 </RelativeLayout>

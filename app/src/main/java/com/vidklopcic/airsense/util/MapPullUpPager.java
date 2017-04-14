@@ -1,6 +1,7 @@
 package com.vidklopcic.airsense.util;
 
 import android.graphics.PorterDuff;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -8,6 +9,7 @@ import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vidklopcic.airsense.R;
@@ -15,20 +17,24 @@ import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.fragments.AqiPollutants;
 import com.vidklopcic.airsense.fragments.AqiGraph;
 import com.vidklopcic.airsense.fragments.AqiOverview;
+import com.vidklopcic.airsense.fragments.OverviewBarChart;
 import com.vidklopcic.airsense.fragments.PullUpBase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MapPullUpPager {
-    enum CurrentFragment { OVERVIEW, GRAPH, CARDS}
+    enum CurrentFragment { DASHBOARD, OVERVIEW, GRAPH, CARDS}
     CurrentFragment mCurrentFragmentType;
     PullUpBase mCurrentFragment;
     FragmentActivity mContext;
     AqiOverview mAqiOverviewFragment;
     AqiPollutants mAqiPollutantsFragment;
     AqiGraph mAqiGraphFragment;
+    OverviewBarChart mDashboardBarFragment;
     android.support.v4.app.FragmentManager mFragmentManager;
-    ArrayList<MeasuringStation> mDataSource;
+    List<MeasuringStation> mDataSource;
     Buttons mButtons;
 
     public MapPullUpPager(FragmentActivity context) {
@@ -40,11 +46,34 @@ public class MapPullUpPager {
                 update();
             }
         });
+        mDashboardBarFragment = new OverviewBarChart();
+
+        Bundle args = new Bundle();
+        args.putInt(OverviewBarChart.LAYOUT_ARG, R.layout.fragment_dashboard_bar_chart);
+        mDashboardBarFragment.setArguments(args);
 
         mAqiPollutantsFragment = new AqiPollutants();
         mAqiGraphFragment = new AqiGraph();
         mFragmentManager = mContext.getSupportFragmentManager();
         mButtons = new Buttons();
+    }
+
+    public void setDashboardBarHeight(int height) {
+        mDashboardBarFragment.setHeight(height);
+    }
+
+    public void setDashboardOverviewFragment() {
+        if (mCurrentFragmentType == CurrentFragment.DASHBOARD) return;
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()) != null)
+            showFragment((PullUpBase) mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()));
+        else {
+            FragmentTransaction transaction = hide();
+            transaction.add(R.id.maps_pullup_fragment_container, mDashboardBarFragment, CurrentFragment.DASHBOARD.toString());
+            safeCommit(transaction);
+        }
+        mCurrentFragmentType = CurrentFragment.DASHBOARD;
+        mCurrentFragment = mDashboardBarFragment;
+        update();
     }
 
     public void setOverviewFragment() {
@@ -106,6 +135,8 @@ public class MapPullUpPager {
             transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
         if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
             transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()) != null)
+            transaction.hide(mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         return transaction;
     }
@@ -113,16 +144,29 @@ public class MapPullUpPager {
     public void close() {
         mButtons.setButton(mButtons.mButtonOverviewContainer);
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null)
+        boolean ok = false;
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()) != null) {
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.OVERVIEW.toString()));
-        if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null)
+            ok = true;
+        }
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()) != null) {
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.CARDS.toString()));
-        if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null)
+            ok = true;
+        }
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()) != null) {
             transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.GRAPH.toString()));
+            ok = true;
+        }
+        if (mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()) != null) {
+            transaction.remove(mFragmentManager.findFragmentByTag(CurrentFragment.DASHBOARD.toString()));
+            ok = true;
+        }
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         safeCommit(transaction);
-        mCurrentFragment = null;
-        mCurrentFragmentType = null;
+        if (ok) {
+            mCurrentFragment = null;
+            mCurrentFragmentType = null;
+        }
     }
 
     private void safeCommit(FragmentTransaction transaction) {
@@ -133,7 +177,7 @@ public class MapPullUpPager {
         }
     }
 
-    public void setDataSource(ArrayList<MeasuringStation> stations) {
+    public void setDataSource(List<MeasuringStation> stations) {
         mDataSource = stations;
         if (mDataSource != null && mDataSource.size() == 1)
             mButtons.setVisibility(View.VISIBLE);
@@ -150,11 +194,12 @@ public class MapPullUpPager {
         return false;
     }
 
-    public void update() {
+    public ArrayList<HashMap<String, Integer>> update() {
         if (mDataSource == null)
             close();
         if (mCurrentFragment != null)
-            mCurrentFragment.update(mDataSource);
+            return mCurrentFragment.update(mDataSource);
+        return null;
     }
 
     class Buttons {

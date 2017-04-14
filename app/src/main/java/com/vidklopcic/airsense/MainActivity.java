@@ -157,7 +157,7 @@ public class MainActivity extends FragmentActivity implements LocationHelper.Loc
                                            @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case LocationHelper.LOCATION_PERMISSION_RESULT: {
-                // If request is cancelled, the result arrays are empty.
+                // If request is cmapelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocation.startLocationReading();
