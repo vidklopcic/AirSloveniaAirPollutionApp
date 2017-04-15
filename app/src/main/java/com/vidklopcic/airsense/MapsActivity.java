@@ -3,7 +3,6 @@ package com.vidklopcic.airsense;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
@@ -17,10 +16,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
-import android.transition.Fade;
 import android.util.Log;
 import android.util.SparseArray;
-import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,16 +31,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.DataAPI;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
 import com.vidklopcic.airsense.data.entities.FavoritePlace;
 import com.vidklopcic.airsense.data.entities.SavedState;
-import com.vidklopcic.airsense.fragments.AqiOverview;
 import com.vidklopcic.airsense.fragments.MapCards;
 import com.vidklopcic.airsense.util.AQI;
-import com.vidklopcic.airsense.util.Conversion;
 import com.vidklopcic.airsense.util.FABPollutants;
 import com.vidklopcic.airsense.util.LocationHelper;
 import com.vidklopcic.airsense.util.MapPullUpPager;
@@ -125,7 +119,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private RelativeLayout mDashboardBarContainer;
     private boolean mDashboardDismissed = false;
     private int mAnchoredHeight = 0;
-    private List<MeasuringStation> mCityStations;
+    private List<MeasuringStation> mRegionStations;
     private boolean mIsDuringChange = false;
     private LatLngBounds mPrevBounds;
     private View mTouchBlockView;
@@ -258,6 +252,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 mSavedState = SavedState.getSavedState(mRealm);
                 if (mLocation.isLocationEnabled() && mSavedState.getCity() != null) {
                     onCityChange(mSavedState.getCity(), mSavedState.getBounds());
+                    mDashboardDismissed = false;
                 }
             }
         });
@@ -286,7 +281,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             return;
         if (mDashboardVisible) {
             hideDashboard();
-            mDashboardDismissed = true;
             return;
         }
         if (mCurrentMarker != null)
@@ -373,15 +367,16 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mSlidingPane.post(new Runnable() {
             @Override
             public void run() {
-                if (mCityStations != null && mCityStations.size() > 0) {
+                if (mRegionStations != null && mRegionStations.size() > 0) {
                     mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
-                    mPullUpPager.setDataSource(mCityStations);
+                    mPullUpPager.setDataSource(mRegionStations);
                 }
             }
         });
     }
 
     public void hideDashboard() {
+        mDashboardDismissed = true;
         if (!mDashboardVisible || mIsDuringChange)
             return;
         if (mPrevBounds != null) {
@@ -462,7 +457,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         } else if (mSlidingPane.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
             mSlidingPane.setEnabled(true);
             mSlidingPane.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        } else if (!mDashboardVisible) {
+        } else if (!mDashboardVisible && mRegionStations != null && mRegionStations.size() > 0) {
             if (mLocation.isLocationEnabled()) {
                 mPrevBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
                 mDashboardDismissed = false;
@@ -541,19 +536,29 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             return;
         }
 
-        if ((mSavedState.getCity() != null && !mSavedState.getBounds().equals(bounds)) || mSavedState.getCity() == null) {
-            mSavedState.setCity(mRealm, city, bounds);
+        mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
+        if (mLocation.getRegion().length() > 0 && mRegionStations.size() == 0) {
+            mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds());
+            city = mLocation.getRegion();
+            bounds = mLocation.getRegionBounds();
+        }
+        if (mLocation.getCountry().length() > 0 && mRegionStations.size() == 0) {
+            mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds());
+            city = mLocation.getCountry();
+            bounds = mLocation.getCountryBounds();
         }
 
-        mCityStations = MeasuringStation.getStationsInArea(mRealm, bounds);
-        positionMap(false);
         if (mDashboardDismissed) {
             return;
         }
+        if ((mSavedState.getCity() != null && !mSavedState.getBounds().equals(bounds)) || mSavedState.getCity() == null) {
+            mSavedState.setCity(mRealm, city, bounds);
+        }
         mPullUpPager.setDashboardOverviewFragment();
-        mPullUpPager.setDataSource(mCityStations);
+        mPullUpPager.setDataSource(mRegionStations);
         ArrayList<HashMap<String, Integer>> averages = mPullUpPager.update();
         if (averages == null) {
+            positionMap(false);
             hideDashboard();
             mCityText.setText("No data for your location");
         } else {
@@ -658,10 +663,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 if (dashboard)
                     mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
                 blockTouch();
+                mSavedState.setLastViewport(mRealm, mLocation.getRegionBounds());
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getRegionBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
                     @Override
                     public void onFinish() {
-                        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
                         unblockTouch();
                     }
 
@@ -671,16 +676,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     }
                 });
                 mMapPositioned = true;
-                mMap.setPadding(0, 0, 0, 0);
             } else if (mLocation.getCountryBounds() != null) {
                 if (dashboard)
                     mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
                 blockTouch();
+                mSavedState.setLastViewport(mRealm, mLocation.getCountryBounds());
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getCountryBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
                     @Override
                     public void onFinish() {
                         unblockTouch();
-                        mSavedState.setLastViewport(mRealm, mMap.getProjection().getVisibleRegion().latLngBounds);
                     }
 
                     @Override
@@ -689,13 +693,16 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     }
                 });
                 mMapPositioned = true;
-                mMap.setPadding(0, 0, 0, 0);
             } else if (lastviewport != null && !mMapRestored) {
+                if (dashboard) {
+                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
+                }
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
                 mMapRestored = true;
             }
         } catch (Exception ignored) {
         }
+        mMap.setPadding(0, 0, 0, 0);
     }
 
 

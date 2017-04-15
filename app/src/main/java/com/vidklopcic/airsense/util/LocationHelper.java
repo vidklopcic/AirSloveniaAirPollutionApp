@@ -31,19 +31,25 @@ import java.util.List;
 import java.util.Locale;
 
 public class LocationHelper implements LocationListener {
+    public class AddressInfo {
+        public String city = "";
+        public String country = "";
+        public String region = "";
+
+        public LatLngBounds country_bounds;
+        public LatLngBounds region_bounds;
+        public LatLngBounds city_bounds;
+    }
+
     private static final int TWO_MINUTES = 1000 * 60 * 2;
     public static final int LOCATION_PERMISSION_RESULT = 0;
-    private String mCity = "";
     Activity mContext;
     LocationManager mLocationManager;
     Location mBestLocation;
     LocationHelperListener mListener;
     boolean mLocationIsEnabled = false;
     boolean mDialogWasShown = false;
-    LatLngBounds mCountryBounds;
-    String mCountry;
-    LatLngBounds mRegionBounds;
-    String mRegion;
+    static AddressInfo mAddress;
 
 
     public interface LocationHelperListener {
@@ -51,13 +57,14 @@ public class LocationHelper implements LocationListener {
         void onCityChange(String city, LatLngBounds bounds);
     }
 
-    public interface AddressFromLatLngListener {
-        void onResult(Address address);
+    public interface AddressBoundsFromLatLngListener {
+        void onResult(AddressInfo info);
     }
 
     public LocationHelper(final Activity context) {
         mContext = context;
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        mAddress = new AddressInfo();
     }
 
     public Location getLocation() {
@@ -65,23 +72,27 @@ public class LocationHelper implements LocationListener {
     }
 
     public String getCity() {
-        return mCity;
+        return mAddress.city;
     }
 
     public String getRegion() {
-        return mRegion;
+        return mAddress.region;
     }
 
     public String getCountry() {
-        return mCountry;
+        return mAddress.country;
+    }
+
+    public LatLngBounds getCityBounds() {
+        return mAddress.city_bounds;
     }
 
     public LatLngBounds getRegionBounds() {
-        return mRegionBounds;
+        return mAddress.region_bounds;
     }
 
     public LatLngBounds getCountryBounds() {
-        return mCountryBounds;
+        return mAddress.country_bounds;
     }
 
     public LatLng getLatLng() {
@@ -159,10 +170,6 @@ public class LocationHelper implements LocationListener {
         mListener = listener;
     }
 
-    public static void getAddressFromLatLng(LatLng location, Context context, AddressFromLatLngListener listener) {
-        new GetAddressFromLatLngTask(context, listener).execute(location);
-    }
-
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {
         if (currentBestLocation == null) {
             // A new location is always better than no location
@@ -224,7 +231,7 @@ public class LocationHelper implements LocationListener {
 
     private void updateCity(LatLng latLng) {
         if (mListener == null) return;
-        new GetCityTask().execute(latLng);
+        new GetCityTask(null).execute(latLng);
     }
 
     @Override
@@ -243,10 +250,16 @@ public class LocationHelper implements LocationListener {
     }
 
     // todo join tasks below into one
-    class GetCityTask extends AsyncTask<LatLng, Void, String> {
-        LatLngBounds mBounds;
+    class GetCityTask extends AsyncTask<LatLng, Void, AddressInfo> {
+        AddressBoundsFromLatLngListener mCityListener;
+
+        public GetCityTask(AddressBoundsFromLatLngListener listener) {
+            mCityListener = listener;
+        }
+
         @Override
-        protected String doInBackground(LatLng... params) {
+        protected AddressInfo doInBackground(LatLng... params) {
+            AddressInfo info = new AddressInfo();
             Geocoder gcd = new Geocoder(mContext, Locale.getDefault());
             com.bricolsoftconsulting.geocoderplus.Geocoder gcdp = new com.bricolsoftconsulting.geocoderplus.Geocoder();
             List<Address> addresses;
@@ -256,81 +269,64 @@ public class LocationHelper implements LocationListener {
             try {
                 addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
                 if (addresses.size() > 0) {
-                    String city = addresses.get(0).getLocality();
-                    mCountry = addresses.get(0).getCountryName();
-                    mRegion = addresses.get(0).getAdminArea();
+                    info.city = addresses.get(0).getLocality();
+                    info.country = addresses.get(0).getCountryName();
+                    info.region = addresses.get(0).getAdminArea();
 
-                    if (city != null) {
-                        addresses_plus = gcdp.getFromLocationName(city);
+                    if (info.city != null) {
+                        addresses_plus = gcdp.getFromLocationName(info.city);
                     }
-                    if (mCountry != null) {
-                        country_plus = gcdp.getFromLocationName(mCountry);
+                    if (info.country != null) {
+                        country_plus = gcdp.getFromLocationName(info.country);
                     }
-                    if (mRegion != null) {
-                        region_plus = gcdp.getFromLocationName(mRegion);
+                    if (info.region != null) {
+                        region_plus = gcdp.getFromLocationName(info.region);
                     }
 
                     if (addresses_plus.size() > 0) {
                         Area v = addresses_plus.get(0).getViewPort();
                         Position sw = v.getSouthWest();
                         Position ne = v.getNorthEast();
-                        mBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
+                        info.city_bounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
                     }
                     if (country_plus.size() > 0) {
                         Area v = country_plus.get(0).getViewPort();
                         Position sw = v.getSouthWest();
                         Position ne = v.getNorthEast();
-                        mCountryBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
+                        info.country_bounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
                     }
                     if (region_plus.size() > 0) {
                         Area v = region_plus.get(0).getViewPort();
                         Position sw = v.getSouthWest();
                         Position ne = v.getNorthEast();
-                        mRegionBounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
+                        info.region_bounds = new LatLngBounds(new LatLng(sw.getLatitude(), sw.getLongitude()), new LatLng(ne.getLatitude(), ne.getLongitude()));
                     }
+                    info.city = info.city == null ? "" : info.city;
+                    info.region = info.region == null ? "" : info.region;
+                    info.country = info.country == null ? "" : info.country;
 
-                    return city == null ? "" : city;
+                    return info;
                 }
             } catch (Exception e) {
-                return "Ljubljana";
+                info.city = "Ljubljana";
+                return info;
             }
             return null;
         }
 
-        protected void onPostExecute(String city) {
-            if (city != null && !mCity.equals(city))
-                mCity = city;
-            if (mListener != null)
-                mListener.onCityChange(mCity, mBounds);
-        }
-    }
-
-    static class GetAddressFromLatLngTask extends AsyncTask<LatLng, Void, Address> {
-        private static final String LOG_TAG = "AddressFromLatLng";
-        Context mContext;
-        AddressFromLatLngListener mListener;
-        public GetAddressFromLatLngTask(Context context, AddressFromLatLngListener listener) {
-            mContext = context;
-            mListener = listener;
-        }
-
-        @Override
-        protected Address doInBackground(LatLng... params) {
-            Geocoder gcd = new Geocoder(mContext, Locale.getDefault());
-            List<Address> addresses;
-            try {
-                addresses = gcd.getFromLocation(params[0].latitude, params[0].longitude, 1);
-                if (addresses.size() > 0)
-                    return addresses.get(0);
-            } catch (IOException e) {
-                Log.d(LOG_TAG, "Geocoder exception");
+        protected void onPostExecute(AddressInfo info) {
+            if (mCityListener == null) {
+                mAddress.city_bounds = info.city_bounds;
+                mAddress.region_bounds = info.region_bounds;
+                mAddress.country_bounds = info.country_bounds;
+                mAddress.region = info.region;
+                mAddress.country = info.country;
+                mAddress.city = info.city;
+                if (mListener != null)
+                    mListener.onCityChange(mAddress.city, mAddress.city_bounds);
+            } else {
+                mCityListener.onResult(info);
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Address address) {
-            mListener.onResult(address);
         }
     }
 }
