@@ -166,6 +166,10 @@ public class LocationHelper implements LocationListener {
         }
     }
 
+    public void stopLocationReading() {
+        mLocationManager.removeUpdates(this);
+    }
+
     public void setLocationHelperListener(LocationHelperListener listener) {
         mListener = listener;
     }

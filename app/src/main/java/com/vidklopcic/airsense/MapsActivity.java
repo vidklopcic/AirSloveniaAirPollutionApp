@@ -276,9 +276,16 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         });
     }
 
+
+    @Override
+    protected void onPause() {
+        mDataApi.pauseUpdateTask();
+        mLocation.stopLocationReading();
+        super.onPause();
+    }
+
     @Override
     protected void onDestroy() {
-        mDataApi.pauseUpdateTask();
         super.onDestroy();
     }
 
@@ -287,6 +294,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         super.onResume();
         setUpMapIfNeeded();
         mDataApi.resumeUpdateTask();
+        if (mLocation != null)
+            mLocation.startLocationReading();
     }
 
     @Override
