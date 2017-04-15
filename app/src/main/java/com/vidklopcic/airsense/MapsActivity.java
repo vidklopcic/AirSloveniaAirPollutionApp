@@ -18,6 +18,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -123,6 +124,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private boolean mIsDuringChange = false;
     private LatLngBounds mPrevBounds;
     private View mTouchBlockView;
+    private View mMapTouchBlockView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +143,22 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             }
         });
         unblockTouch();
+
+        mMapTouchBlockView = (View) findViewById(R.id.map_touch_block_view);
+        mMapTouchBlockView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    if (mPrevBounds == null) {
+                        positionMap(false);
+                    }
+                    hideDashboard();
+                    unblockMapTouch();
+                }
+                return true;
+            }
+        });
+        unblockMapTouch();
 
         mRealm = DataAPI.getRealmOrCreateInstance(this);
         mStationsOnMap = new HashMap<>();
@@ -351,6 +369,14 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mTouchBlockView.setVisibility(View.GONE);
     }
 
+    private void blockMapTouch() {
+        mMapTouchBlockView.setVisibility(View.VISIBLE);
+    }
+
+    private void unblockMapTouch() {
+        mMapTouchBlockView.setVisibility(View.GONE);
+    }
+
     public void clearActionBarData() {
         mActionBarTitle.setText("...");
         mActionBarHasAddress = false;
@@ -359,6 +385,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     public void showDashboard() {
         if (mDashboardVisible || mDashboardDismissed || !mLocation.isLocationEnabled() || mIsDuringChange)
             return;
+        blockMapTouch();
         mDashboardVisible = true;
         mDashboardBarContainer.animate().translationY(0).setDuration(400).start();
         mSearchContaienr.animate().alpha(0).setDuration(400).start();
@@ -376,6 +403,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     }
 
     public void hideDashboard() {
+        unblockMapTouch();
         mDashboardDismissed = true;
         if (!mDashboardVisible || mIsDuringChange)
             return;
@@ -563,7 +591,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             mCityText.setText("No data for your location");
         } else {
             updateDashboard(averages, city);
-            mMapPositioned = false;
             positionMap(true);
             showDashboard();
         }
@@ -655,7 +682,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
 
     private void positionMap(boolean dashboard) {
-        if (mMapPositioned || mDashboardDismissed)
+        if ((mMapPositioned || mDashboardDismissed) && dashboard)
             return;
         try {
             LatLngBounds lastviewport = mSavedState.getLastViewport();

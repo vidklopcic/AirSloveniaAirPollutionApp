@@ -50,6 +50,11 @@
         fab:fab_showAnimation="@anim/fab_scale_up"
         fab:menu_animationDelayPerItem="10"
         fab:fab_hideAnimation="@anim/fab_scale_down" />
+    <View
+        android:id="@+id/map_touch_block_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </View>
 </RelativeLayout>
 
 <RelativeLayout
