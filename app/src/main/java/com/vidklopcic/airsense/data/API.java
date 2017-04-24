@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vidklopcic.airsense.data.Gson.Measurement;
 import com.vidklopcic.airsense.data.Gson.MeasurementRangeParams;
+import com.vidklopcic.airsense.data.Gson.Station;
+import com.vidklopcic.airsense.data.entities.MeasuringStation;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -43,5 +45,11 @@ public class API {
 
         @GET("station/{id}/last")
         Call<Measurement> getLastMeasurement(@Path("id") String station_id);
+
+        @GET("station/all/")
+        Call<Station[]> getAllStations();
+
+        @GET("station/all/{schema}")
+        Call<Station[]> getAllStationsBySchema(@Path("schema") int schema_version);
     }
 }

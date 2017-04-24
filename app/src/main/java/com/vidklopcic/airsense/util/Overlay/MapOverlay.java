@@ -228,7 +228,7 @@ public class MapOverlay {
                                 center, Constants.Map.station_radius_meters, MeasuringStation.idListToStations(realm, candidate_ids));
 
                         for (int i=0;i<affecting_stations.size();i++) {
-                            if (!affecting_stations.get(i).hasData() ||
+                            if (!affecting_stations.get(i).hasUpdatedData() ||
                                     mPollutant != null && !affecting_stations.get(i).hasPollutant(mPollutant)) {
                                 affecting_stations.remove(i);
                                 i--;
@@ -238,7 +238,7 @@ public class MapOverlay {
                         if (affecting_stations.size() > 0) {
                             importance.clear();
                             for (MeasuringStation station : affecting_stations) {
-                                if (station.hasData())
+                                if (station.hasUpdatedData())
                                     importance.add(SphericalUtil.computeDistanceBetween(center, station.getLocation()));
                             }
 

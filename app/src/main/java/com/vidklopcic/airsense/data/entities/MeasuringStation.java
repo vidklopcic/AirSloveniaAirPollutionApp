@@ -6,6 +6,7 @@ import com.vidklopcic.airsense.data.Constants;
 import com.vidklopcic.airsense.data.Gson.Measurement;
 import com.vidklopcic.airsense.data.Gson.OtherMeasurement;
 import com.vidklopcic.airsense.data.Gson.PollutionMeasurement;
+import com.vidklopcic.airsense.data.Gson.Station;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.util.AQI;
 import com.vidklopcic.airsense.util.Conversion;
@@ -62,6 +63,22 @@ public class MeasuringStation extends RealmObject {
 
     public static MeasuringStation create(Realm r, ARSOStation data) {
         return findById(r, data.id);
+    }
+
+    public static MeasuringStation updateOrCreate(Realm r, Station data) {
+        MeasuringStation station;
+        r.beginTransaction();
+        station = findById(r, data.station_id);
+        if (station == null) {
+            station = r.createObject(MeasuringStation.class);
+        }
+        station.id = data.station_id;
+        station.city = data.district;
+        station.pollutants = "[\"PM10\", \"SO2\", \"O3\", \"CO\", \"NO2\"]";
+        station.lat = data.lat;
+        station.lng = data.lng;
+        r.commitTransaction();
+        return station;
     }
 
     public static MeasuringStation updateOrCreate(Realm r, ARSOStation data) {
@@ -174,6 +191,35 @@ public class MeasuringStation extends RealmObject {
         r.commitTransaction();
     }
 
+    public void setProperty(String property, Double value) {
+        switch (property){
+            case "CO":
+                CO = value;
+                break;
+            case "O3":
+                O3 = value;
+                break;
+            case "PM10":
+                PM10 = value;
+                break;
+            case "NO2":
+                NO2 = value;
+                break;
+            case "SO2":
+                SO2 = value;
+                break;
+            case "humidity":
+                humidity = value;
+                break;
+            case "temperature":
+                temperature = value;
+                break;
+            default:
+                return;
+        }
+        last_update_time = new Date().getTime();
+    }
+
     public Integer getMaxAqi() {
         int max_aqi = 0;
         for (int i = 0; i < Constants.AQI.supported_pollutants.size(); i++) {
@@ -185,8 +231,21 @@ public class MeasuringStation extends RealmObject {
         return max_aqi;
     }
 
-    public boolean hasData() {
-        return wasUpdated() && getMaxAqi() > 0;
+    public boolean hasCachedData() {
+        for (int i = 0; i < Constants.AQI.supported_pollutants.size(); i++) {
+            Integer aqi = getAqi(Constants.AQI.supported_pollutants.get(i));
+            if (aqi != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasUpdatedData() {
+        if (!wasUpdated()) {
+            return false;
+        }
+        return hasCachedData();
     }
 
     public boolean wasUpdated() {
@@ -437,6 +496,9 @@ public class MeasuringStation extends RealmObject {
 
     public static List<MeasuringStation> idListToStations(Realm realm, List<String> id_list) {
         List<MeasuringStation> result = new ArrayList<>();
+        if (id_list == null) {
+            return result;
+        }
         for (String id : id_list) {
             MeasuringStation station = realm.where(MeasuringStation.class).equalTo("id", id).findFirst();
             if (station != null) {

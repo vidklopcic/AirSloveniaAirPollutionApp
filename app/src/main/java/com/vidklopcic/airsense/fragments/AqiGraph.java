@@ -83,7 +83,7 @@ public class AqiGraph extends Fragment implements PullUpBase, DataAPI.DataRangeL
             return;
         mChart.getXAxis().removeAllLimitLines();
         LimitLine[] ll = PollutantsChart.getLimitLines(mStartDate, mXData.size(), TICK_INTERVAL_MILLIS);
-        if (ll[0] == null)
+        if (ll == null)
             return;
         ll[0].setLineColor(Color.RED);
         ll[1].setLineColor(Color.RED);

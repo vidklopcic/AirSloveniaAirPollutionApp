@@ -8,9 +8,13 @@ import android.util.Log;
 import com.vidklopcic.airsense.data.Gson.Measurement;
 import com.vidklopcic.airsense.data.Gson.MeasurementRangeParams;
 import com.vidklopcic.airsense.data.Gson.OtherMeasurement;
+import com.vidklopcic.airsense.data.Gson.PollutionMeasurement;
+import com.vidklopcic.airsense.data.Gson.Station;
 import com.vidklopcic.airsense.data.Serializers.ARSOMeasurements;
 import com.vidklopcic.airsense.data.Serializers.ARSOStation;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
+import com.vidklopcic.airsense.data.entities.SavedState;
+import com.vidklopcic.airsense.data.entities.StationMeasurement;
 import com.vidklopcic.airsense.util.Conversion;
 import com.vidklopcic.airsense.util.Network;
 
@@ -25,6 +29,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -71,6 +76,7 @@ public class DataAPI {
     public void setObservedStations(List<MeasuringStation> stations) {
         if (stations != null)
             mActiveStations = stations;
+        updateData();
     }
 
     public void setDataUpdateListener(DataUpdateListener listener) {
@@ -110,57 +116,84 @@ public class DataAPI {
             mAirSenseApi = API.initApi();
         }
 
+        public void updateStation(Realm realm, MeasuringStation mstation) throws IOException {
+            realm.beginTransaction();
+            Response<Measurement> resp = mAirSenseApi.getLastMeasurement(mstation.getStationId()).execute();
+            Measurement last_measurement = resp.body();
+            List<PollutionMeasurement> pollutants = last_measurement.getPollutants();
+            List<OtherMeasurement> others = last_measurement.getOthers();
+            for (PollutionMeasurement m : pollutants) {
+                mstation.setProperty(m.property, m.ug_m3);
+            }
+            for (OtherMeasurement m : others) {
+                mstation.setProperty(m.property, m.value);
+            }
+            notifyStationUpdated(mstation);
+            realm.commitTransaction();
+        }
+
         @Override
         public void run() {
-            Realm realm = Realm.getDefaultInstance();
+            Realm realm;
             try {
                 while (!mShouldExitTask) {
+                    realm = Realm.getDefaultInstance();
+                    SavedState savedState = SavedState.getSavedState(realm);
+                    Integer schema_version = savedState.getSchemaVersion();
+                    if (schema_version == null) {
+                        schema_version = 1;
+                    }
+
                     updateStations();
+                    List<MeasuringStation> stations = MeasuringStation.idListToStations(realm, mActiveStationsIds);
                     Boolean updated = false;
                     try {
-                        String last_measurement = Network.GET(Constants.ARSOStation.last_measurement_url);
-                        // ARSO BUG v XMLju
-                        last_measurement = last_measurement.replace("&lt;", "");
-                        Serializer serializer = new Persister();
-                        ARSOMeasurements measurements = serializer.read(ARSOMeasurements.class, last_measurement);
-                        for (ARSOStation station : measurements.stations) {
-                            MeasuringStation stat = MeasuringStation.updateOrCreate(realm, station);
-                            try {
-                                Response<Measurement> resp = mAirSenseApi.getLastMeasurement(station.id).execute();
-                                List<OtherMeasurement> other = resp.body().getOthers();
-                                realm.beginTransaction();
-                                for (OtherMeasurement measurement : other) {
-                                    if (measurement.property.equals(Constants.ARSOStation.HUMIDITY_KEY)) {
-                                        stat.humidity = measurement.value;
-                                    } else if (measurement.property.equals(Constants.ARSOStation.TEMPERATURE_KEY)) {
-                                        stat.temperature = measurement.value;
-                                    }
-                                }
-                                realm.commitTransaction();
-                            } catch (Exception ignored) {}
-                            notifyStationUpdated(stat);
-                            updated = true;
+                        Response<Station[]> new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
+                        Station[] new_stations = new_stations_response.body();
+                        while (new_stations.length > 0) {
+                            schema_version += 1;
+                            savedState.setSchemaVersion(realm, schema_version);
+                            for (Station station : new_stations) {
+                                MeasuringStation mstation = MeasuringStation.updateOrCreate(realm, station);
+                                updateStation(realm, mstation);
+                                updated = true;
+                            }
+                            new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
+                            new_stations = new_stations_response.body();
                         }
-                    } catch (IOException e) {
-                        Log.d(LOG_ID, "couldn't get last measurements");
+
+                        for (MeasuringStation station : stations) {
+                            if (!station.wasUpdated()) {
+                                updateStation(realm, station);
+                                updated = true;
+                            }
+                        }
                     } catch (Exception e) {
-                        Log.d(LOG_ID, "couldn't parse last measurements");
                     }
 
                     notifyCycleEnded(updated);
                     mForceUpdate = false;
+
+                    Long s = new Date().getTime();
+                    Long end = s + Constants.ARSOStation.update_interval;
+                    RealmResults<StationMeasurement> result = realm.where(StationMeasurement.class)
+                            .lessThan("measurement_time", new Date().getTime() - 4*24*60*60*1000).findAll();
+                    if (result.size() > 0) {
+                        realm.beginTransaction();
+                        result.deleteAllFromRealm();
+                        realm.commitTransaction();
+                    }
+
+                    realm.close();
+
                     try {
-                        Long s = new Date().getTime();
-                        Long end = s + Constants.ARSOStation.update_interval;
                         while (new Date().getTime() < end && !mForceUpdate && !mShouldExitTask) {
                             Thread.sleep(10);
                         }
                     } catch (InterruptedException ignored) {}
                 }
             } finally {
-                realm.close();
             }
-            realm.close();
             mShouldExitTask = false;
             mUpdateTaskIsRunning = false;
         }

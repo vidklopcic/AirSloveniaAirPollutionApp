@@ -18,6 +18,7 @@ public class SavedState extends RealmObject{
     Double city_sw_lng;
     Double city_ne_lat;
     Double city_ne_lng;
+    Integer schema_version;
 
     public SavedState() {}
 
@@ -80,5 +81,15 @@ public class SavedState extends RealmObject{
         if (city_sw_lat == null)
             return null;
         return new LatLngBounds(new LatLng(city_sw_lat, city_sw_lng), new LatLng(city_ne_lat, city_ne_lng));
+    }
+
+    public void setSchemaVersion(Realm r, int version) {
+        r.beginTransaction();
+        schema_version = version;
+        r.commitTransaction();
+    }
+
+    public Integer getSchemaVersion() {
+        return schema_version;
     }
 }

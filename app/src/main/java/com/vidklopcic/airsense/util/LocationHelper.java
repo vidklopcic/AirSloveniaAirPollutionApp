@@ -155,7 +155,6 @@ public class LocationHelper implements LocationListener {
 //            mDialogWasShown = true;
         } else {
             mLocationIsEnabled = true;
-            mBestLocation = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
             ArrayList<String> providers = new ArrayList<>(mLocationManager.getProviders(true));
             if (providers.contains(LocationManager.GPS_PROVIDER)) {
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 100, this);
@@ -163,6 +162,7 @@ public class LocationHelper implements LocationListener {
             if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
                 mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 100, this);
             }
+            onLocationChanged(mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
         }
     }
 

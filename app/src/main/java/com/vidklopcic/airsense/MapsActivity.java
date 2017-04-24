@@ -18,7 +18,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -279,9 +278,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     protected void onPause() {
+        super.onPause();
+        if (mDataApi == null || mLocation == null) {
+            return;
+        }
         mDataApi.pauseUpdateTask();
         mLocation.stopLocationReading();
-        super.onPause();
     }
 
     @Override
@@ -573,21 +575,23 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             return;
         }
 
-        mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
+        mRegionStations = new ArrayList<>();
         if (mLocation.getRegion().length() > 0 && mRegionStations.size() == 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds());
             city = mLocation.getRegion();
             bounds = mLocation.getRegionBounds();
-        }
-        if (mLocation.getCountry().length() > 0 && mRegionStations.size() == 0) {
+        } else if (mLocation.getCountry().length() > 0 && mRegionStations.size() == 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds());
             city = mLocation.getCountry();
             bounds = mLocation.getCountryBounds();
+        } else {
+            mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
         }
 
         if (mDashboardDismissed) {
             return;
         }
+
         if ((mSavedState.getCity() != null && !mSavedState.getBounds().equals(bounds)) || mSavedState.getCity() == null) {
             mSavedState.setCity(mRealm, city, bounds);
         }
@@ -596,7 +600,9 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         ArrayList<HashMap<String, Integer>> averages = mPullUpPager.update();
         if (averages == null) {
             positionMap(false);
-            hideDashboard();
+            if (mRegionStations.size() == 0) {
+                hideDashboard();
+            }
             mCityText.setText("No data for your location");
         } else {
             updateDashboard(averages, city);
@@ -743,17 +749,17 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
 
     public void addStationToMap(MeasuringStation station) {
-        if (station.wasUpdated() && mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
+        if (mPollutantFilter == null || station.hasPollutant(mPollutantFilter)) {
             ClusterStation new_c_station = new ClusterStation(station.getLocation(), station);
             Integer linear_color;
-//            if (!station.hasData()) {
+//            if (!station.hasUpdatedData()) {
 //                linear_color = ContextCompat.getColor(this, R.color.gray);
 //            } else if (mPollutantFilter != null) {
 //                linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), this);
 //            } else {
 //                linear_color = AQI.getLinearColor(station.getMaxAqi(), this);
 //            }
-//            if (station.hasData()) {
+//            if (station.hasUpdatedData()) {
 //                CircleOptions circleOptions = new CircleOptions()
 //                        .center(station.getLocation())   //set center
 //                        .radius(1000)   //set radius in meters
@@ -763,10 +769,12 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 //
 //                mCircles.add(mMap.addCircle(circleOptions));
 //            }
-            Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
-            mStationsOnMap.put(station, new_c_station);
-            mClusterManager.addItem(new_c_station);
-            mClusterManager.cluster();
+            if (!mStationsOnMap.containsKey(station)) {
+                Log.d("MapsActivity", "added " + new_c_station.station.getStationId());
+                mStationsOnMap.put(station, new_c_station);
+                mClusterManager.addItem(new_c_station);
+                mClusterManager.cluster();
+            }
         }
     }
 
@@ -802,7 +810,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         List<String> viewport_stations_ids = MeasuringStation.stationsToIdList(viewport_stations);
         viewport_stations_ids.removeAll(stations_on_map);
 
-        for (MeasuringStation station : MeasuringStation.idListToStations(mRealm, viewport_stations_ids)) {
+        for (MeasuringStation station : viewport_stations) {
             addStationToMap(station);
         }
 
@@ -878,7 +886,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
             Drawable shapeDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.station_marker, null);
             assert shapeDrawable != null;
             Integer linear_color;
-            if (!station.hasData()) {
+            if (!station.hasCachedData()) {
                 linear_color = ContextCompat.getColor(getContext(), R.color.dark_gray);
             } else if (mPollutantFilter != null) {
                 linear_color = AQI.getLinearColor(station.getAqi(mPollutantFilter), getContext());

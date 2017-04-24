@@ -53,7 +53,7 @@ public abstract class Constants {
         public static final String measurement_range_url_start = "{start}";
         public static final String measurement_range_url_end = "{end}";
         public static final String measurement_range_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/observationfinishtime/between?sensorid={id}&from={start}&to={end}";
-        public static final int update_interval = 5 * SECONDS * MILLIS;
+        public static final int update_interval = 60 * SECONDS * MILLIS;
         public static final String CO_KEY = "CO";
         public static final String NO2_KEY = "NO2";
         public static final String SO2_KEY = "SO2";
