@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
-import static com.vidklopcic.airsense.util.Conversion.getAqi;
-
 public abstract class PollutantsChart {
     public static HashMap<String, ArrayList<Entry>> measurementsToYData(Long start_date, Integer tick_interval_millis, List<StationMeasurement> measurements) {
         HashMap<String, ArrayList<Entry>> ydata = new HashMap<>();
@@ -22,7 +20,7 @@ public abstract class PollutantsChart {
                 ydata.put(measurement.getProperty(), new ArrayList<Entry>());
 
             if (Constants.AQI.supported_pollutants.contains(measurement.getProperty())) {
-                Integer aqi_val = getAqi(measurement.getProperty(), measurement.getValue());
+                Integer aqi_val = measurement.getAqiValue();
                 if (aqi_val != null && start_date != null && measurement.getMeasurementTime() != null) {
                     ydata.get(measurement.getProperty()).add(new Entry(
                             aqi_val,
@@ -31,7 +29,7 @@ public abstract class PollutantsChart {
             } else {
                 if (start_date != null) {
                     ydata.get(measurement.getProperty()).add(new Entry(
-                            measurement.getValue().floatValue(),
+                            measurement.getOtherValue().floatValue(),
                             (int) (measurement.getMeasurementTime() - start_date) / tick_interval_millis));
                 }
             }

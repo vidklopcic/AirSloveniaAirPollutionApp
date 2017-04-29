@@ -3,7 +3,9 @@ package com.vidklopcic.airsense.util;
 import android.graphics.Color;
 
 import com.vidklopcic.airsense.data.Constants;
+import com.vidklopcic.airsense.data.Gson.PollutionMeasurement;
 import com.vidklopcic.airsense.data.entities.MeasuringStation;
+import com.vidklopcic.airsense.data.entities.StationMeasurement;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,43 +52,42 @@ public abstract class Conversion {
         }
     }
 
-    public static Integer getAqi(String pollutant_name, Double value) {
-        Integer aqi_val = null;
-        switch (pollutant_name) {
-            case Constants.ARSOStation.CO_KEY:
-                aqi_val = AQI.CO.getAqi(value);
-                break;
-            case Constants.ARSOStation.NO2_KEY:
-                aqi_val = AQI.NO2.getAqi(value);
-                break;
-            case Constants.ARSOStation.O3_KEY:
-                aqi_val = AQI.O3.getAqi(value);
-                break;
-            case Constants.ARSOStation.PM10_KEY:
-                aqi_val = AQI.PM10.getAqi(value);
-                break;
-            case Constants.ARSOStation.SO2_KEY:
-                aqi_val = AQI.SO2.getAqi(value);
-                break;
-        }
-        return aqi_val;
-    }
-
-    public static Double getValueByKey(String key, MeasuringStation station) {
+    public static PollutionMeasurement getValueByKey(String key, MeasuringStation station) {
+        PollutionMeasurement result = new PollutionMeasurement();
+        result.property = key;
         switch (key) {
             case Constants.ARSOStation.CO_KEY:
-                return station.CO;
+                result.ug_m3 = station.CO_ugm3;
+                result.ppm = station.CO_ppm;
+                result.aqi = station.CO_aqi;
+                break;
             case Constants.ARSOStation.NO2_KEY:
-                return station.NO2;
+                result.ug_m3 = station.NO2_ugm3;
+                result.ppm = station.NO2_ppm;
+                result.aqi = station.NO2_aqi;
+                break;
             case Constants.ARSOStation.O3_KEY:
-                return station.O3;
+                result.ug_m3 = station.O3_ugm3;
+                result.ppm = station.O3_ppm;
+                result.aqi = station.O3_aqi;
+                break;
             case Constants.ARSOStation.PM10_KEY:
-                return station.PM10;
+                result.ug_m3 = station.PM10_ugm3;
+                result.ppm = station.PM10_ppm;
+                result.aqi = station.PM10_aqi;
+                break;
+            case Constants.ARSOStation.PM25_KEY:
+                result.ug_m3 = station.PM25_ugm3;
+                result.ppm = station.PM25_ppm;
+                result.aqi = station.PM25_aqi;
+                break;
             case Constants.ARSOStation.SO2_KEY:
-                return station.SO2;
-            default:
-                return null;
+                result.ug_m3 = station.SO2_ugm3;
+                result.ppm = station.SO2_ppm;
+                result.aqi = station.SO2_aqi;
+                break;
         }
+        return result;
     }
 
     public static int adjustAlpha(int color, float factor) {
@@ -97,102 +98,21 @@ public abstract class Conversion {
         return Color.argb(alpha, red, green, blue);
     }
 
-    public static AQI getAQIbyKey(String key) {
-        if (key == null)
-            return null;
-        switch (key) {
-            case Constants.ARSOStation.CO_KEY:
-                return Conversion.AQI.CO;
-            case Constants.ARSOStation.NO2_KEY:
-                return Conversion.AQI.NO2;
-            case Constants.ARSOStation.O3_KEY:
-                return Conversion.AQI.O3;
-            case Constants.ARSOStation.PM10_KEY:
-                return Conversion.AQI.PM10;
-            case Constants.ARSOStation.SO2_KEY:
-                return Conversion.AQI.SO2;
-            default:
-                return null;
-        }
-    }
-
     public enum AQI {
-        NO2(50, 100, 200, 349, 400, 500, 600, "ug/m3", 0xffe91e63),    // ppb
-        O3(60, 120, 180, 305, 400, 500, 600, "ug/m3", 0xff03a9f4),    // ppb
-        PM10(40, 75, 100, 354, 424, 504, 604, "ug/m3", 0xffff5722),  // ug/m3
-        PM25(12, 35.4f, 55.4f, 150.4f, 250.4f, 350.4f, 500.4f, "ug/m3", 0xffffc107),  // ug/m3
-        CO(4400f, 9400f, 12400f, 15400f, 30400f, 40400f, 50400f, "ug/m3", 0xff259b24),    // ppm
-        SO2(50, 100, 350, 404, 504, 604, 700, "ug/m3", 0xffffc107);    // ppb
-        public static final int GOOD_RANGE = 50;
-        public static final int MODERATE_RANGE = 25;
-        public static final int UNH_FOR_SENS_RANGE = 25;
-        public static final int UNH_RANGE = 25;
-        public static final int VERY_UNH_RANGE = 100;
-        public static final int HAZ_RANGE = 100;
-        public static final int VERY_HAZ_RANGE = 100;
-        private float good, moderate, unh_for_sens, unh, very_unh, haz, very_haz;
+        NO2(0xffe91e63),    // ppb
+        O3(0xff03a9f4),    // ppb
+        PM10(0xffff5722),  // ug/m3
+        PM25(0xffffc107),  // ug/m3
+        CO(0xff259b24),    // ppm
+        SO2(0xffffc107);    // ppb
         private int color;
 
-        public String unit;
-
-        AQI(float good, float moderate, float unh_for_sens, float unh, float very_unh, float haz, float very_haz, String unit, int color) {
-            this.good = good;
-            this.moderate = moderate;
-            this.unh_for_sens = unh_for_sens;
-            this.unh = unh;
-            this.very_unh = very_unh;
-            this.haz = haz;
-            this.very_haz = very_haz;
-            this.unit = unit;
+        AQI(int color) {
             this.color = color;
         }
 
         public int getColor() {
             return color;
-        }
-
-        public Integer getAqi(Double C) {
-            if (C==null || C < 0) return null;
-            float Chigh, Clow, Ilow;
-            int range;
-            if (C < good) {
-                Chigh = good;
-                Clow = 0;
-                range = GOOD_RANGE;
-                Ilow = 0;
-            } else if (C < moderate) {
-                Chigh = moderate;
-                Clow = good;
-                range = MODERATE_RANGE;
-                Ilow = Constants.AQI.MODERATE;
-            } else if (C < unh_for_sens) {
-                Chigh = unh_for_sens;
-                Clow = moderate;
-                range = UNH_FOR_SENS_RANGE;
-                Ilow = Constants.AQI.UNHEALTHY_SENSITIVE;
-            } else if (C < unh) {
-                Chigh = unh;
-                Clow = unh_for_sens;
-                range = UNH_RANGE;
-                Ilow = Constants.AQI.UNHEALTHY;
-            } else if (C < very_unh) {
-                Chigh = very_unh;
-                Clow = unh;
-                range = VERY_UNH_RANGE;
-                Ilow = Constants.AQI.VERY_UNHEALTHY;
-            } else if (C < haz) {
-                Chigh = haz;
-                Clow = very_unh;
-                range = HAZ_RANGE;
-                Ilow = Constants.AQI.HAZARDOUS;
-            } else {
-                Chigh = very_haz;
-                Clow = haz;
-                range = VERY_HAZ_RANGE;
-                Ilow = Constants.AQI.HAZARDOUS + range;
-            }
-            int aqi = (int) ((range / (Chigh - Clow)) * (C - Clow) + Ilow);
-            return aqi < 501 ? aqi : 500;
         }
     }
 

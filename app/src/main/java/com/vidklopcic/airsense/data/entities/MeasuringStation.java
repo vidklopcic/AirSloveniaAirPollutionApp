@@ -30,10 +30,6 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class MeasuringStation extends RealmObject {
-    public interface MeasurementsTransactionListener {
-        void onTransactionFinished(List<StationMeasurement> measurements);
-    }
-
     public static final int AVERAGES_POLLUTANTS = 0;
     public static final int AVERAGES_OTHER = 1;
     public static final int RAW_VALUE = 0;
@@ -44,17 +40,35 @@ public class MeasuringStation extends RealmObject {
     Double lng;
     @PrimaryKey
     String id;
-    Integer config_version;
     Long last_measurement_time;
     Long last_update_time;
-    String last_measurement;
     Long oldest_stored_measurement;
     Long oldest_range_request;
-    public Double PM10;
-    public Double SO2;
-    public Double O3;
-    public Double CO;
-    public Double NO2;
+
+    public Double PM25_ugm3;
+    public Integer PM25_ppm;
+    public Integer PM25_aqi;
+
+    public Double PM10_ugm3;
+    public Integer PM10_ppm;
+    public Integer PM10_aqi;
+
+    public Double SO2_ugm3;
+    public Integer SO2_ppm;
+    public Integer SO2_aqi;
+
+    public Double O3_ugm3;
+    public Integer O3_ppm;
+    public Integer O3_aqi;
+
+    public Double CO_ugm3;
+    public Integer CO_ppm;
+    public Integer CO_aqi;
+
+    public Double NO2_ugm3;
+    public Integer NO2_ppm;
+    public Integer NO2_aqi;
+
     public Double temperature;
     public Double humidity;
 
@@ -81,28 +95,6 @@ public class MeasuringStation extends RealmObject {
         return station;
     }
 
-    public static MeasuringStation updateOrCreate(Realm r, ARSOStation data) {
-        MeasuringStation station;
-        r.beginTransaction();
-        station = findById(r, data.id);
-        if (station == null) {
-            station = r.createObject(MeasuringStation.class);
-        }
-        station.id = data.id;
-        station.city = data.place;
-        station.pollutants = "[\"PM10\", \"SO2\", \"O3\", \"CO\", \"NO2\"]";
-        station.lat = data.lat;
-        station.lng = data.lng;
-        station.CO = data.co;
-        station.SO2 = data.so2;
-        station.O3 = data.o3;
-        station.PM10 = data.pm10;
-        station.NO2 = data.no2;
-        station.last_update_time = new Date().getTime();
-        r.commitTransaction();
-        return station;
-    }
-
     public Long getLastMeasurementTime() {
         return last_measurement_time;
     }
@@ -123,23 +115,12 @@ public class MeasuringStation extends RealmObject {
         return last_update_time;
     }
 
-    public HashMap<String, ArrayList<Object>> getPollutants() {
-        HashMap<String, ArrayList<Object>> raw = new HashMap<>();
-        for (String key : Constants.AQI.supported_pollutants) {
-            ArrayList<Object> value = new ArrayList<>();
-            Conversion.AQI aqi = Conversion.getAQIbyKey(key);
-            value.add(aqi.unit);
-            value.add(Conversion.getValueByKey(key, this));
-        }
-        return raw;
-    }
-
     public ArrayList<Object> getRaw(String pollutant) {
         ArrayList<Object> result = new ArrayList<>();
-        result.add(Conversion.getValueByKey(pollutant, this));
-        Conversion.AQI a = Conversion.getAQIbyKey(pollutant);
-        if (a != null) {
-            result.add(a.unit);
+        PollutionMeasurement m = Conversion.getValueByKey(pollutant, this);
+        if (m.ug_m3 != null) {
+            result.add(m.ug_m3);
+            result.add("μg/m³");
             return result;
         }
         return null;
@@ -191,28 +172,90 @@ public class MeasuringStation extends RealmObject {
         r.commitTransaction();
     }
 
-    public void setProperty(String property, Double value) {
+    public void clearLastMeasurement() {
+        CO_aqi = null;
+        CO_ppm = null;
+        CO_ugm3 = null;
+
+        O3_aqi = null;
+        O3_ppm = null;
+        O3_ugm3 = null;
+
+        SO2_aqi = null;
+        SO2_ppm = null;
+        SO2_ugm3 = null;
+
+        NO2_aqi = null;
+        NO2_ppm = null;
+        NO2_ugm3 = null;
+
+        PM10_aqi = null;
+        PM10_ppm = null;
+        PM10_ugm3 = null;
+
+        PM25_aqi = null;
+        PM25_ppm = null;
+        PM25_ugm3 = null;
+    }
+
+    public void setMeasurement(Realm r, Measurement measurement) {
+        r.beginTransaction();
+        List<PollutionMeasurement> pollutants = measurement.getPollutants();
+        List<OtherMeasurement> others = measurement.getOthers();
+        for (PollutionMeasurement m : pollutants) {
+            setProperty(m.property, m.ug_m3, m.ppm, m.aqi);
+        }
+        for (OtherMeasurement m : others) {
+            setProperty(m.property, m.value);
+        }
+        r.commitTransaction();
+    }
+
+    public void setProperty(String property, Double other) {
+        setProperty(property, null, null, null, other);
+    }
+
+    public void setProperty(String property, Double ugm3, Integer ppm, Integer aqi) {
+        setProperty(property, ugm3, ppm, aqi, null);
+    }
+
+    public void setProperty(String property, Double ugm3, Integer ppm, Integer aqi, Double other) {
         switch (property){
             case "CO":
-                CO = value;
+                CO_aqi = aqi;
+                CO_ppm = ppm;
+                CO_ugm3 = ugm3;
                 break;
             case "O3":
-                O3 = value;
-                break;
-            case "PM10":
-                PM10 = value;
+                O3_aqi = aqi;
+                O3_ppm = ppm;
+                O3_ugm3 = ugm3;
                 break;
             case "NO2":
-                NO2 = value;
+                NO2_aqi = aqi;
+                NO2_ppm = ppm;
+                NO2_ugm3 = ugm3;
                 break;
             case "SO2":
-                SO2 = value;
+                SO2_aqi = aqi;
+                SO2_ppm = ppm;
+                SO2_ugm3 = ugm3;
+                break;
+            case "PM10":
+                PM10_aqi = aqi;
+                PM10_ppm = ppm;
+                PM10_ugm3 = ugm3;
+                break;
+            case "PM2.5":
+                PM10_aqi = aqi;
+                PM10_ppm = ppm;
+                PM10_ugm3 = ugm3;
                 break;
             case "humidity":
-                humidity = value;
+                humidity = other;
                 break;
             case "temperature":
-                temperature = value;
+                temperature = other;
                 break;
             default:
                 return;
@@ -303,21 +346,8 @@ public class MeasuringStation extends RealmObject {
     }
 
     public Integer getAqi(String pollutant_name) {
-        Conversion.AQI a = Conversion.getAQIbyKey(pollutant_name);
-        if (a != null) {
-            return a.getAqi(Conversion.getValueByKey(pollutant_name, this));
-        }
-        return null;
-    }
-
-    public Integer getConfigVersion() {
-        return config_version;
-    }
-
-    public void setConfigVersion(Realm r, Integer version) {
-        r.beginTransaction();
-        config_version = version;
-        r.commitTransaction();
+        PollutionMeasurement m = Conversion.getValueByKey(pollutant_name, this);
+        return m.aqi;
     }
 
     public static ArrayList<HashMap<String, Integer>> getAverages(List<MeasuringStation> stations) {
@@ -357,10 +387,6 @@ public class MeasuringStation extends RealmObject {
         result.add(aqi);
         result.add(other);
         return result;
-    }
-
-    private Double getPollutant(String pollutant_name) {
-        return Conversion.getValueByKey(pollutant_name, this);
     }
 
     public static LatLngBounds getBounds(List<MeasuringStation> stations) {
@@ -424,7 +450,10 @@ public class MeasuringStation extends RealmObject {
                                 this,
                                 date.getTime(),
                                 measurement.property,
-                                measurement.ug_m3);
+                                measurement.ug_m3,
+                                measurement.ppm,
+                                measurement.aqi,
+                                null);
                     }
                 }
 
@@ -448,6 +477,9 @@ public class MeasuringStation extends RealmObject {
                                 this,
                                 date.getTime(),
                                 measurement.property,
+                                null,
+                                null,
+                                null,
                                 measurement.value);
                     }
                 }
@@ -469,12 +501,6 @@ public class MeasuringStation extends RealmObject {
         } catch (ParseException e) {
             return null;
         }
-    }
-
-    public static String dateToString(Date date) {
-        SimpleDateFormat format = new SimpleDateFormat(Constants.ARSOStation.date_format);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.format(date);
     }
 
     public Long getOldestStoredMeasurementTime() {

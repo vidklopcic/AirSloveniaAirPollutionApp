@@ -16,7 +16,7 @@ public abstract class Constants {
 
     // new api
     public static class API {
-        public static final String base_url = "http://airsense.cu.cc/api/";
+        public static final String base_url = "http://airsense.tk/api/";
         public static final String time_format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     }
 
@@ -53,11 +53,12 @@ public abstract class Constants {
         public static final String measurement_range_url_start = "{start}";
         public static final String measurement_range_url_end = "{end}";
         public static final String measurement_range_url = "https://prod.citisense.snowflakesoftware.com/json/sensor/observationfinishtime/between?sensorid={id}&from={start}&to={end}";
-        public static final int update_interval = 60 * SECONDS * MILLIS;
+        public static final int update_interval = 5 * SECONDS * MILLIS;
         public static final String CO_KEY = "CO";
         public static final String NO2_KEY = "NO2";
         public static final String SO2_KEY = "SO2";
         public static final String PM10_KEY = "PM10";
+        public static final String PM25_KEY = "PM2.5";
         public static final String O3_KEY = "O3";
         public static final String HUMIDITY_KEY = "humidity";
         public static final String TEMPERATURE_KEY = "temperature";

@@ -117,19 +117,10 @@ public class DataAPI {
         }
 
         public void updateStation(Realm realm, MeasuringStation mstation) throws IOException {
-            realm.beginTransaction();
             Response<Measurement> resp = mAirSenseApi.getLastMeasurement(mstation.getStationId()).execute();
             Measurement last_measurement = resp.body();
-            List<PollutionMeasurement> pollutants = last_measurement.getPollutants();
-            List<OtherMeasurement> others = last_measurement.getOthers();
-            for (PollutionMeasurement m : pollutants) {
-                mstation.setProperty(m.property, m.ug_m3);
-            }
-            for (OtherMeasurement m : others) {
-                mstation.setProperty(m.property, m.value);
-            }
+            mstation.setMeasurement(realm, last_measurement);
             notifyStationUpdated(mstation);
-            realm.commitTransaction();
         }
 
         @Override
@@ -163,10 +154,8 @@ public class DataAPI {
                         }
 
                         for (MeasuringStation station : stations) {
-                            if (!station.wasUpdated()) {
-                                updateStation(realm, station);
-                                updated = true;
-                            }
+                            updateStation(realm, station);
+                            updated = true;
                         }
                     } catch (Exception e) {
                     }
@@ -177,7 +166,7 @@ public class DataAPI {
                     Long s = new Date().getTime();
                     Long end = s + Constants.ARSOStation.update_interval;
                     RealmResults<StationMeasurement> result = realm.where(StationMeasurement.class)
-                            .lessThan("measurement_time", new Date().getTime() - 4*24*60*60*1000).findAll();
+                            .lessThan("measurement_time", new Date().getTime() - 5*24*60*60*1000).findAll();
                     if (result.size() > 0) {
                         realm.beginTransaction();
                         result.deleteAllFromRealm();
@@ -188,7 +177,7 @@ public class DataAPI {
 
                     try {
                         while (new Date().getTime() < end && !mForceUpdate && !mShouldExitTask) {
-                            Thread.sleep(10);
+                            Thread.sleep(Constants.ARSOStation.update_interval);
                         }
                     } catch (InterruptedException ignored) {}
                 }

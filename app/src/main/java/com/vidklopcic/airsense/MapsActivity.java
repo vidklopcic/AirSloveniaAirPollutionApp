@@ -124,6 +124,8 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private LatLngBounds mPrevBounds;
     private View mTouchBlockView;
     private View mMapTouchBlockView;
+    private LatLngBounds mDashboardBounds;
+    private float mZoom = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -308,10 +310,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private void removePointOfInterest() {
         if (mIsDuringChange)
             return;
-        if (mDashboardVisible) {
-            hideDashboard();
-            return;
-        }
         if (mCurrentMarker != null)
             mCurrentMarker.remove();
         mActionBarTitle.setEnabled(false);
@@ -328,9 +326,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
     private void setPointOfInterest(LatLng poi, Marker marker) {
         if (mIsDuringChange)
             return;
-        if (mDashboardVisible) {
-            hideDashboard();
-        }
         if (mCurrentMarker != null) {
             mCurrentMarker.remove();
         }
@@ -570,22 +565,19 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCityChange(String city, LatLngBounds bounds) {
-        if (bounds == null) {
-            hideDashboard();
-            return;
-        }
-
         mRegionStations = new ArrayList<>();
-        if (mLocation.getRegion().length() > 0 && mRegionStations.size() == 0) {
+        if (bounds != null && MeasuringStation.getStationsInArea(mRealm, bounds).size() > 0) {
+            mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
+        } else if (mLocation.getRegion().length() > 0 && MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds()).size() > 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds());
             city = mLocation.getRegion();
             bounds = mLocation.getRegionBounds();
-        } else if (mLocation.getCountry().length() > 0 && mRegionStations.size() == 0) {
+        } else if (mLocation.getCountry().length() > 0 && MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds()).size() > 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds());
             city = mLocation.getCountry();
             bounds = mLocation.getCountryBounds();
         } else {
-            mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
+            hideDashboard();
         }
 
         if (mDashboardDismissed) {
@@ -700,10 +692,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         if ((mMapPositioned || mDashboardDismissed) && dashboard)
             return;
         try {
+            if (dashboard) {
+                mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
+            }
             LatLngBounds lastviewport = mSavedState.getLastViewport();
             if (mLocation.getRegionBounds() != null) {
-                if (dashboard)
-                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
                 blockTouch();
                 mSavedState.setLastViewport(mRealm, mLocation.getRegionBounds());
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getRegionBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
@@ -719,8 +712,6 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                 });
                 mMapPositioned = true;
             } else if (mLocation.getCountryBounds() != null) {
-                if (dashboard)
-                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
                 blockTouch();
                 mSavedState.setLastViewport(mRealm, mLocation.getCountryBounds());
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mLocation.getCountryBounds(), 0), 1000, new GoogleMap.CancelableCallback() {
@@ -735,10 +726,21 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
                     }
                 });
                 mMapPositioned = true;
+            } else if (mSavedState.getLastViewport() != null && !dashboard) {
+                blockTouch();
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mSavedState.getLastViewport(), 0), 1000, new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        unblockTouch();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        unblockTouch();
+                    }
+                });
+                mMapPositioned = true;
             } else if (lastviewport != null && !mMapRestored) {
-                if (dashboard) {
-                    mMap.setPadding(0, mDashboardBarHeight, 0, mAnchoredHeight);
-                }
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lastviewport, 0));
                 mMapRestored = true;
             }
@@ -799,6 +801,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
+        mZoom = cameraPosition.zoom;
         List<MeasuringStation> viewport_stations = MeasuringStation.getStationsInArea(
                 mRealm, mMap.getProjection().getVisibleRegion().latLngBounds
         );
