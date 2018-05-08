@@ -568,11 +568,11 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mRegionStations = new ArrayList<>();
         if (bounds != null && MeasuringStation.getStationsInArea(mRealm, bounds).size() > 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, bounds);
-        } else if (mLocation.getRegion().length() > 0 && MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds()).size() > 0) {
+        } else if (mLocation.getRegion().length() > 0 && mLocation.getRegionBounds() != null && MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds()).size() > 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getRegionBounds());
             city = mLocation.getRegion();
             bounds = mLocation.getRegionBounds();
-        } else if (mLocation.getCountry().length() > 0 && MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds()).size() > 0) {
+        } else if (mLocation.getCountry().length() > 0 && mLocation.getCountryBounds() != null && MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds()).size() > 0) {
             mRegionStations = MeasuringStation.getStationsInArea(mRealm, mLocation.getCountryBounds());
             city = mLocation.getCountry();
             bounds = mLocation.getCountryBounds();
@@ -603,8 +603,15 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         }
     }
 
+    private String mCurrentCityText = "Slovenia";
+    private void updateDashboard(ArrayList<HashMap<String, Integer>> averages) {
+        updateDashboard(averages, mCurrentCityText);
+    }
+
     private void updateDashboard(ArrayList<HashMap<String, Integer>> averages, String city) {
         if (averages == null) return;
+        if (city == null) return;
+        mCurrentCityText = city;
         HashMap<String, Integer> other = averages.get(MeasuringStation.AVERAGES_OTHER);
         if (other.keySet().contains(Constants.ARSOStation.TEMPERATURE_KEY)) {
             String temp = other.get(Constants.ARSOStation.TEMPERATURE_KEY).toString() + Constants.TEMPERATURE_UNIT;
@@ -839,6 +846,7 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         return false;
     }
 
+    private boolean mDataReady = false;
     @Override
     public void onDataReady() {
     }
@@ -852,7 +860,10 @@ public class MapsActivity extends FragmentActivity implements LocationHelper.Loc
         mCircles.clear();
         mClusterManager.cluster();
         mStationsOnMap.clear();
-        mPullUpPager.update();
+        ArrayList<HashMap<String, Integer>> averages = mPullUpPager.update();
+        if (averages != null) {
+            updateDashboard(averages);
+        }
         onCameraChange(mMap.getCameraPosition());
     }
 

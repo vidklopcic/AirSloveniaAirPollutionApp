@@ -175,6 +175,7 @@ public class LocationHelper implements LocationListener {
     }
 
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (location == null) return false;
         if (currentBestLocation == null) {
             // A new location is always better than no location
             return true;
@@ -320,12 +321,18 @@ public class LocationHelper implements LocationListener {
 
         protected void onPostExecute(AddressInfo info) {
             if (mCityListener == null) {
-                mAddress.city_bounds = info.city_bounds;
                 mAddress.region_bounds = info.region_bounds;
+                if (info.region_bounds != null) {
+                    mAddress.region = info.region;
+                }
                 mAddress.country_bounds = info.country_bounds;
-                mAddress.region = info.region;
-                mAddress.country = info.country;
-                mAddress.city = info.city;
+                if (info.country_bounds != null) {
+                    mAddress.country = info.country;
+                }
+                mAddress.city_bounds = info.city_bounds;
+                if (info.city_bounds != null) {
+                    mAddress.city = info.city;
+                }
                 if (mListener != null)
                     mListener.onCityChange(mAddress.city, mAddress.city_bounds);
             } else {

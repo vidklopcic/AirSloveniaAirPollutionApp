@@ -74,8 +74,10 @@ public class DataAPI {
     }
 
     public void setObservedStations(List<MeasuringStation> stations) {
+        if (mActiveStations != null && mActiveStations.equals(stations)) return;
         if (stations != null)
             mActiveStations = stations;
+        mUpdateTask.updateStations();
         updateData();
     }
 
@@ -126,74 +128,61 @@ public class DataAPI {
         @Override
         public void run() {
             Realm realm;
-            try {
-                while (!mShouldExitTask) {
-                    realm = Realm.getDefaultInstance();
-                    SavedState savedState = SavedState.getSavedState(realm);
-                    Integer schema_version = savedState.getSchemaVersion();
-                    if (schema_version == null) {
-                        schema_version = 1;
-                    }
+            while (!mShouldExitTask) {
+                realm = Realm.getDefaultInstance();
+                SavedState savedState = SavedState.getSavedState(realm);
+                Integer schema_version = savedState.getSchemaVersion();
+                if (schema_version == null) {
+                    schema_version = 1;
+                }
 
-                    updateStations();
-                    List<MeasuringStation> stations = MeasuringStation.idListToStations(realm, mActiveStationsIds);
-                    Boolean updated = false;
-                    try {
-                        Response<Station[]> new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
-                        Station[] new_stations = new_stations_response.body();
-                        while (new_stations.length > 0) {
-                            schema_version += 1;
-                            savedState.setSchemaVersion(realm, schema_version);
-                            for (Station station : new_stations) {
-                                MeasuringStation mstation = MeasuringStation.updateOrCreate(realm, station);
-                                updateStation(realm, mstation);
-                                updated = true;
-                            }
-                            new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
-                            new_stations = new_stations_response.body();
-                        }
-
-                        for (MeasuringStation station : stations) {
-                            updateStation(realm, station);
+                List<MeasuringStation> stations = MeasuringStation.idListToStations(realm, mActiveStationsIds);
+                Boolean updated = false;
+                try {
+                    Response<Station[]> new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
+                    Station[] new_stations = new_stations_response.body();
+                    while (new_stations.length > 0) {
+                        schema_version += 1;
+                        savedState.setSchemaVersion(realm, schema_version);
+                        for (Station station : new_stations) {
+                            MeasuringStation mstation = MeasuringStation.updateOrCreate(realm, station);
+                            updateStation(realm, mstation);
                             updated = true;
                         }
-                    } catch (Exception e) {
+                        new_stations_response = mAirSenseApi.getAllStationsBySchema(schema_version).execute();
+                        new_stations = new_stations_response.body();
                     }
 
-                    notifyCycleEnded(updated);
-                    mForceUpdate = false;
-
-                    Long s = new Date().getTime();
-                    Long end = s + Constants.ARSOStation.update_interval;
-                    RealmResults<StationMeasurement> result = realm.where(StationMeasurement.class)
-                            .lessThan("measurement_time", new Date().getTime() - 5*24*60*60*1000).findAll();
-                    if (result.size() > 0) {
-                        realm.beginTransaction();
-                        result.deleteAllFromRealm();
-                        realm.commitTransaction();
+                    for (MeasuringStation station : stations) {
+                        updateStation(realm, station);
+                        updated = true;
                     }
-
-                    realm.close();
-
-                    try {
-                        while (new Date().getTime() < end && !mForceUpdate && !mShouldExitTask) {
-                            Thread.sleep(Constants.ARSOStation.update_interval);
-                        }
-                    } catch (InterruptedException ignored) {}
+                } catch (Exception e) {
                 }
-            } finally {
+
+                notifyCycleEnded(updated);
+                mForceUpdate = false;
+
+                Long s = new Date().getTime();
+                Long end = s + Constants.ARSOStation.update_interval;
+                RealmResults<StationMeasurement> result = realm.where(StationMeasurement.class)
+                        .lessThan("measurement_time", new Date().getTime() - 5*24*60*60*1000).findAll();
+                if (result.size() > 0) {
+                    realm.beginTransaction();
+                    result.deleteAllFromRealm();
+                    realm.commitTransaction();
+                }
+
+                realm.close();
+
+                while (new Date().getTime() < end && !mForceUpdate && !mShouldExitTask);
             }
             mShouldExitTask = false;
             mUpdateTaskIsRunning = false;
         }
 
         private void updateStations() {
-            mContext.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mActiveStationsIds = MeasuringStation.stationsToIdList(mActiveStations);
-                }
-            });
+            mActiveStationsIds = MeasuringStation.stationsToIdList(mActiveStations);
         }
 
         private void notifyStationUpdated(final MeasuringStation station) {
